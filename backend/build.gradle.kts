@@ -45,3 +45,14 @@ dependencies {
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+
+tasks.register<Copy>("copyWebApp") {
+    dependsOn(":frontend:build")
+
+    from("$rootDir/frontend/build/dist")
+    into(layout.buildDirectory.dir("resources/main/static/"))
+}
+
+tasks.named("processResources") {
+    dependsOn("copyWebApp")
+}
