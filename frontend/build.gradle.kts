@@ -3,6 +3,7 @@ import com.github.gradle.node.npm.task.NpmTask
 plugins {
     id("base")
     id("com.github.node-gradle.node") version "7.0.2"
+    id("org.openapi.generator") version "7.7.0"
 }
 
 node {
@@ -21,6 +22,7 @@ tasks.named("clean") {
 
 tasks.register<NpmTask>("npmBuild") {
     dependsOn("npmInstall")
+    dependsOn(tasks.openApiGenerate)
 
     inputs.file(file("${projectDir}/package.json"))
     inputs.file(file("${projectDir}/package-lock.json"))
@@ -40,6 +42,18 @@ tasks.named("assemble") {
 
 tasks.register<NpmTask>("npmStartGUI") {
     dependsOn("npmInstall")
+    dependsOn(tasks.openApiGenerate)
 
     args.set(listOf("run", "dev"))
+}
+
+openApiGenerate {
+    generatorName.set("typescript-axios")
+    inputSpec.set(layout.projectDirectory.dir("..").dir("spec").file("openapi-spec.yml").asFile.path)
+    outputDir.set(layout.buildDirectory.dir("generated-ts/api").get().asFile.path)
+    configOptions.set(
+        mapOf(
+            "supportsES6" to "true"
+        )
+    )
 }
