@@ -24,6 +24,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.3.1"
     id("io.spring.dependency-management") version "1.1.5"
+    id("org.openapi.generator") version "7.7.0"
 }
 
 java {
@@ -45,6 +46,9 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
+
+    implementation("io.swagger.core.v3:swagger-models:2.2.22")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
 
     compileOnly("org.projectlombok:lombok")
 
@@ -75,7 +79,7 @@ tasks.register<Copy>("copyWebApp") {
     into(layout.buildDirectory.dir("resources/main/static/"))
 }
 
-tasks.named("assemble") {
+tasks.named("processResources") {
     dependsOn("copyWebApp")
 }
 
@@ -132,12 +136,40 @@ tasks.register("jooqCodegen") {
     }
 }
 
-sourceSets {
-    main {
-        java.srcDirs(layout.buildDirectory.dir("generated/sources/jooq").get().asFile)
-    }
+tasks.named("compileJava") {
+    dependsOn("jooqCodegen")
+}
+
+openApiGenerate {
+    generatorName.set("spring")
+    inputSpec.set(layout.projectDirectory.dir("..").dir("spec").file("openapi-spec.yml").asFile.path)
+    outputDir.set(layout.buildDirectory.dir("generated/sources/spec").get().asFile.path)
+    apiPackage.set("generated.sky.meal.ordering.rest.api")
+    modelPackage.set("generated.sky.meal.ordering.rest.model")
+    configOptions.set(
+        mapOf(
+            "library" to "spring-boot",
+            "dateLibrary" to "java8",
+            "useJakartaEe" to "true",
+            "generateBuilders" to "true",
+            "legacyDiscriminatorBehavior" to "false",
+            "openApiNullable" to "false",
+            "delegatePattern" to "false",
+            "useSpringBoot3" to "true",
+            "interfaceOnly" to "true",
+            "skipDefaultInterface" to "true",
+            "returnSuccessCode" to "true",
+        )
+    )
 }
 
 tasks.named("compileJava") {
-    dependsOn("jooqCodegen")
+    dependsOn(tasks.openApiGenerate)
+}
+
+sourceSets {
+    main {
+        java.srcDirs(layout.buildDirectory.dir("generated/sources/jooq").get().asFile)
+        java.srcDirs(layout.buildDirectory.dir("generated/sources/spec/src/main").get().asFile)
+    }
 }
