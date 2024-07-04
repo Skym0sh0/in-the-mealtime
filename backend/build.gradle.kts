@@ -5,6 +5,7 @@ import org.jooq.meta.jaxb.*
 import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
 
 buildscript {
     repositories {
@@ -85,7 +86,10 @@ tasks.register("jooqCodegen") {
     outputs.dir(file(layout.buildDirectory.dir("generated/sources/jooq")))
 
     doLast {
-        PostgreSQLContainer<Nothing>("postgres:16.1").use {
+        PostgreSQLContainer<Nothing>(
+            DockerImageName.parse("postgres")
+                .withTag("16.1@sha256:ee5dc0b649c9322656a1ee2c5dce7ce17fa9b15d838e992ca43a8e0b108b098e")
+        ).use {
             it.start()
 
             Flyway.configure()
