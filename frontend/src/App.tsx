@@ -1,34 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import AdbIcon from '@mui/icons-material/Adb';
+import {AppBar, Box, Button, Container, CssBaseline, Stack, Toolbar, Typography} from "@mui/material";
+
+function NamedLogo() {
+  return <Stack direction="row" spacing={1} alignItems="center">
+    <AdbIcon/>
+
+    <Typography variant="h5"
+                component="div"
+                sx={{
+                  mr: 2,
+                  display: {xs: 'none', md: 'flex'},
+                  fontFamily: 'monospace',
+                  fontWeight: 700,
+                  letterSpacing: '.3rem',
+                  color: 'inherit',
+                  textDecoration: 'none',
+                }}>
+      Meal Ordering
+    </Typography>
+  </Stack>;
+}
+
+function AppBarLinks() {
+  return <Toolbar>
+    <Button color="inherit">
+      Orders
+    </Button>
+
+    <Button color="inherit">
+      Restaurants
+    </Button>
+  </Toolbar>;
+}
+
+function AppBarMenu() {
+  return <Button color="inherit">
+    Profile
+  </Button>;
+}
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    <Box sx={{paddingTop: '4em'}}>
+      <CssBaseline/>
+
+      <AppBar position="fixed" sx={{height: '4em', paddingX: '2em'}}>
+        <Stack direction="row" spacing={2} justifyContent="space-between">
+          <Stack direction="row" spacing={2}>
+            <NamedLogo/>
+
+            <AppBarLinks/>
+          </Stack>
+
+          <AppBarMenu/>
+        </Stack>
+      </AppBar>
+
+      <Box>
+        <Container maxWidth="xl" style={{backgroundColor: 'pink'}}>
+        </Container>
+      </Box>
+    </Box>
   )
 }
 
