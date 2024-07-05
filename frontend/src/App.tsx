@@ -1,6 +1,7 @@
 import './App.css'
 import AdbIcon from '@mui/icons-material/Adb';
 import {AppBar, Box, Button, Container, CssBaseline, Stack, Toolbar, Typography} from "@mui/material";
+import {GlobalRouting} from "./routes/Routes.tsx";
 
 function NamedLogo() {
   return <Stack direction="row" spacing={1} alignItems="center">
@@ -24,11 +25,11 @@ function NamedLogo() {
 
 function AppBarLinks() {
   return <Toolbar>
-    <Button color="inherit">
+    <Button color="inherit" href="/order">
       Orders
     </Button>
 
-    <Button color="inherit">
+    <Button color="inherit" href="/restaurant">
       Restaurants
     </Button>
   </Toolbar>;
@@ -59,6 +60,9 @@ function App() {
 
       <Box>
         <Container maxWidth="xl" style={{backgroundColor: 'pink'}}>
+
+          <GlobalRouting/>
+
         </Container>
       </Box>
     </Box>
