@@ -50,10 +50,7 @@ export default function RestaurantsOverview() {
   const onNewRestaurant = useCallback(() => {
     console.log("new restaruant")
 
-    navigate({
-      pathname: `./new-restaurant`,
-      search: 'is-new=true'
-    }, {relative: 'path'});
+    navigate({pathname: `./new-restaurant`,}, {relative: 'path'});
   }, [navigate]);
 
   return <Paper elevation={8}>
