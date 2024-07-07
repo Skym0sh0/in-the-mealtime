@@ -19,16 +19,14 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
   const navigate = useNavigate();
   const params = useParams<{ orderId: string }>();
 
-  const [autoReload, setAutoReload] = useState(false);
+  const [autoReload, _] = useState(false);
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(() => {
-    console.log(params)
     return params?.orderId ?? null;
   });
 
   const select = useCallback((orderId: string | null) => {
-    console.log("use select callback")
     setSelectedOrderId(orderId)
 
     if (!orderId)
@@ -53,10 +51,8 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
   // periodically (re-)load orders
   useEffect(() => {
     const refresh = () => {
-      console.log("refresh")
       api.orders.fetchOrders()
         .then(res => {
-          console.log("refreshed")
           setOrders(res.data.splice(0, 3));
         })
     };
@@ -77,7 +73,9 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
 
   // handle if selected order does not exist anymore or if there is something to auto select
   useEffect(() => {
-    console.log("changed orders")
+    if (!orders) {
+      return;
+    }
     if (!orders || !orders.length) {
       select(null)
       return;
