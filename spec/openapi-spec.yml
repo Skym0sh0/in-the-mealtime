@@ -1,0 +1,247 @@
+openapi: 3.0.3
+info:
+  title: Meal Ordering
+  description: This is the API for Meal Ordering
+  version: 1.0.0
+tags:
+  - name: Restaurant
+    description: Everything about Restaurants
+  - name: Order
+    description: Everything about Orders
+paths:
+  /order:
+    get:
+      tags:
+        - Order
+      summary: Fetch all orders
+      description: Fetch all orders
+      operationId: fetchOrders
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+  /restaurant:
+    get:
+      tags:
+        - Restaurant
+      summary: Fetch all restaurants
+      description: Fetch all restaurants
+      operationId: fetchRestaurants
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Restaurant'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Restaurant'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+    post:
+      tags:
+        - Restaurant
+      summary: Create a new restaurants
+      description: Create a new restaurants
+      operationId: createRestaurant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Restaurant'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Restaurant'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+  /restaurant/{id}:
+    get:
+      tags:
+        - Restaurant
+      summary: Fetch restaurant
+      description: Fetch restaurant
+      operationId: fetchRestaurant
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+
+    put:
+      tags:
+        - Restaurant
+      summary: Updates a restaurants
+      description: Updates a new restaurants
+      operationId: updateRestaurant
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Restaurant'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Restaurant'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Restaurant'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+    delete:
+      tags:
+        - Restaurant
+      summary: Delete a restaurants
+      description: Delete a new restaurants
+      operationId: deleteRestaurant
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Successful operation
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+
+components:
+  schemas:
+    Restaurant:
+      type: object
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        style:
+          type: string
+        kind:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+        email:
+          type: string
+        description:
+          type: string
+        shortDescription:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+    Order:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        restaurantId:
+          type: string
+          format: uuid
+        date:
+          type: string
+          format: date
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        housenumber:
+          type: string
+        postal:
+          type: string
+        city:
+          type: string
+  requestBodies:
+    Restaurant:
+      description: Restaurant object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Restaurant'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Restaurant'
+    Order:
+      description: Order object
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Order'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Order'
