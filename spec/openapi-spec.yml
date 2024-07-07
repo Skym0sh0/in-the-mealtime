@@ -205,6 +205,9 @@ components:
           $ref: '#/components/schemas/Address'
     Order:
       type: object
+      required:
+        - id
+        - restaurantId
       properties:
         id:
           type: string

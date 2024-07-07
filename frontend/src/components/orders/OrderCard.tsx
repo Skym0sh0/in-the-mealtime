@@ -4,12 +4,12 @@ import {Order, Restaurant} from "../../../build/generated-ts/api";
 
 type OrderCardProps = {
   selected: boolean;
-  idx: number;
   order: Order;
   restaurant?: Restaurant;
+  onSelect: () => void;
 };
 
-export default function OrderCard({selected, order, restaurant}: OrderCardProps) {
+export default function OrderCard({selected, order, restaurant, onSelect}: OrderCardProps) {
   return <SOrderCard elevation={8} isSelected={selected}>
     <CardContent>
       <Typography variant="overline" gutterBottom color="text.secondary">
@@ -30,7 +30,7 @@ export default function OrderCard({selected, order, restaurant}: OrderCardProps)
     </CardContent>
 
     <CardActions sx={{paddingX: '1em', display: "flex", justifyContent: "flex-end"}}>
-      <Button size="small" color="primary">
+      <Button size="small" color="primary" onClick={onSelect}>
         Anzeigen
       </Button>
     </CardActions>

@@ -5,6 +5,7 @@ import {Restaurant} from "../../../build/generated-ts/api";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {api} from "../../api/api.ts";
 import OrdersCardsList from "./OrdersCardsList.tsx";
+import {Outlet} from "react-router-dom";
 
 export default function OrdersOverview() {
   const [restaurants, setRestaurants] = useState<Restaurant[] | null>(null);
@@ -27,7 +28,7 @@ export default function OrdersOverview() {
     </SDrawer>
 
     <Paper elevation={8}>
-      <p>One selected order</p>
+      <Outlet/>
     </Paper>
   </LoadingIndicator>;
 }
