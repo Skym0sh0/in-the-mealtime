@@ -59,7 +59,7 @@ function App() {
       </AppBar>
 
       <Box>
-        <Container maxWidth="xl" style={{backgroundColor: 'pink'}}>
+        <Container maxWidth="xl">
 
           <GlobalRouting/>
 
