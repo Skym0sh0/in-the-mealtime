@@ -1,6 +1,17 @@
 import './App.css'
 import AdbIcon from '@mui/icons-material/Adb';
-import {AppBar, Box, Button, Container, CssBaseline, Stack, Toolbar, Typography} from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Button,
+  Container,
+  createTheme,
+  CssBaseline,
+  Stack,
+  ThemeProvider,
+  Toolbar,
+  Typography
+} from "@mui/material";
 import {GlobalRouting} from "./routes/Routes.tsx";
 
 function NamedLogo() {
@@ -41,33 +52,37 @@ function AppBarMenu() {
   </Button>;
 }
 
+const theme = createTheme();
+
 function App() {
   return (
-    <Box sx={{display: 'flex'}}>
-      <CssBaseline/>
+    <ThemeProvider theme={theme}>
+      <Box sx={{display: 'flex'}}>
+        <CssBaseline/>
 
-      <AppBar position="fixed" sx={{paddingX: '2em', zIndex: (theme) => theme.zIndex.drawer + 1}}>
-        <Stack direction="row" spacing={2} justifyContent="space-between">
-          <Stack direction="row" spacing={2}>
-            <NamedLogo/>
+        <AppBar position="fixed" sx={{paddingX: '2em', zIndex: (theme) => theme.zIndex.drawer + 1}}>
+          <Stack direction="row" spacing={2} justifyContent="space-between">
+            <Stack direction="row" spacing={2}>
+              <NamedLogo/>
 
-            <AppBarLinks/>
+              <AppBarLinks/>
+            </Stack>
+
+            <AppBarMenu/>
           </Stack>
+        </AppBar>
 
-          <AppBarMenu/>
-        </Stack>
-      </AppBar>
+        <Box component="main" sx={{flexGrow: 1, p: 3}}>
+          <Toolbar/>
 
-      <Box component="main" sx={{flexGrow: 1, p: 3}}>
-        <Toolbar/>
+          <Container maxWidth="xl">
 
-        <Container maxWidth="xl">
+            <GlobalRouting/>
 
-          <GlobalRouting/>
-
-        </Container>
+          </Container>
+        </Box>
       </Box>
-    </Box>
+    </ThemeProvider>
   )
 }
 

@@ -3,16 +3,17 @@ package de.sky.meal.ordering.mealordering.endpoint;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+@Service
 @Controller
 public class RestaurantController implements generated.sky.meal.ordering.rest.api.RestaurantApi {
     private final List<Restaurant> restaurants = new ArrayList<>();
-
 
     {
         restaurants.add(
