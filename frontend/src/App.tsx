@@ -43,10 +43,10 @@ function AppBarMenu() {
 
 function App() {
   return (
-    <Box sx={{paddingTop: '4em'}}>
+    <Box sx={{display: 'flex'}}>
       <CssBaseline/>
 
-      <AppBar position="fixed" sx={{height: '4em', paddingX: '2em'}}>
+      <AppBar position="fixed" sx={{paddingX: '2em', zIndex: (theme) => theme.zIndex.drawer + 1}}>
         <Stack direction="row" spacing={2} justifyContent="space-between">
           <Stack direction="row" spacing={2}>
             <NamedLogo/>
@@ -58,7 +58,9 @@ function App() {
         </Stack>
       </AppBar>
 
-      <Box>
+      <Box component="main" sx={{flexGrow: 1, p: 3}}>
+        <Toolbar/>
+
         <Container maxWidth="xl">
 
           <GlobalRouting/>
