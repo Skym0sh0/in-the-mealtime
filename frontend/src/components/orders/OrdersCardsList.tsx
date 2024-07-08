@@ -62,13 +62,9 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
     if (!autoReload)
       return;
 
-    const interval = setInterval(() => {
-      refresh();
-    }, 5000);
+    const interval = setInterval(refresh, 5000);
 
-    return () => {
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   // handle if selected order does not exist anymore or if there is something to auto select

@@ -34,6 +34,35 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
+  /order/{id}:
+    get:
+      tags:
+        - Order
+      summary: Fetch single order
+      description: Fetch single order
+      operationId: fetchOrder
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+
   /restaurant:
     get:
       tags:

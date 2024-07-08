@@ -47,6 +47,15 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
+    public ResponseEntity<Order> fetchOrder(UUID id) {
+        return orders.stream()
+                .filter(o -> o.getId().equals(id))
+                .findAny()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Override
     public ResponseEntity<List<Order>> fetchOrders() {
         return ResponseEntity.ok(orders);
     }
