@@ -2,12 +2,13 @@ import {Order, Restaurant} from "../../../build/generated-ts/api";
 import {Box, Paper, Stack, Typography} from "@mui/material";
 import {v4 as uuidv4} from 'uuid';
 import OrderPositionsTable, {OrderPosition} from "./OrderPositionsTable.tsx";
+import {useCallback, useState} from "react";
+import OrderPositionEditor from "./OrderPositionEditor.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
   order: Order;
 }
-
 
 export default function OrderEditor({restaurant, order}: OrderEditorProps) {
   const random = (lower: number = 0, upper: number = 1 << 31) => {
@@ -47,24 +48,31 @@ export default function OrderEditor({restaurant, order}: OrderEditorProps) {
     return arr[random(0, arr.length)];
   };
 
-  const orderlines = Array(random(5, 15)).fill(null)
-    .map((_, idx) => idx)
-    .sort(() => 0.5 - Math.random())
-    .map((idx) => {
-      const price = random(5, 15);
-      const tip = random(0, 5) / 2.0;
-      const hasPaid = !!random(0, 2);
+  const [orderPositions, setOrderPositions] = useState(() => {
+    return Array(random(1, 5)).fill(null)
+      .map((_, idx) => idx)
+      .sort(() => 0.5 - Math.random())
+      .map((idx) => {
+        const price = random(5, 15);
+        const tip = random(0, 5) / 2.0;
+        const hasPaid = !!random(0, 2);
 
-      return ({
-        id: uuidv4(),
-        index: idx,
-        name: randomName(),
-        meal: random(30, 70) + randomExt(),
-        price: price,
-        paid: hasPaid ? price + tip : null,
-        tip: hasPaid ? tip : null,
-      }) as OrderPosition;
-    });
+        return ({
+          id: uuidv4(),
+          index: idx,
+          name: randomName(),
+          meal: random(30, 70) + randomExt(),
+          price: price,
+          paid: hasPaid ? price + tip : null,
+          tip: hasPaid ? tip : null,
+        }) as OrderPosition;
+      });
+  });
+
+  const onAddPosition: (position: OrderPosition) => Promise<void> = useCallback((position: OrderPosition) => {
+    setOrderPositions(prev => [...prev, position])
+    return new Promise(resolve => resolve())
+  }, []);
 
   return <Box sx={{minWidth: '860px'}}>
     <Stack spacing={2}>
@@ -73,7 +81,11 @@ export default function OrderEditor({restaurant, order}: OrderEditorProps) {
       </Typography>
 
       <Paper elevation={8} sx={{padding: 1}}>
-        <OrderPositionsTable orderPositions={orderlines}/>
+        <Stack spacing={2}>
+          <OrderPositionsTable orderPositions={orderPositions}/>
+
+          <OrderPositionEditor onSave={onAddPosition}/>
+        </Stack>
       </Paper>
     </Stack>
   </Box>

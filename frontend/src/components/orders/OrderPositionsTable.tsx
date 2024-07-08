@@ -1,15 +1,27 @@
-import {Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow} from "@mui/material";
+import {
+  IconButton,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableFooter,
+  TableHead,
+  TableRow
+} from "@mui/material";
 import {useMemo} from "react";
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 
 export type OrderPosition = {
   id: string;
-  index: number;
+  index?: number;
   name: string;
   meal: string;
   price: number;
-  paid: number | null;
-  tip: number | null;
+  paid?: number;
+  tip?: number;
 };
 
 export default function OrderPositionsTable({orderPositions}: { orderPositions: OrderPosition[] }) {
@@ -35,7 +47,7 @@ export default function OrderPositionsTable({orderPositions}: { orderPositions: 
     };
   }, [orderPositions]);
 
-  return <TableContainer component={Paper} sx={{maxHeight: '50vh'}}>
+  return <TableContainer component={Paper} sx={{minHeight: '50vh', maxHeight: '50vh'}}>
     <Table size="small" stickyHeader={true}>
       <TableHead>
         <TableRow>
@@ -45,6 +57,7 @@ export default function OrderPositionsTable({orderPositions}: { orderPositions: 
           <TableCell align="right">Preis</TableCell>
           <TableCell align="right">Bezahlt</TableCell>
           <TableCell align="right">Trinkgeld</TableCell>
+          <TableCell align="right"/>
         </TableRow>
       </TableHead>
 
@@ -110,6 +123,15 @@ function OrderTableRow({position, idx}: { position: OrderPosition, idx: number }
     </TableCell>
     <TableCell align="right">
       {formatMonetaryAmount(position.tip)}
+    </TableCell>
+
+    <TableCell align="right">
+      <IconButton size="small" color="primary">
+        <EditIcon fontSize="inherit"/>
+      </IconButton>
+      <IconButton size="small" color="secondary">
+        <DeleteIcon fontSize="inherit"/>
+      </IconButton>
     </TableCell>
   </TableRow>
 }
