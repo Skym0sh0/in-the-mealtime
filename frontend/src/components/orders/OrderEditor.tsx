@@ -74,6 +74,10 @@ export default function OrderEditor({restaurant, order}: OrderEditorProps) {
     return new Promise(resolve => resolve())
   }, []);
 
+  const onDeletePosition = useCallback((position: OrderPosition) => {
+    setOrderPositions(prev => [...prev.filter(p => p.id !== position.id)])
+  }, []);
+
   return <Box sx={{minWidth: '860px'}}>
     <Stack spacing={2}>
       <Typography variant="h6">
@@ -82,7 +86,8 @@ export default function OrderEditor({restaurant, order}: OrderEditorProps) {
 
       <Paper elevation={8} sx={{padding: 1}}>
         <Stack spacing={2}>
-          <OrderPositionsTable orderPositions={orderPositions}/>
+          <OrderPositionsTable orderPositions={orderPositions}
+                               onDelete={onDeletePosition}/>
 
           <OrderPositionEditor onSave={onAddPosition}/>
         </Stack>

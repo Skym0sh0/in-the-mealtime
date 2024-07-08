@@ -24,7 +24,10 @@ export type OrderPosition = {
   tip?: number;
 };
 
-export default function OrderPositionsTable({orderPositions}: { orderPositions: OrderPosition[] }) {
+export default function OrderPositionsTable({orderPositions, onDelete}: {
+  orderPositions: OrderPosition[],
+  onDelete: (pos: OrderPosition) => void
+}) {
   const overallSum = useMemo(() => {
     const add = (mapper: (pos: OrderPosition) => number, filter: (pos: OrderPosition) => boolean = () => true) => {
       return orderPositions.filter(filter)
@@ -63,7 +66,13 @@ export default function OrderPositionsTable({orderPositions}: { orderPositions: 
 
       <TableBody>
         {
-          orderPositions.map((line, idx) => <OrderTableRow key={line.id} idx={idx} position={line}/>)
+          orderPositions.map((line, idx) => {
+            return <OrderTableRow key={line.id}
+                                  idx={idx}
+                                  position={line}
+                                  onDelete={onDelete}
+            />;
+          })
         }
       </TableBody>
 
@@ -104,7 +113,11 @@ export default function OrderPositionsTable({orderPositions}: { orderPositions: 
   </TableContainer>;
 }
 
-function OrderTableRow({position, idx}: { position: OrderPosition, idx: number }) {
+function OrderTableRow({idx, position, onDelete}: {
+  idx: number,
+  position: OrderPosition,
+  onDelete: (pos: OrderPosition) => void
+}) {
   return <TableRow>
     <TableCell align="left" color="text.secondary">
       {idx + 1}
@@ -129,7 +142,7 @@ function OrderTableRow({position, idx}: { position: OrderPosition, idx: number }
       <IconButton size="small" color="primary">
         <EditIcon fontSize="inherit"/>
       </IconButton>
-      <IconButton size="small" color="secondary">
+      <IconButton size="small" color="secondary" onClick={() => onDelete(position)}>
         <DeleteIcon fontSize="inherit"/>
       </IconButton>
     </TableCell>
