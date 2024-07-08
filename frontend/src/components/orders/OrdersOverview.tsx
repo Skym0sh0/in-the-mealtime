@@ -1,4 +1,4 @@
-import {Drawer, Paper, Toolbar} from "@mui/material";
+import {Box, Drawer, Paper, Toolbar} from "@mui/material";
 import styled from "styled-components";
 import {useCallback, useEffect, useState} from "react";
 import {Restaurant} from "../../../build/generated-ts/api";
@@ -20,16 +20,18 @@ export default function OrdersOverview() {
   }, []);
 
   return <LoadingIndicator isLoading={restaurants === null}>
-    <SDrawer variant="permanent">
-      <Toolbar/>
-      <Paper sx={{height: '100%', maxHeight: '100%'}}>
-        {restaurants && <OrdersCardsList restaurants={restaurants} onRefresh={refreshRestaurants}/>}
-      </Paper>
-    </SDrawer>
+    <Box style={{display: "flex"}}>
+      <SDrawer variant="permanent">
+        <Toolbar/>
+        <Paper sx={{height: '100%', maxHeight: '100%'}}>
+          {restaurants && <OrdersCardsList restaurants={restaurants} onRefresh={refreshRestaurants}/>}
+        </Paper>
+      </SDrawer>
 
-    <Paper elevation={8}>
-      <Outlet/>
-    </Paper>
+      <Box component="main" sx={{flexGrow: 1}}>
+        <Outlet/>
+      </Box>
+    </Box>
   </LoadingIndicator>;
 }
 
