@@ -37,7 +37,7 @@ function NamedLogo() {
 function AppBarLinks() {
   return <Toolbar>
     <Button color="inherit" href="/order">
-      Orders
+      Bestellungen
     </Button>
 
     <Button color="inherit" href="/restaurant">
@@ -48,7 +48,7 @@ function AppBarLinks() {
 
 function AppBarMenu() {
   return <Button color="inherit">
-    Profile
+    Profil
   </Button>;
 }
 

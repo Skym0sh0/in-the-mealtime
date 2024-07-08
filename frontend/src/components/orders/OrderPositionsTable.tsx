@@ -1,5 +1,6 @@
 import {Paper, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TableRow} from "@mui/material";
 import {useMemo} from "react";
+import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 
 export type OrderPosition = {
   id: string;
@@ -66,13 +67,13 @@ export default function OrderPositionsTable({orderPositions}: { orderPositions: 
             {overallSum.count} Gerichte
           </TableCell>
           <TableCell align="right">
-            {overallSum.price}€
+            {formatMonetaryAmount(overallSum.price)}
           </TableCell>
           <TableCell align="right">
-            {overallSum.paid}€
+            {formatMonetaryAmount(overallSum.paid)}
           </TableCell>
           <TableCell align="right">
-            {overallSum.tip}€
+            {formatMonetaryAmount(overallSum.tip)}
           </TableCell>
         </TableRow>
 
@@ -82,7 +83,7 @@ export default function OrderPositionsTable({orderPositions}: { orderPositions: 
             {overallSum.countMissing} Gerichte
           </TableCell>
           <TableCell align="right" sx={{color: 'red'}}>
-            {overallSum.paidMissing}€
+            {formatMonetaryAmount(overallSum.paidMissing)}
           </TableCell>
         </TableRow>
       </TableFooter>
@@ -102,13 +103,13 @@ function OrderTableRow({position, idx}: { position: OrderPosition, idx: number }
       {position.meal}
     </TableCell>
     <TableCell align="right">
-      {position.price}€
+      {formatMonetaryAmount(position.price)}
     </TableCell>
     <TableCell align="right">
-      {position.paid}
+      {formatMonetaryAmount(position.paid)}
     </TableCell>
     <TableCell align="right">
-      {position.tip}
+      {formatMonetaryAmount(position.tip)}
     </TableCell>
   </TableRow>
 }
