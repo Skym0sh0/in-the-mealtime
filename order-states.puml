@@ -1,0 +1,21 @@
+@startuml
+[*] --> NeueBestellung : Erzeuge
+
+NeueBestellung -->[*]: Löschen
+
+NeueBestellung --> OffeneBestellung : OrderPosition hinzufügen
+OffeneBestellung --> OffeneBestellung : OrderPosition hinzufügen
+
+OffeneBestellung --> GeperrteBestellung : Versuchen zu bestellen
+GeperrteBestellung --> OffeneBestellung : Zeitlimit vergangen
+GeperrteBestellung --> OffeneBestellung : Manuell wieder eröffnet
+GeperrteBestellung --> BestellteBestellung: Bestellung erfolgreich
+
+BestellteBestellung --> EingetroffeneBestellung : Manuelle Benachrichtigung
+
+BestellteBestellung --> ArchivierteBestellung: nach Zeit Ablauf
+EingetroffeneBestellung --> ArchivierteBestellung: nach Zeit Ablauf
+
+ArchivierteBestellung--> [*]
+
+@enduml
