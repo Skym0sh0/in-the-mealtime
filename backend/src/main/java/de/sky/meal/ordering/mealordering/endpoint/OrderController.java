@@ -1,6 +1,7 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
 import generated.sky.meal.ordering.rest.model.Order;
+import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.rest.model.OrderPosition;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import jakarta.annotation.PostConstruct;
@@ -109,6 +110,7 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
         var order = Order.builder()
                 .id(UUID.randomUUID())
                 .restaurantId(restaurantId)
+                .infos(new OrderInfos())
                 .date(LocalDate.now())
                 .orderPositions(new ArrayList<>())
                 .build();
@@ -132,6 +134,19 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
         orders.sort(Comparator.comparing(Order::getDate).reversed());
 
         return ResponseEntity.ok(orders);
+    }
+
+    @Override
+    public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfos orderInfos) {
+        return orders.stream()
+                .filter(o -> o.getId().equals(orderId))
+                .findAny()
+                .map(o -> {
+                    o.infos(orderInfos);
+                    return o;
+                })
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Override

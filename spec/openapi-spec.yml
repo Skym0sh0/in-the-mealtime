@@ -89,6 +89,42 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
+  /order/{orderId}/infos:
+    put:
+      tags:
+        - Order
+      summary: Sets Infos to an Order
+      description: Sets Infos to an Order
+      operationId: setOrderInfo
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInfos"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/OrderInfos"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
   /order/{orderId}/order-position:
     post:
       tags:
@@ -184,7 +220,6 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ID"
-
       responses:
         '200':
           description: Successful operation
@@ -280,7 +315,6 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
-
     put:
       tags:
         - Restaurant
@@ -382,12 +416,15 @@ components:
       required:
         - id
         - restaurantId
+        - infos
         - orderPositions
       properties:
         id:
           $ref: "#/components/schemas/ID"
         restaurantId:
           $ref: "#/components/schemas/ID"
+        infos:
+          $ref: "#/components/schemas/OrderInfos"
         date:
           type: string
           format: date
@@ -395,6 +432,25 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/OrderPosition"
+    OrderInfos:
+      type: object
+      properties:
+        orderer:
+          type: string
+        fetcher:
+          type: string
+        moneyCollectionType:
+          $ref: "#/components/schemas/OrderMoneyCollectionType"
+        moneyCollector:
+          type: string
+        orderClosingTime:
+          type: string
+          format: time
+    OrderMoneyCollectionType:
+      type: string
+      enum:
+        - Bar
+        - PayPal
     OrderPosition:
       type: object
       required:

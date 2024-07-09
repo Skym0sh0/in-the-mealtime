@@ -5,7 +5,7 @@ import {useCallback, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
 import OrderSummary from "./OrderSummary.tsx";
 import {api} from "../../api/api.ts";
-import OrderInfos from "./OrderInfos.tsx";
+import OrderInfosView from "./OrderInfosView.tsx";
 import RestaurantInfos from "./RestaurantInfos.tsx";
 
 type OrderEditorProps = {
@@ -51,7 +51,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
       <Paper elevation={8} sx={{padding: 1}}>
         <Stack direction="row" spacing={2}>
-          <OrderInfos order={order}/>
+          <OrderInfosView order={order} onUpdateInfos={onChange}/>
 
           <Stack spacing={2}>
             <OrderSummary order={order}/>

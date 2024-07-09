@@ -50,7 +50,10 @@ export default function OrderCard({selected, order, restaurant, onSelect}: Order
     </CardContent>
 
     <CardActions sx={{paddingX: '1em', display: "flex", justifyContent: "flex-end"}}>
-      <Button size="small" color="primary" onClick={onSelect}>
+      <Button size="small"
+              color="primary"
+              disabled={selected}
+              onClick={onSelect}>
         Anzeigen
       </Button>
     </CardActions>
