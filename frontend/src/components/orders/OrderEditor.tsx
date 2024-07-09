@@ -102,15 +102,16 @@ export default function OrderEditor({restaurant}: OrderEditorProps) {
         <Stack spacing={2}>
           <OrderSummary orderPositions={orderPositions}/>
 
-          <OrderPositionsTable orderPositions={orderPositions}
-                               selectedPosition={selectedPosition}
-                               onSelect={onSelectToEditPosition}
-                               onDelete={onDeletePosition}/>
+          <Stack spacing={1}>
+            <OrderPositionsTable orderPositions={orderPositions}
+                                 selectedPosition={selectedPosition}
+                                 onSelect={onSelectToEditPosition}
+                                 onDelete={onDeletePosition}/>
 
-          <OrderPositionEditor
-            onSave={onCreatePosition}
-            onUpdate={onUpdatePosition}
-            inputPosition={selectedPosition}/>
+            <OrderPositionEditor onSave={onCreatePosition}
+                                 onUpdate={onUpdatePosition}
+                                 inputPosition={selectedPosition}/>
+          </Stack>
         </Stack>
       </Paper>
     </Stack>

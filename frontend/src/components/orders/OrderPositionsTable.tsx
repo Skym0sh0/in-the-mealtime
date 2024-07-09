@@ -23,13 +23,13 @@ export default function OrderPositionsTable({orderPositions, selectedPosition, o
     <Table size="small" stickyHeader={true}>
       <TableHead>
         <TableRow>
-          <TableCell align="left">#</TableCell>
-          <TableCell align="left">Name</TableCell>
-          <TableCell align="left">Gericht</TableCell>
-          <TableCell align="right">Preis</TableCell>
-          <TableCell align="right">Bezahlt</TableCell>
-          <TableCell align="right">Trinkgeld</TableCell>
-          <TableCell align="right"/>
+          <TableCell align="left" style={{width: '5%'}}>#</TableCell>
+          <TableCell align="left" style={{width: '10%'}}>Name</TableCell>
+          <TableCell align="left" style={{width: '40%'}}>Gericht</TableCell>
+          <TableCell align="right" style={{width: '10%'}}>Preis</TableCell>
+          <TableCell align="right" style={{width: '10%'}}>Bezahlt</TableCell>
+          <TableCell align="right" style={{width: '10%'}}>Trinkgeld</TableCell>
+          <TableCell align="right" style={{width: '10%'}}/>
         </TableRow>
       </TableHead>
 

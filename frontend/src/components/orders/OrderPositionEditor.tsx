@@ -101,8 +101,7 @@ export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: O
   return <Stack direction="row"
                 spacing={2}
                 justifyContent="space-between"
-                alignItems="baseline"
-                sx={{border: '1px solid gray', p: 1}}>
+                alignItems="baseline">
     <TextField size="small"
                label="Name"
                placeholder="Dein Name"
@@ -126,6 +125,7 @@ export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: O
                helperText={mealError}
     />
     <TextField size="small"
+               type="number"
                label="Preis"
                placeholder="Preis"
                value={price}
@@ -141,6 +141,7 @@ export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: O
                }}
     />
     <TextField size="small"
+               type="number"
                label="Bezahlt"
                placeholder="Bezahlt"
                value={paid}
@@ -156,6 +157,7 @@ export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: O
                }}
     />
     <TextField size="small"
+               type="number"
                label="Trinkgeld"
                placeholder="Trinkgeld"
                value={tip}
