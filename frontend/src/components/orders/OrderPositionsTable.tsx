@@ -1,15 +1,4 @@
-import {
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableFooter,
-  TableHead,
-  TableRow
-} from "@mui/material";
-import {useMemo} from "react";
+import {IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
@@ -24,33 +13,13 @@ export type OrderPosition = {
   tip?: number;
 };
 
-export default function OrderPositionsTable({orderPositions, onDelete}: {
+export default function OrderPositionsTable({orderPositions, selectedPosition, onSelect, onDelete}: {
   orderPositions: OrderPosition[],
+  selectedPosition: OrderPosition | null,
+  onSelect: (pos: OrderPosition) => void
   onDelete: (pos: OrderPosition) => void
 }) {
-  const overallSum = useMemo(() => {
-    const add = (mapper: (pos: OrderPosition) => number, filter: (pos: OrderPosition) => boolean = () => true) => {
-      return orderPositions.filter(filter)
-        .map(mapper)
-        .reduce((agg, cur) => agg + cur, 0)
-    };
-
-    const tmp = {
-      count: orderPositions.length,
-      price: add(l => l.price),
-      paid: add(l => l.paid ?? 0),
-      tip: add(l => l.tip ?? 0),
-
-      countMissing: orderPositions.filter(pos => !pos.paid).length,
-      paidMissing: add(pos => pos.price, pos => !pos.paid),
-    }
-
-    return {
-      ...tmp
-    };
-  }, [orderPositions]);
-
-  return <TableContainer component={Paper} sx={{minHeight: '50vh', maxHeight: '50vh'}}>
+  return <TableContainer component={Paper} sx={{minHeight: '50vh', maxHeight: '50vh', border: '1px solid lightgray'}}>
     <Table size="small" stickyHeader={true}>
       <TableHead>
         <TableRow>
@@ -69,58 +38,32 @@ export default function OrderPositionsTable({orderPositions, onDelete}: {
           orderPositions.map((line, idx) => {
             return <OrderTableRow key={line.id}
                                   idx={idx}
+                                  selected={line.id === selectedPosition?.id}
                                   position={line}
+                                  onSelect={onSelect}
                                   onDelete={onDelete}
             />;
           })
         }
       </TableBody>
-
-      <TableFooter>
-        <TableRow>
-          <TableCell colSpan={6}/>
-        </TableRow>
-
-        <TableRow>
-          <TableCell colSpan={2}>
-            Summe
-          </TableCell>
-          <TableCell align="left">
-            {overallSum.count} Gerichte
-          </TableCell>
-          <TableCell align="right">
-            {formatMonetaryAmount(overallSum.price)}
-          </TableCell>
-          <TableCell align="right">
-            {formatMonetaryAmount(overallSum.paid)}
-          </TableCell>
-          <TableCell align="right">
-            {formatMonetaryAmount(overallSum.tip)}
-          </TableCell>
-        </TableRow>
-
-        <TableRow>
-          <TableCell colSpan={2}>Fehlen</TableCell>
-          <TableCell align="left" sx={{color: 'red'}}>
-            {overallSum.countMissing} Gerichte
-          </TableCell>
-          <TableCell align="right" sx={{color: 'red'}}>
-            {formatMonetaryAmount(overallSum.paidMissing)}
-          </TableCell>
-        </TableRow>
-      </TableFooter>
     </Table>
   </TableContainer>;
 }
 
-function OrderTableRow({idx, position, onDelete}: {
+function OrderTableRow({idx, position, selected, onSelect, onDelete}: {
   idx: number,
   position: OrderPosition,
+  selected: boolean,
+  onSelect: (pos: OrderPosition) => void
   onDelete: (pos: OrderPosition) => void
 }) {
-  return <TableRow>
+  return <TableRow selected={selected}>
     <TableCell align="left" color="text.secondary">
-      {idx + 1}
+      {
+        selected
+          ? <EditIcon color="warning" fontSize="small"/>
+          : (idx + 1)
+      }
     </TableCell>
     <TableCell align="left">
       {position.name}
@@ -139,10 +82,16 @@ function OrderTableRow({idx, position, onDelete}: {
     </TableCell>
 
     <TableCell align="right">
-      <IconButton size="small" color="primary">
+      <IconButton size="small"
+                  color="primary"
+                  disabled={selected}
+                  onClick={() => onSelect(position)}>
         <EditIcon fontSize="inherit"/>
       </IconButton>
-      <IconButton size="small" color="secondary" onClick={() => onDelete(position)}>
+      <IconButton size="small"
+                  color="secondary"
+                  disabled={selected}
+                  onClick={() => onDelete(position)}>
         <DeleteIcon fontSize="inherit"/>
       </IconButton>
     </TableCell>

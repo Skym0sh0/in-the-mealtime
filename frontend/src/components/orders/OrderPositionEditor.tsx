@@ -1,32 +1,35 @@
 import {OrderPosition} from "./OrderPositionsTable.tsx";
-import {useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useState} from "react";
 import {v4 as uuidv4} from "uuid";
 import {IconButton, InputAdornment, Stack, TextField} from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done";
 import UndoIcon from "@mui/icons-material/Undo";
-import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from '@mui/icons-material/Close';
 
-export default function OrderPositionEditor({onSave}: { onSave: (pos: OrderPosition) => Promise<void>; }) {
-  const isNew = Math.random() < 0.99;
+type OrderPositionEditorProps = {
+  onSave: (pos: OrderPosition) => Promise<void>;
+  onUpdate: (pos: OrderPosition) => Promise<void>;
+  inputPosition: OrderPosition | null;
+};
 
+export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: OrderPositionEditorProps) {
   const [touched, setTouched] = useState(false);
 
   const [name, setName] = useState('');
+  const [meal, setMeal] = useState('');
+  const [price, setPrice] = useState('');
+  const [paid, setPaid] = useState('');
+  const [tip, setTip] = useState('');
+
   const nameError = useMemo(() => {
     return touched && !name ? "Name fehlt" : undefined;
   }, [name, touched]);
-
-  const [meal, setMeal] = useState('');
   const mealError = useMemo(() => {
     return touched && !meal ? "Gericht fehlt" : undefined;
   }, [meal, touched]);
-
-  const [price, setPrice] = useState('');
   const priceError = useMemo(() => {
     return touched && (!price || Number.isNaN(Number.parseFloat(price))) ? "Preis fehlerhaft" : undefined;
   }, [price, touched]);
-
-  const [paid, setPaid] = useState('');
   const paidError = useMemo(() => {
     if (!paid)
       return undefined
@@ -40,8 +43,6 @@ export default function OrderPositionEditor({onSave}: { onSave: (pos: OrderPosit
 
     return undefined
   }, [paid, price]);
-
-  const [tip, setTip] = useState('');
   const tipError = useMemo(() => {
     if (!tip)
       return undefined
@@ -56,32 +57,45 @@ export default function OrderPositionEditor({onSave}: { onSave: (pos: OrderPosit
     return undefined
   }, [tip, paid, price]);
 
+  const isNew = !inputPosition;
+
   const isInvalid = !touched || [nameError, mealError, priceError, paidError, tipError]
     .some(b => b !== undefined);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setTouched(false);
 
-    setName('')
-    setMeal('')
-    setPrice('')
-    setPaid('')
-    setTip('')
-  };
+    setName(inputPosition?.name ?? '')
+    setMeal(inputPosition?.meal ?? '')
+    setPrice(inputPosition?.price?.toString() ?? '')
+    setPaid(inputPosition?.paid?.toString() ?? '')
+    setTip(inputPosition?.tip?.toString() ?? '')
+  }, [inputPosition?.name, inputPosition?.meal, inputPosition?.price, inputPosition?.paid, inputPosition?.tip]);
+
+  useEffect(() => {
+    reset()
+  }, [inputPosition]);
 
   const onClickSave = () => {
     if (isInvalid)
       return;
 
-    onSave({
-      id: uuidv4(),
+    const newPosition = {
+      id: inputPosition?.id ?? uuidv4(),
       name: name,
       meal: meal,
       price: Number.parseFloat(price),
       paid: Number.parseFloat(paid) || undefined,
       tip: Number.parseFloat(tip) || undefined,
-    })
-      .then(() => reset())
+    };
+
+
+    if (isNew)
+      onSave(newPosition)
+        .then(() => reset())
+    else
+      onUpdate(newPosition)
+        .then()
   };
 
   return <Stack direction="row"
@@ -169,8 +183,8 @@ export default function OrderPositionEditor({onSave}: { onSave: (pos: OrderPosit
         <UndoIcon fontSize="inherit"/>
       </IconButton>}
 
-      {!isNew && <IconButton size="small" color="warning">
-        <DeleteIcon fontSize="inherit"/>
+      {!isNew && <IconButton size="small" color="error">
+        <CloseIcon fontSize="inherit"/>
       </IconButton>}
     </Stack>
   </Stack>;
