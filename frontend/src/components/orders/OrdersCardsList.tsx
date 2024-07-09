@@ -23,9 +23,12 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
   const [autoReload, _] = useState(true);
 
   const [orders, setOrders] = useState<Order[] | null>(null);
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(() => {
-    return params?.orderId ?? null;
-  });
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+
+  // initialize and react to selected order
+  useEffect(() => {
+    setSelectedOrderId(params?.orderId ?? null)
+  }, [params?.orderId]);
 
   const select = useCallback((orderId: string | null) => {
     setSelectedOrderId(orderId)
@@ -42,8 +45,12 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
 
   // detect referenced restaurants that do not exist
   useEffect(() => {
-    const existsOrderWithUnreferencedRestaurant = orders?.map(order => restaurantsById[order.restaurantId])
-      ?.some(restaurant => !restaurant)
+    if (!orders)
+      return;
+
+    const existsOrderWithUnreferencedRestaurant = orders.map(o => o.restaurantId)
+      .map(restaurantId => restaurantsById[restaurantId])
+      .some(restaurant => !restaurant)
 
     if (existsOrderWithUnreferencedRestaurant)
       onRefresh();
