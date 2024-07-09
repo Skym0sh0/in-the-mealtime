@@ -71,7 +71,7 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
                     .build();
         };
 
-        IntStream.range(0, 15)
+        IntStream.range(0, 0)
                 .mapToObj(idx -> {
                             return getRestaurants()
                                     .filter(s -> !s.isEmpty())

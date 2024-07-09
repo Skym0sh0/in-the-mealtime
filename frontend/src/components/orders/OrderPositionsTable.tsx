@@ -20,7 +20,7 @@ export default function OrderPositionsTable({orderPositions, selectedPosition, o
           <TableCell align="right" style={{width: '10%'}}>Preis</TableCell>
           <TableCell align="right" style={{width: '10%'}}>Bezahlt</TableCell>
           <TableCell align="right" style={{width: '10%'}}>Trinkgeld</TableCell>
-          <TableCell align="right" style={{width: '10%'}}/>
+          <TableCell align="right" style={{width: '15%'}}/>
         </TableRow>
       </TableHead>
 

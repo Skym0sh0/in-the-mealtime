@@ -1,10 +1,11 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {api} from "../../api/api.ts";
-import {List, ListItem} from "@mui/material";
+import {List, ListItem, Stack} from "@mui/material";
 import {Order, Restaurant} from "../../../build/generated-ts/api";
 import OrderCard from "./OrderCard.tsx";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {useNavigate, useParams} from "react-router-dom";
+import NewOrderButton from "./NewOrderButton.tsx";
 
 type RestaurantsById = {
   [key: string]: Restaurant;
@@ -19,7 +20,7 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
   const navigate = useNavigate();
   const params = useParams<{ orderId: string }>();
 
-  const [autoReload, _] = useState(false);
+  const [autoReload, _] = useState(true);
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(() => {
@@ -48,22 +49,20 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
       onRefresh();
   }, []);
 
+  const refresh = useCallback(() => {
+    api.orders.fetchOrders()
+      .then(res => {
+        setOrders(res.data);
+      })
+  }, []);
+
   // periodically (re-)load orders
   useEffect(() => {
-    const refresh = () => {
-      api.orders.fetchOrders()
-        .then(res => {
-          setOrders(res.data);
-        })
-    };
-
     refresh();
 
     if (!autoReload)
       return;
-
     const interval = setInterval(refresh, 5000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -85,16 +84,20 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
       select(orders[0].id)
   }, [orders]);
 
-  return <LoadingIndicator isLoading={orders === null}>
-    <List>
-      {orders && orders.map((order) => {
-        return <ListItem key={order.id}>
-          <OrderCard onSelect={() => select(order.id)}
-                     selected={order.id === selectedOrderId}
-                     order={order}
-                     restaurant={restaurantsById[order.restaurantId]}/>
-        </ListItem>
-      })}
-    </List>
-  </LoadingIndicator>;
+  return <Stack>
+    <NewOrderButton restaurants={restaurants} onChange={refresh}/>
+
+    <LoadingIndicator isLoading={orders === null}>
+      <List>
+        {orders && orders.map((order) => {
+          return <ListItem key={order.id}>
+            <OrderCard onSelect={() => select(order.id)}
+                       selected={order.id === selectedOrderId}
+                       order={order}
+                       restaurant={restaurantsById[order.restaurantId]}/>
+          </ListItem>
+        })}
+      </List>
+    </LoadingIndicator>
+  </Stack>;
 }

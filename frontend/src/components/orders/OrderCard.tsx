@@ -42,7 +42,7 @@ export default function OrderCard({selected, order, restaurant, onSelect}: Order
             ? <Typography variant="caption" color="error">
               Nicht bezahlt: {formatMonetaryAmount(summary.paidMissing)}
             </Typography>
-            : <Typography variant="caption" color="sucess">
+            : <Typography variant="caption" color="success">
               Alles bezahlt
             </Typography>
         }
