@@ -1,5 +1,5 @@
 import {Order, OrderPosition, Restaurant} from "../../../build/generated-ts/api";
-import {Box, Paper, Stack, Typography} from "@mui/material";
+import {Box, Button, Paper, Stack, Typography} from "@mui/material";
 import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
@@ -69,6 +69,17 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
           </Stack>
 
           <RestaurantInfos restaurant={restaurant}/>
+        </Stack>
+      </Paper>
+
+      <Paper elevation={8} sx={{padding: 1}}>
+        <Stack direction="row" spacing={2} justifyContent="space-between">
+          <Button variant="contained" color="error">Löschen</Button>
+          <Button variant="contained">Bestellen</Button>
+          <Button variant="contained" color="warning">Bestellung abbrechen</Button>
+          <Button variant="contained">Ist bestellt</Button>
+          <Button variant="contained" color="secondary">Essen ist da</Button>
+          <Button variant="contained" color="info">Fertig</Button>
         </Stack>
       </Paper>
     </Stack>
