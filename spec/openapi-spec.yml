@@ -46,8 +46,71 @@ paths:
           name: id
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+  /order/restaurant/{restaurantId}:
+    post:
+      tags:
+        - Order
+      summary: Create new order
+      description: Create new order
+      operationId: createOrder
+      parameters:
+        - in: path
+          name: restaurantId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+          description: ID of the restaurant for that the order will be
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+  /order/{orderId}/order-position:
+    post:
+      tags:
+        - Order
+      summary: Creates a new order position
+      description: Creates a new order position
+      operationId: createOrderPosition
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderPosition"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/OrderPosition"
       responses:
         '200':
           description: Successful operation
@@ -63,6 +126,79 @@ paths:
         '500':
           description: Server Problem
 
+  /order/{orderId}/order-position/{orderPositionId}:
+    patch:
+      tags:
+        - Order
+      summary: Updates an order position
+      description: Updates an order position
+      operationId: updateOrderPosition
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+        - in: path
+          name: orderPositionId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderPosition"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/OrderPosition"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+    delete:
+      tags:
+        - Order
+      summary: Deletes an order position
+      description: Deletes an order position
+      operationId: deleteOrderPosition
+      parameters:
+        - in: path
+          name: orderId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+        - in: path
+          name: orderPositionId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
   /restaurant:
     get:
       tags:
@@ -129,8 +265,7 @@ paths:
           name: id
           required: true
           schema:
-            type: string
-            format: uuid
+            $ref: "#/components/schemas/ID"
       responses:
         '200':
           description: Successful operation
@@ -212,8 +347,7 @@ components:
         - name
       properties:
         id:
-          type: string
-          format: uuid
+          $ref: "#/components/schemas/ID"
         name:
           type: string
         style:
@@ -232,21 +366,6 @@ components:
           type: string
         address:
           $ref: '#/components/schemas/Address'
-    Order:
-      type: object
-      required:
-        - id
-        - restaurantId
-      properties:
-        id:
-          type: string
-          format: uuid
-        restaurantId:
-          type: string
-          format: uuid
-        date:
-          type: string
-          format: date
     Address:
       type: object
       properties:
@@ -258,6 +377,54 @@ components:
           type: string
         city:
           type: string
+    Order:
+      type: object
+      required:
+        - id
+        - restaurantId
+        - orderPositions
+      properties:
+        id:
+          $ref: "#/components/schemas/ID"
+        restaurantId:
+          $ref: "#/components/schemas/ID"
+        date:
+          type: string
+          format: date
+        orderPositions:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderPosition"
+    OrderPosition:
+      type: object
+      required:
+        - id
+        - name
+        - meal
+        - price
+      properties:
+        id:
+          $ref: "#/components/schemas/ID"
+        index:
+          type: integer
+          format: int32
+        name:
+          type: string
+        meal:
+          type: string
+        price:
+          type: number
+          format: float
+        paid:
+          type: number
+          format: float
+        tip:
+          type: number
+          format: float
+    ID:
+      type: string
+      format: uuid
+
   requestBodies:
     Restaurant:
       description: Restaurant object
