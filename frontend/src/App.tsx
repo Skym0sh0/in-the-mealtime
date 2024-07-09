@@ -13,7 +13,7 @@ import {
   Typography
 } from "@mui/material";
 import {GlobalRouting} from "./routes/Routes.tsx";
-import {AdapterMoment} from '@mui/x-date-pickers/AdapterMoment'
+import {AdapterLuxon} from '@mui/x-date-pickers/AdapterLuxon'
 import {LocalizationProvider} from "@mui/x-date-pickers";
 
 function NamedLogo() {
@@ -59,7 +59,7 @@ const theme = createTheme();
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <LocalizationProvider dateAdapter={AdapterMoment}>
+      <LocalizationProvider dateAdapter={AdapterLuxon}>
         <Box sx={{display: 'flex'}}>
           <CssBaseline/>
 
