@@ -5,6 +5,8 @@ import {useCallback, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
 import OrderSummary from "./OrderSummary.tsx";
 import {api} from "../../api/api.ts";
+import OrderInfos from "./OrderInfos.tsx";
+import RestaurantInfos from "./RestaurantInfos.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -48,19 +50,25 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
       </Typography>
 
       <Paper elevation={8} sx={{padding: 1}}>
-        <Stack spacing={2}>
-          <OrderSummary order={order}/>
+        <Stack direction="row" spacing={2}>
+          <OrderInfos order={order}/>
 
-          <Stack spacing={1}>
-            <OrderPositionsTable orderPositions={order.orderPositions}
-                                 selectedPosition={selectedPosition}
-                                 onSelect={onSelectToEditPosition}
-                                 onDelete={onDeletePosition}/>
+          <Stack spacing={2}>
+            <OrderSummary order={order}/>
 
-            <OrderPositionEditor onSave={onCreatePosition}
-                                 onUpdate={onUpdatePosition}
-                                 inputPosition={selectedPosition}/>
+            <Stack spacing={1}>
+              <OrderPositionsTable orderPositions={order.orderPositions}
+                                   selectedPosition={selectedPosition}
+                                   onSelect={onSelectToEditPosition}
+                                   onDelete={onDeletePosition}/>
+
+              <OrderPositionEditor onSave={onCreatePosition}
+                                   onUpdate={onUpdatePosition}
+                                   inputPosition={selectedPosition}/>
+            </Stack>
           </Stack>
+
+          <RestaurantInfos restaurant={restaurant}/>
         </Stack>
       </Paper>
     </Stack>
