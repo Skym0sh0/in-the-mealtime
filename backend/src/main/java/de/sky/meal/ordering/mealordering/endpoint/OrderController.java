@@ -9,10 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
@@ -132,6 +129,8 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
 
     @Override
     public ResponseEntity<List<Order>> fetchOrders() {
+        orders.sort(Comparator.comparing(Order::getDate).reversed());
+
         return ResponseEntity.ok(orders);
     }
 

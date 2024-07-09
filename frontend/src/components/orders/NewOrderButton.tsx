@@ -10,7 +10,7 @@ type NewOrderButtonProps = {
   onChange: () => void;
 };
 
-export default function NewOrderButton({restaurants,onChange}: NewOrderButtonProps) {
+export default function NewOrderButton({restaurants, onChange}: NewOrderButtonProps) {
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -25,16 +25,14 @@ export default function NewOrderButton({restaurants,onChange}: NewOrderButtonPro
 
     handleClose()
 
-    setTimeout(() => {
-      api.orders.createOrder(restaurant.id)
-        .then(res => res.data)
-        .then(newOrder => {
-          onChange()
-          console.log("new order", newOrder)
-          navigate({pathname: `/order/${newOrder.id}`});
-        })
-        .finally(() => setIsLoading(false))
-    }, 2500)
+    api.orders.createOrder(restaurant.id)
+      .then(res => res.data)
+      .then(newOrder => {
+        onChange()
+        console.log("new order", newOrder)
+        navigate({pathname: `/order/${newOrder.id}`});
+      })
+      .finally(() => setIsLoading(false))
   }, [navigate, onChange]);
 
   return <>

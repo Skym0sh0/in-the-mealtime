@@ -5,10 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Controller
@@ -81,6 +78,8 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
 
     @Override
     public ResponseEntity<List<Restaurant>> fetchRestaurants() {
+        restaurants.sort(Comparator.comparing(Restaurant::getName));
+
         return ResponseEntity.ok(restaurants);
     }
 
