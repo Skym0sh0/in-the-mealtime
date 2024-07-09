@@ -7,10 +7,11 @@ import {useNavigate} from "react-router-dom";
 
 type NewOrderButtonProps = {
   restaurants: Restaurant[],
+  restaurantsWithOpenOrder: Restaurant[],
   onChange: () => void;
 };
 
-export default function NewOrderButton({restaurants, onChange}: NewOrderButtonProps) {
+export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, onChange}: NewOrderButtonProps) {
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -19,6 +20,10 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
+
+  const hasOpenOrder = useCallback((restaurant: Restaurant) => {
+    return restaurantsWithOpenOrder.map(r => r.id).includes(restaurant.id)
+  }, [restaurantsWithOpenOrder]);
 
   const handleRestaurantClick = useCallback((restaurant: Restaurant) => {
     setIsLoading(true);
@@ -29,7 +34,7 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
       .then(res => res.data)
       .then(newOrder => {
         onChange()
-        console.log("new order", newOrder)
+
         navigate({pathname: `/order/${newOrder.id}`});
       })
       .finally(() => setIsLoading(false))
@@ -51,6 +56,7 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
         {
           restaurants.map(restaurant => {
             return <MenuItem key={restaurant.id}
+                             disabled={hasOpenOrder(restaurant)}
                              onClick={() => handleRestaurantClick(restaurant)}>
               <ListItemText>
                 {restaurant.name}

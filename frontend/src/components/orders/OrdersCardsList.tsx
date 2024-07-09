@@ -43,6 +43,12 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
     return restaurants.reduce((agg, cur) => ({...agg, [cur.id]: cur}), {});
   }, [restaurants]);
 
+  const restaurantsWithOpenOrder = useMemo(() => {
+    return (orders ?? []).map(o => o.restaurantId)
+      .map(id => restaurantsById[id])
+      .filter(r => !!r)
+  }, [orders, restaurantsById]);
+
   // detect referenced restaurants that do not exist
   useEffect(() => {
     if (!orders)
@@ -92,7 +98,9 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
   }, [orders]);
 
   return <Stack>
-    <NewOrderButton restaurants={restaurants} onChange={refresh}/>
+    <NewOrderButton restaurants={restaurants}
+                    restaurantsWithOpenOrder={restaurantsWithOpenOrder}
+                    onChange={refresh}/>
 
     <LoadingIndicator isLoading={orders === null}>
       <List>
