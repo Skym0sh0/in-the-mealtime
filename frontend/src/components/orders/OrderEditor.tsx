@@ -49,7 +49,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
       <Paper elevation={8} sx={{padding: 1}}>
         <Stack spacing={2}>
-          <OrderSummary orderPositions={order.orderPositions}/>
+          <OrderSummary order={order}/>
 
           <Stack spacing={1}>
             <OrderPositionsTable orderPositions={order.orderPositions}

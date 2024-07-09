@@ -1,31 +1,12 @@
-import {useMemo} from "react";
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 import {Paper, Stack, TextField, Typography} from "@mui/material";
 import {styled} from '@mui/system';
-import {OrderPosition} from "../../../build/generated-ts/api/api.ts";
+import {Order} from "../../../build/generated-ts/api/api.ts";
+import useOrderPositionSummary from "./useOrderPositionSummary.ts";
 
-export default function OrderSummary({orderPositions}: { orderPositions: OrderPosition[] }) {
-  const overallSum = useMemo(() => {
-    const add = (mapper: (pos: OrderPosition) => number, filter: (pos: OrderPosition) => boolean = () => true) => {
-      return orderPositions.filter(filter)
-        .map(mapper)
-        .reduce((agg, cur) => agg + cur, 0)
-    };
 
-    const tmp = {
-      count: orderPositions.length,
-      price: add(l => l.price),
-      paid: add(l => l.paid ?? 0),
-      tip: add(l => l.tip ?? 0),
-
-      countMissing: orderPositions.filter(pos => !pos.paid).length,
-      paidMissing: add(pos => pos.price, pos => !pos.paid),
-    }
-
-    return {
-      ...tmp
-    };
-  }, [orderPositions]);
+export default function OrderSummary({order}: { order: Order }) {
+  const overallSum = useOrderPositionSummary(order);
 
   return <Paper elevation={2} sx={{p: 1}}>
     <Stack spacing={2}>
