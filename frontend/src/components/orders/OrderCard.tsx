@@ -1,6 +1,8 @@
 import {Button, Card, CardActions, CardContent, Stack, Typography} from "@mui/material";
 import {styled as muiStyled} from "@mui/material/styles";
 import {Order, Restaurant} from "../../../build/generated-ts/api";
+import useOrderPositionSummary from "./useOrderPositionSummary.ts";
+import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 
 type OrderCardProps = {
   selected: boolean;
@@ -10,6 +12,8 @@ type OrderCardProps = {
 };
 
 export default function OrderCard({selected, order, restaurant, onSelect}: OrderCardProps) {
+  const summary = useOrderPositionSummary(order);
+
   return <SOrderCard elevation={8} isSelected={selected}>
     <CardContent>
       <Typography variant="overline" gutterBottom color="text.secondary">
@@ -22,11 +26,27 @@ export default function OrderCard({selected, order, restaurant, onSelect}: Order
         </Typography>
       </Stack>
 
-      <Typography variant="body2" color="text.secondary">
-        Teilnehmer: 5
-        Gerichte: 7
-        Volumen: 74€
-      </Typography>
+      <Stack direction="row" spacing={1} justifyContent="space-between" flexWrap="wrap">
+        <Typography variant="caption" color="text.secondary">
+          {summary.participants} Teilnehmer
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {summary.count} Gerichte
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          Summe: {formatMonetaryAmount(summary.price)}
+        </Typography>
+
+        {
+          summary.paidMissing !== 0
+            ? <Typography variant="caption" color="error">
+              Nicht bezahlt: {formatMonetaryAmount(summary.paidMissing)}
+            </Typography>
+            : <Typography variant="caption" color="sucess">
+              Alles bezahlt
+            </Typography>
+        }
+      </Stack>
     </CardContent>
 
     <CardActions sx={{paddingX: '1em', display: "flex", justifyContent: "flex-end"}}>

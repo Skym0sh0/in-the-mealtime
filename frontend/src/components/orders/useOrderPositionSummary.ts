@@ -11,6 +11,7 @@ export default function useOrderPositionSummary(order: Order) {
     };
 
     return {
+      participants: new Set(order.orderPositions.map(s => s.name)).size,
       count: order.orderPositions.length,
       price: add(l => l.price),
       paid: add(l => l.paid ?? 0),
