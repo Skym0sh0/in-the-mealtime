@@ -2,16 +2,7 @@ import {IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHea
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
-
-export type OrderPosition = {
-  id: string;
-  index?: number;
-  name: string;
-  meal: string;
-  price: number;
-  paid?: number;
-  tip?: number;
-};
+import {OrderPosition} from "../../../build/generated-ts/api/api.ts";
 
 export default function OrderPositionsTable({orderPositions, selectedPosition, onSelect, onDelete}: {
   orderPositions: OrderPosition[],

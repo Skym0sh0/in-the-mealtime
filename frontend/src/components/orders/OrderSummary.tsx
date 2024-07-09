@@ -1,8 +1,8 @@
 import {useMemo} from "react";
-import {OrderPosition} from "./OrderPositionsTable.tsx";
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 import {Paper, Stack, TextField, Typography} from "@mui/material";
 import {styled} from '@mui/system';
+import {OrderPosition} from "../../../build/generated-ts/api/api.ts";
 
 export default function OrderSummary({orderPositions}: { orderPositions: OrderPosition[] }) {
   const overallSum = useMemo(() => {

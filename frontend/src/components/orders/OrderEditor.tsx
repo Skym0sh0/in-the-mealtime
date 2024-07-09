@@ -1,6 +1,6 @@
-import {Order, Restaurant} from "../../../build/generated-ts/api";
+import {Order, OrderPosition, Restaurant} from "../../../build/generated-ts/api";
 import {Box, Paper, Stack, Typography} from "@mui/material";
-import OrderPositionsTable, {OrderPosition} from "./OrderPositionsTable.tsx";
+import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
 import OrderSummary from "./OrderSummary.tsx";

@@ -1,10 +1,10 @@
-import {OrderPosition} from "./OrderPositionsTable.tsx";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {v4 as uuidv4} from "uuid";
 import {IconButton, InputAdornment, Stack, TextField} from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done";
 import UndoIcon from "@mui/icons-material/Undo";
 import CloseIcon from '@mui/icons-material/Close';
+import {OrderPosition} from "../../../build/generated-ts/api";
 
 type OrderPositionEditorProps = {
   onSave: (pos: OrderPosition) => Promise<void>;
