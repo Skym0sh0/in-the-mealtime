@@ -38,7 +38,7 @@ export default function OrderView() {
 
   return <LoadingIndicator isLoading={order === null || restaurant === null}>
     <Paper elevation={8} sx={{padding: '1em'}}>
-      {restaurant && order && <OrderEditor restaurant={restaurant} order={order}/>}
+      {restaurant && order && <OrderEditor restaurant={restaurant} order={order} onChange={refresh}/>}
     </Paper>
   </LoadingIndicator>
 

@@ -53,7 +53,7 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
     const refresh = () => {
       api.orders.fetchOrders()
         .then(res => {
-          setOrders(res.data.splice(0, 3));
+          setOrders(res.data);
         })
     };
 
