@@ -1,10 +1,12 @@
-import {Divider, Link, Paper, Stack, Typography} from "@mui/material";
+import {Box, Link, Paper, Stack, Typography} from "@mui/material";
 import {Restaurant} from "../../../build/generated-ts/api";
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {assertNever} from "../../utils/utils.ts";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
+import MenuPages from "./MenuPages.tsx";
+
 
 enum InfoLineStyle {
   Normal,
@@ -78,7 +80,7 @@ function SingleInfoLine({line, style}: { line?: string, style: InfoLineStyle }) 
 
 export default function RestaurantInfos({restaurant}: { restaurant: Restaurant }) {
   return <Paper elevation={2} sx={{p: 1, minWidth: '176px'}}>
-    <Stack spacing={1}>
+    <Stack spacing={1} sx={{height: '100%'}}>
       <Typography variant="h6">
         Restaurant
       </Typography>
@@ -94,21 +96,9 @@ export default function RestaurantInfos({restaurant}: { restaurant: Restaurant }
                         line={`${restaurant.address?.street} ${restaurant.address?.housenumber} ${restaurant.address?.postal} ${restaurant.address?.city}`}/>
       </Stack>
 
-      <Paper elevation={2} sx={{p: 1}}>
-        <Stack spacing={1} justifyContent="flex-start" alignItems="center" sx={{overflowY: 'auto', maxHeight: '40vh'}}>
-          {Array(10)
-            .fill(null)
-            .map((_, idx) => idx)
-            .map(idx => {
-              return <img key={idx}
-                          src="https://media.gettyimages.com/id/1283021188/de/foto/anpassung-einer-markenstrategie-an-den-zielmarkt-ihres-unternehmens.webp?s=2048x2048&w=gi&k=20&c=fYXpQoaHFNe5OLnao5FfDtNsl3xufahDrOkIKaEpuzQ="
-                          width="80px"
-                          height="80px"
-              />
-            })
-          }
-        </Stack>
-      </Paper>
+      <Box sx={{flexGrow: 1}}>
+        <MenuPages restaurant={restaurant}/>
+      </Box>
     </Stack>
   </Paper>
 }

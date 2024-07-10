@@ -1,6 +1,11 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
 import generated.sky.meal.ordering.rest.model.Restaurant;
+import jakarta.ws.rs.core.HttpHeaders;
+import org.springframework.core.io.AbstractFileResolvingResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
@@ -92,5 +97,22 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
         restaurants.add(restaurant);
 
         return ResponseEntity.ok(restaurant);
+    }
+
+    @Override
+    public ResponseEntity<Resource> fetchRestaurantsMenuPage(UUID restaurantId, UUID pageId, Boolean thumbnail) {
+        var res = getClass().getResource("/tmp/" + (Boolean.TRUE.equals(thumbnail) ? "thumbnail.jpg" : "fullsize.webp"));
+
+        return Optional.ofNullable(res)
+                .map(UrlResource::new)
+                .filter(AbstractFileResolvingResource::exists)
+                .map(Resource.class::cast)
+                .map(body ->
+                        ResponseEntity.ok()
+                                .contentType((Boolean.TRUE.equals(thumbnail) ? MediaType.IMAGE_JPEG : MediaType.parseMediaType("image/webp")))
+                                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + body.getFilename() + "\"")
+                                .body(body)
+                )
+                .orElseGet(() -> ResponseEntity.<Resource>notFound().build());
     }
 }

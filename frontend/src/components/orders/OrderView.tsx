@@ -41,5 +41,4 @@ export default function OrderView() {
       {restaurant && order && <OrderEditor restaurant={restaurant} order={order} onChange={refresh}/>}
     </Paper>
   </LoadingIndicator>
-
 }
