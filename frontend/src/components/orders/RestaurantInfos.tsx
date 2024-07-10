@@ -7,7 +7,6 @@ import {assertNever} from "../../utils/utils.ts";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MenuPages from "./MenuPages.tsx";
 
-
 enum InfoLineStyle {
   Normal,
   Link,
