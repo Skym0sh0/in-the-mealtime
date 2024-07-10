@@ -1,18 +1,18 @@
-import {ReactNode, useCallback, useEffect, useMemo, useState} from "react";
+import {ReactNode, useCallback, useEffect, useState} from "react";
 import {Box, Card, CardMedia, Modal, Pagination, Stack, Typography} from "@mui/material";
 import {api} from "../../api/api.ts";
-import {v4 as uuidv4} from "uuid";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
-import {Restaurant} from "../../../build/generated-ts/api";
+import {MenuPage, Restaurant} from "../../../build/generated-ts/api";
 
 type MenuPageImageProps = {
-  page: Page,
+  page: MenuPage,
+  restaurant: Restaurant,
   opened: boolean,
   navigation: ReactNode,
   onSelect: () => void,
 };
 
-function MenuPageImage({page, opened, onSelect, navigation}: MenuPageImageProps) {
+function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPageImageProps) {
   const [loading, setLoading] = useState(false)
   const [thumbnail, setThumbnail] = useState<string>('')
   const [fullsize, setFullsize] = useState<string>('')
@@ -21,15 +21,21 @@ function MenuPageImage({page, opened, onSelect, navigation}: MenuPageImageProps)
     setLoading(true)
 
     Promise.all([
-      api.restaurants.fetchRestaurantsMenuPage(uuidv4(), uuidv4(), true, {responseType: 'blob'})
+      api.restaurants.fetchRestaurantsMenuPage(restaurant.id, page.id, true, {responseType: 'blob'})
         .then(res => URL.createObjectURL(new Blob([res.data])))
         .then(img => setThumbnail(img)),
-      api.restaurants.fetchRestaurantsMenuPage(uuidv4(), uuidv4(), false, {responseType: 'blob'})
+      api.restaurants.fetchRestaurantsMenuPage(restaurant.id, page.id, false, {responseType: 'blob'})
         .then(res => URL.createObjectURL(new Blob([res.data])))
         .then(img => setFullsize(img))
     ])
       .finally(() => setLoading(false))
 
+    return () => {
+      if (thumbnail)
+        URL.revokeObjectURL(thumbnail)
+      if (fullsize)
+        URL.revokeObjectURL(fullsize)
+    }
   }, []);
 
   const handleClick = () => {
@@ -94,28 +100,12 @@ function MenuPageImage({page, opened, onSelect, navigation}: MenuPageImageProps)
   </LoadingIndicator>
 }
 
-type Page = {
-  index: number;
-  name: string;
-}
-
 export default function MenuPages({restaurant}: { restaurant: Restaurant }) {
   const [currentlyOpenedIndex, setCurrentlyOpenedIndex] = useState<number | null>(null)
 
-  const pages = useMemo(() => {
-    return Array(25)
-      .fill(null)
-      .map((_, idx) => idx)
-      .map(idx => {
-        return {
-          index: idx,
-          name: "Seite " + (idx + 1),
-        } as Page
-      })
+  const pages: MenuPage[] = restaurant.menuPages ?? [];
 
-  }, [])
-
-  const onSelect = useCallback((page: Page) => {
+  const onSelect = useCallback((page: MenuPage) => {
     setCurrentlyOpenedIndex(prev => {
       if (prev !== null && prev === page.index)
         return null;
@@ -143,6 +133,7 @@ export default function MenuPages({restaurant}: { restaurant: Restaurant }) {
     {
       pages.map(p => {
         return <MenuPageImage key={p.index}
+                              restaurant={restaurant}
                               page={p}
                               opened={currentlyOpenedIndex === p.index}
                               onSelect={() => onSelect(p)}
