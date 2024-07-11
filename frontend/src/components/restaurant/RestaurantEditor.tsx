@@ -129,7 +129,8 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
       <Divider/>
 
-      <MenuPageEditor menuPages={restaurant.menuPages ?? []} onInit={handleInit}/>
+      <MenuPageEditor restaurant={restaurant}
+                      onInit={handleInit}/>
     </Stack>
 
     <SButtonsFloat>

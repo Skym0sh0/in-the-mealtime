@@ -27,12 +27,15 @@ type FileWithId = {
   file: File,
 }
 
-export default function MenuPageEditor({menuPages, onInit}: {
-  menuPages: MenuPage[],
+export default function MenuPageEditor({restaurant, onInit}: {
+  restaurant: Restaurant,
   onInit?: (action: (rest: Restaurant) => Promise<void>) => void,
 }) {
   const [newFiles, setNewFiles] = useState<FileWithId[]>([])
   const [existingPagesToDelete, setExistingPagesToDelete] = useState<string[]>([])
+  const menuPages = useMemo(() => {
+    return restaurant.menuPages ?? [];
+  }, [restaurant.menuPages]);
 
   const [sorting, setSorting] = useState<string[]>([]);
   useEffect(() => {
@@ -145,6 +148,7 @@ export default function MenuPageEditor({menuPages, onInit}: {
             pages.map((page, idx) => {
               return <SinglePage key={page.id}
                                  page={page}
+                                 restaurant={restaurant}
                                  moveUp={() => moveUp(idx)}
                                  moveDown={() => moveDown(idx)}
                                  removeFile={() => removeFile(page)}
@@ -159,8 +163,9 @@ export default function MenuPageEditor({menuPages, onInit}: {
   </Paper>
 }
 
-function SinglePage({page, moveUp, moveDown, removePage, removeFile, undoRemove}: {
+function SinglePage({page, restaurant, moveUp, moveDown, removePage, removeFile, undoRemove}: {
   page: EditorMenuPage,
+  restaurant: Restaurant,
   moveUp: () => void,
   moveDown: () => void,
   removePage: () => void,
@@ -175,7 +180,9 @@ function SinglePage({page, moveUp, moveDown, removePage, removeFile, undoRemove}
       ? theme.palette.grey["300"]
       : theme.palette.success.main
 
-  return <Stack direction="row" justifyContent="space-between"
+  return <Stack direction="row"
+                justifyContent="space-between"
+                alignItems="center"
                 sx={{border: `1px solid ${color}`, textDecoration: page.toBeDeleted ? 'line-through' : undefined}}>
     <div style={{width: '2em', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
       {!page.alreadyExisted
@@ -185,6 +192,8 @@ function SinglePage({page, moveUp, moveDown, removePage, removeFile, undoRemove}
           : null
       }
     </div>
+
+    <PageThumbnail restaurant={restaurant} page={page}/>
 
     <Typography style={{flexGrow: 1}}>
       {page.page?.name ?? page.file?.name}
@@ -217,5 +226,40 @@ function SinglePage({page, moveUp, moveDown, removePage, removeFile, undoRemove}
       }
     </Stack>
   </Stack>;
+}
 
+function PageThumbnail({restaurant, page}: { restaurant: Restaurant, page: EditorMenuPage }) {
+  const [image, setImage] = useState('https://placehold.co/48');
+
+  useEffect(() => {
+    if (page.file) {
+      setImage(URL.createObjectURL(page.file))
+    } else {
+      api.restaurants.fetchRestaurantsMenuPage(restaurant.id, page.id, true, {responseType: 'blob'})
+        .then(res => URL.createObjectURL(new Blob([res.data])))
+        .then(img => setImage(img))
+    }
+
+    return () => {
+      if (image)
+        URL.revokeObjectURL(image)
+    }
+  }, []);
+
+  return <div style={{
+    width: '48px',
+    height: '48px',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
+  }}>
+    <img
+      width="48px"
+      height="48px"
+      src={image}
+      style={{objectFit: 'contain', objectPosition: 'center'}}
+      alt={page.page?.name ?? page.file?.name}
+    />
+  </div>
 }
