@@ -99,6 +99,11 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
+    public ResponseEntity<Order> archiveOrder(UUID id) {
+        return null;
+    }
+
+    @Override
     public ResponseEntity<Order> createOrder(UUID restaurantId) {
         if (getRestaurants().orElse(List.of())
                 .stream()
@@ -139,6 +144,31 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
+    public ResponseEntity<Order> lockOrder(UUID id) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<Order> orderIsNowOrdered(UUID id) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<Order> reopenOrder(UUID id) {
+        return null;
+    }
+
+    @Override
+    public ResponseEntity<Order> revokeOrder(UUID id) {
+        return null;
+    }
+
+    @Override
     public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfos orderInfos) {
         return orders.stream()
                 .filter(o -> o.getId().equals(orderId))
@@ -164,6 +194,11 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
                 })
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteOrder(UUID id) {
+        return null;
     }
 
     @Override

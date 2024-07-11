@@ -108,7 +108,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
 
 
     @Override
-    public ResponseEntity<Restaurant> createRestaurant(Restaurant restaurant) {
+    public synchronized ResponseEntity<Restaurant> createRestaurant(Restaurant restaurant) {
         restaurant.setId(UUID.randomUUID());
         restaurants.add(restaurant);
 
@@ -116,14 +116,14 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     }
 
     @Override
-    public ResponseEntity<Void> deleteRestaurant(UUID id) {
+    public synchronized ResponseEntity<Void> deleteRestaurant(UUID id) {
         restaurants.removeIf(r -> r.getId().equals(id));
 
         return ResponseEntity.ok(null);
     }
 
     @Override
-    public ResponseEntity<Restaurant> fetchRestaurant(UUID id) {
+    public synchronized ResponseEntity<Restaurant> fetchRestaurant(UUID id) {
         return restaurants.stream()
                 .filter(r -> r.getId().equals(id))
                 .findAny()
@@ -132,14 +132,14 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     }
 
     @Override
-    public ResponseEntity<List<Restaurant>> fetchRestaurants() {
+    public synchronized ResponseEntity<List<Restaurant>> fetchRestaurants() {
         restaurants.sort(Comparator.comparing(Restaurant::getName));
 
         return ResponseEntity.ok(restaurants);
     }
 
     @Override
-    public ResponseEntity<Restaurant> updateRestaurant(UUID id, Restaurant restaurant) {
+    public synchronized ResponseEntity<Restaurant> updateRestaurant(UUID id, Restaurant restaurant) {
         var old = restaurants.stream()
                 .filter(r -> r.getId().equals(id))
                 .findAny();
@@ -157,7 +157,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     }
 
     @Override
-    public ResponseEntity<Resource> fetchRestaurantsMenuPage(UUID restaurantId, UUID pageId, Boolean thumbnail) {
+    public synchronized ResponseEntity<Resource> fetchRestaurantsMenuPage(UUID restaurantId, UUID pageId, Boolean thumbnail) {
         return restaurants.stream()
                 .filter(r -> r.getId().equals(restaurantId))
                 .map(Restaurant::getMenuPages)
@@ -186,7 +186,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     }
 
     @Override
-    public ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, MultipartFile file) {
+    public synchronized ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, MultipartFile file) {
         return restaurants.stream()
                 .filter(r -> r.getId().equals(restaurantId))
                 .findAny()
@@ -221,7 +221,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     }
 
     @Override
-    public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
+    public synchronized ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
         var cnt = restaurants.stream()
                 .map(Restaurant::getMenuPages)
                 .flatMap(Collection::stream)
