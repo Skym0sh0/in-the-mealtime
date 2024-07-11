@@ -370,6 +370,53 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
+  /restaurant/{restaurantId}/menu-page:
+    put:
+      tags:
+        - Restaurant
+      summary: Creates a new menu page of a specified restaurant
+      description: Creates a new menu page of a specified restaurant
+      operationId: addRestaurantsMenuPage
+      parameters:
+        - in: path
+          name: restaurantId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+            encoding:
+              file:
+                contentType: image/png, image/jpeg, image/jpg, image/gif, image/webp
+                headers:
+                  Content-Type:
+                    schema:
+                      type: string
+                      enum: [ image/png, image/jpeg, image/jpg, image/gif, image/webp ]
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Restaurant"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Restaurant"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+
   /restaurant/{restaurantId}/menu-page/{pageId}:
     get:
       tags:
@@ -417,6 +464,38 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
+    delete:
+      tags:
+        - Restaurant
+      summary: Delete a menu page of a specified restaurant
+      description: Delete a menu page of a specified restaurant
+      operationId: deleteRestaurantsMenuPage
+      parameters:
+        - in: path
+          name: restaurantId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+        - in: path
+          name: pageId
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Restaurant"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/Restaurant"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+
 
 components:
   schemas:
@@ -446,6 +525,10 @@ components:
           type: string
         address:
           $ref: '#/components/schemas/Address'
+        menuPages:
+          type: array
+          items:
+            $ref: "#/components/schemas/MenuPage"
     Address:
       type: object
       properties:
@@ -456,6 +539,21 @@ components:
         postal:
           type: string
         city:
+          type: string
+    MenuPage:
+      type: object
+      required:
+        - id
+        - name
+        - index
+      properties:
+        id:
+          type: string
+          format: uuid
+        index:
+          type: integer
+          format: int32
+        name:
           type: string
     Order:
       type: object

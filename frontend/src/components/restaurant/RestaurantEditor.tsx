@@ -1,9 +1,10 @@
 import {useCallback, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {api} from "../../api/api.ts";
-import {Button, Divider, Stack, TextField, Typography} from "@mui/material";
 import styled from "styled-components";
 import {Restaurant} from "../../../build/generated-ts/api/index.ts";
+import {Button, Divider, Stack, TextField, Typography} from "@mui/material";
+import MenuPageEditor from "./MenuPageEditor.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
@@ -57,6 +58,7 @@ export default function RestaurantEditor({restaurant, isNew}: RestaurantEditorPr
         postal: postal,
         city: city,
       },
+      menuPages: [],
     };
 
     const creator = isNew
@@ -75,15 +77,15 @@ export default function RestaurantEditor({restaurant, isNew}: RestaurantEditorPr
     <Stack spacing={2}>
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <SStack spacing={2}>
-          <STextField label="Name" value={name} onChange={e => setName(e.target.value)}/>
-          <STextField label="Style" value={style} onChange={e => setStyle(e.target.value)}/>
-          <STextField label="Typ" value={kind} onChange={e => setKind(e.target.value)}/>
+          <STextField size="small" label="Name" value={name} onChange={e => setName(e.target.value)}/>
+          <STextField size="small" label="Style" value={style} onChange={e => setStyle(e.target.value)}/>
+          <STextField size="small" label="Typ" value={kind} onChange={e => setKind(e.target.value)}/>
         </SStack>
 
         <SStack spacing={2} justifyContent="space-between">
-          <STextField label="Phone" value={phone} onChange={e => setPhone(e.target.value)}/>
-          <STextField label="Website" value={website} onChange={e => setWebsite(e.target.value)}/>
-          <STextField label="Email" value={email} onChange={e => setEmail(e.target.value)}/>
+          <STextField size="small" label="Phone" value={phone} onChange={e => setPhone(e.target.value)}/>
+          <STextField size="small" label="Website" value={website} onChange={e => setWebsite(e.target.value)}/>
+          <STextField size="small" label="Email" value={email} onChange={e => setEmail(e.target.value)}/>
         </SStack>
       </Stack>
 
@@ -91,28 +93,35 @@ export default function RestaurantEditor({restaurant, isNew}: RestaurantEditorPr
 
       <Stack spacing={2} justifyContent="space-between">
         <SStack direction="row" spacing={2} justifyContent="space-between">
-          <STextField label="Street" value={street} onChange={e => setStreet(e.target.value)}/>
-          <TextField label="Housenumber" value={housenumber} onChange={e => setHousenumber(e.target.value)}/>
+          <STextField size="small" label="Street" value={street} onChange={e => setStreet(e.target.value)}/>
+          <TextField size="small" label="Housenumber" value={housenumber}
+                     onChange={e => setHousenumber(e.target.value)}/>
         </SStack>
 
         <SStack direction="row" spacing={2} justifyContent="space-between">
-          <TextField label="Postal" value={postal} onChange={e => setPostal(e.target.value)}/>
-          <STextField label="City" value={city} onChange={e => setCity(e.target.value)}/>
+          <TextField size="small" label="Postal" value={postal} onChange={e => setPostal(e.target.value)}/>
+          <STextField size="small" label="City" value={city} onChange={e => setCity(e.target.value)}/>
         </SStack>
       </Stack>
 
       <Divider/>
 
       <SStack spacing={2}>
-        <TextField label="Short Description"
+        <TextField size="small"
+                   label="Short Description"
                    value={shortDescription}
                    onChange={e => setShortDescription(e.target.value)}/>
-        <TextField label="Description"
+        <TextField size="small"
+                   label="Description"
                    value={description}
                    onChange={e => setDescription(e.target.value)}
                    multiline={true}
                    rows={5}/>
       </SStack>
+
+      <Divider/>
+
+      <MenuPageEditor restaurant={restaurant}/>
     </Stack>
 
     <SButtonsFloat>
