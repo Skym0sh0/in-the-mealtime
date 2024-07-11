@@ -81,7 +81,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
         </Stack>
       </Paper>
 
-        <OrderButtons order={order}/>
+      <OrderButtons order={order} onRefresh={onChange}/>
     </Stack>
   </Box>
 }

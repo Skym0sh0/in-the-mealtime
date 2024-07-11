@@ -2,19 +2,59 @@ import {Button, Paper, Stack, Typography} from "@mui/material";
 import {Order, OrderState} from "../../../build/generated-ts/api/api";
 import {assertNever} from "../../utils/utils.ts";
 import useOrderPositionSummary from "./useOrderPositionSummary.ts";
+import {api} from "../../api/api.ts";
+import {useCallback} from "react";
+import {useNavigate} from "react-router-dom";
 
-export default function OrderButtons({order}: { order: Order }) {
+export default function OrderButtons({order, onRefresh}: { order: Order, onRefresh: () => void, }) {
   const summary = useOrderPositionSummary(order);
+  const navigate = useNavigate();
 
-  const revokeButton = <Button variant="contained" color="error">
+  const handleRevoke = useCallback(() => {
+    api.orders.revokeOrder(order.id)
+      .then(() => onRefresh())
+  }, [order.id, onRefresh]);
+
+  const handleDelete = useCallback(() => {
+    api.orders.deleteOrder(order.id)
+      .then(() => navigate({pathname: `/order`}, {replace: true}))
+  }, [order.id, navigate]);
+
+  const handleArchive = useCallback(() => {
+    api.orders.archiveOrder(order.id)
+      .then(() => onRefresh())
+  }, [order.id, onRefresh]);
+
+  const handleOrdering = useCallback(() => {
+    api.orders.lockOrder(order.id)
+      .then(() => onRefresh())
+  }, [order.id, onRefresh]);
+
+  const handleOrderIsOrdered = useCallback(() => {
+    api.orders.orderIsNowOrdered(order.id)
+      .then(() => onRefresh())
+  }, [order.id, onRefresh]);
+
+  const handleReopen = useCallback(() => {
+    api.orders.reopenOrder(order.id)
+      .then(() => onRefresh())
+  }, [order.id, onRefresh]);
+
+  const handleDelivery = useCallback(() => {
+    api.orders.orderIsNowDelivered(order.id)
+      .then(() => onRefresh())
+  }, [order.id, onRefresh]);
+
+
+  const revokeButton = <Button variant="contained" color="error" onClick={handleRevoke}>
     Bestellung zurückziehen
   </Button>;
 
-  const deleteButton = <Button variant="contained" color="error">
+  const deleteButton = <Button variant="contained" color="error" onClick={handleDelete}>
     Löschen
   </Button>
 
-  const archiveButton = <Button variant="contained" color="info">
+  const archiveButton = <Button variant="contained" color="info" onClick={handleArchive}>
     Archivieren
   </Button>
 
@@ -29,7 +69,8 @@ export default function OrderButtons({order}: { order: Order }) {
 
           <Button variant="contained"
                   color="success"
-                  disabled={!order.infos.orderer}>
+                  disabled={!order.infos.orderer}
+                  onClick={handleOrdering}>
             Bestellen
           </Button>
         </>
@@ -38,13 +79,14 @@ export default function OrderButtons({order}: { order: Order }) {
         return <>
           {revokeButton}
 
-          <Button variant="contained" color="warning">
+          <Button variant="contained" color="warning" onClick={handleReopen}>
             Bestellung wieder öffnen
           </Button>
 
           <Button variant="contained"
                   color="success"
-                  disabled={!order.infos.fetcher || !order.infos.moneyCollector}>
+                  disabled={!order.infos.fetcher || !order.infos.moneyCollector}
+                  onClick={handleOrderIsOrdered}>
             Ist Bestellt
           </Button>
         </>
@@ -55,7 +97,8 @@ export default function OrderButtons({order}: { order: Order }) {
 
           <Button variant="contained"
                   color="success"
-                  disabled={summary.paidMissing > 0}>
+                  disabled={summary.paidMissing > 0}
+                  onClick={handleDelivery}>
             Bestellung eingetroffen
           </Button>
         </>
@@ -71,7 +114,7 @@ export default function OrderButtons({order}: { order: Order }) {
         </>
 
       case OrderState.Archived:
-        return null
+        return <Typography>Bestellung ist archiviert</Typography>
 
       default:
         throw assertNever(order.orderState);

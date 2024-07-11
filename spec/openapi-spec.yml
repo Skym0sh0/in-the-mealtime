@@ -318,6 +318,27 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
+  /order/{id}/archive:
+    delete:
+      tags:
+        - Order
+      summary: Archive Order
+      description: Archive Order
+      operationId: archiveOrder
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessOrderResponse"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+
 
 
   /restaurant:

@@ -17,7 +17,7 @@ ZurückgezogeneBestellung --> [*] : nach Zeit Ablauf
 
 BestellteBestellung --> EingetroffeneBestellung : Manuelle Benachrichtigung
 
-BestellteBestellung --> ZurückgezogeneBestellung : Manueller Abbruch
+BestellteBestellung --> ZurückgezogeneBestellung : Manuelles Zurückziehen
 
 BestellteBestellung --> ArchivierteBestellung: nach Zeit Ablauf
 EingetroffeneBestellung --> ArchivierteBestellung: nach Zeit Ablauf
