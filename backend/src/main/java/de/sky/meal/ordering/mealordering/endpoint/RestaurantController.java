@@ -12,6 +12,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -29,18 +30,21 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     }
 
     {
-        var menuPageId = UUID.randomUUID();
-        try (var th = getClass().getResourceAsStream("/tmp/" + "thumbnail.jpg")) {
-            try (var fs = getClass().getResourceAsStream("/tmp/" + "fullsize.webp")) {
-                menuPagesById.put(menuPageId, new Page(
-                        menuPageId,
-                        new TmpFile("thumbnail.jpg", StreamUtils.copyToByteArray(th)),
-                        new TmpFile("fullsize.webp", StreamUtils.copyToByteArray(fs))
-                ));
+        Supplier<UUID> newMenupage = () -> {
+            var menuPageId = UUID.randomUUID();
+            try (var th = getClass().getResourceAsStream("/tmp/" + "thumbnail.jpg")) {
+                try (var fs = getClass().getResourceAsStream("/tmp/" + "fullsize.webp")) {
+                    menuPagesById.put(menuPageId, new Page(
+                            menuPageId,
+                            new TmpFile("thumbnail.jpg", StreamUtils.copyToByteArray(th)),
+                            new TmpFile("fullsize.webp", StreamUtils.copyToByteArray(fs))
+                    ));
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Init failed", e);
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Init failed", e);
-        }
+            return menuPageId;
+        };
 
         restaurants.add(
                 Restaurant.builder()
@@ -64,7 +68,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
                                 IntStream.range(0, 3)
                                         .mapToObj(idx ->
                                                 generated.sky.meal.ordering.rest.model.MenuPage.builder()
-                                                        .id(menuPageId)
+                                                        .id(newMenupage.get())
                                                         .name("Seite-" + idx)
                                                         .index(idx)
                                                         .build()
@@ -91,7 +95,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
                                 IntStream.range(0, 5)
                                         .mapToObj(idx ->
                                                 generated.sky.meal.ordering.rest.model.MenuPage.builder()
-                                                        .id(menuPageId)
+                                                        .id(newMenupage.get())
                                                         .name("Page " + idx)
                                                         .index(idx)
                                                         .build()
@@ -136,11 +140,18 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
 
     @Override
     public ResponseEntity<Restaurant> updateRestaurant(UUID id, Restaurant restaurant) {
+        var old = restaurants.stream()
+                .filter(r -> r.getId().equals(id))
+                .findAny();
+
         if (!restaurants.removeIf(r -> r.getId().equals(id)))
             throw new NoSuchElementException("No Restaurant with ID " + id);
 
         restaurant.setId(id);
         restaurants.add(restaurant);
+        restaurant.setMenuPages(old.orElseThrow().getMenuPages());
+        if (restaurant.getMenuPages() == null)
+            restaurant.setMenuPages(new ArrayList<>());
 
         return ResponseEntity.ok(restaurant);
     }
@@ -224,7 +235,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
                     r.getMenuPages().removeIf(p -> p.getId().equals(pageId));
                     return r;
                 })
-                .map(s-> {
+                .map(s -> {
                     if (cnt == 1)
                         menuPagesById.remove(pageId);
 

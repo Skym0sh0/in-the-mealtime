@@ -9,9 +9,10 @@ import MenuPageEditor from "./MenuPageEditor.tsx";
 type RestaurantEditorProps = {
   restaurant: Restaurant;
   isNew: boolean;
+  onRefresh: () => void;
 };
 
-export default function RestaurantEditor({restaurant, isNew}: RestaurantEditorProps) {
+export default function RestaurantEditor({restaurant, isNew, onRefresh}: RestaurantEditorProps) {
   const [name, setName] = useState(restaurant.name || '');
   const [style, setStyle] = useState(restaurant.style || '');
   const [kind, setKind] = useState(restaurant.kind || '');
@@ -24,6 +25,11 @@ export default function RestaurantEditor({restaurant, isNew}: RestaurantEditorPr
   const [city, setCity] = useState(restaurant.address?.city || '');
   const [shortDescription, setShortDescription] = useState(restaurant.shortDescription || '');
   const [description, setDescription] = useState(restaurant.description || '');
+
+  const [menuPagesOnSave, setMenuPagesOnSave] = useState<((rest: Restaurant) => Promise<void>) | null>(null);
+  const handleInit = useCallback((method: (rest: Restaurant) => Promise<void>) => {
+    setMenuPagesOnSave(() => method)
+  }, []);
 
   const navigate = useNavigate();
   const onDelete = useCallback(() => {
@@ -61,15 +67,17 @@ export default function RestaurantEditor({restaurant, isNew}: RestaurantEditorPr
       menuPages: [],
     };
 
-    const creator = isNew
-      ? () => api.restaurants.createRestaurant(newRestaurant)
-      : () => api.restaurants.updateRestaurant(newRestaurant.id, newRestaurant)
-
-    creator()
-      .then(() => {
-        navigate({pathname: `/restaurant/${newRestaurant.id}`}, {replace: true});
+    (isNew
+        ? () => api.restaurants.createRestaurant(newRestaurant)
+        : () => api.restaurants.updateRestaurant(newRestaurant.id, newRestaurant)
+    )()
+      .then(res => res.data)
+      .then(rest => menuPagesOnSave?.(rest)?.then(() => rest) ?? rest)
+      .then(rest => {
+        navigate({pathname: `/restaurant/${rest.id}`}, {replace: true});
       })
-  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, navigate, restaurant.id, isNew]);
+      .then(() => onRefresh())
+  }, [restaurant.id, name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, menuPagesOnSave, navigate, onRefresh]);
 
   return <Stack spacing={2}>
     <Typography variant="h4">{isNew ? 'Neues' : ''} Restaurant</Typography>
@@ -121,7 +129,7 @@ export default function RestaurantEditor({restaurant, isNew}: RestaurantEditorPr
 
       <Divider/>
 
-      <MenuPageEditor restaurant={restaurant}/>
+      <MenuPageEditor menuPages={restaurant.menuPages ?? []} onInit={handleInit}/>
     </Stack>
 
     <SButtonsFloat>

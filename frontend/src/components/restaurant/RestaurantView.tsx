@@ -2,7 +2,7 @@ import {api} from "../../api/api.ts";
 import {useParams} from "react-router-dom";
 import {Restaurant} from "../../../build/generated-ts/api/index.ts";
 import {Paper} from "@mui/material";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import styled from "styled-components";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {v4 as uuidv4, validate as uuidValidate} from 'uuid';
@@ -14,14 +14,21 @@ export default function RestaurantView() {
   const [isNew, setIsNew] = useState<boolean>(true);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
 
+  const refresh = useCallback(() => {
+    if (!params.restaurantId)
+      return;
+
+    api.restaurants.fetchRestaurant(params.restaurantId)
+      .then(res => setRestaurant(res.data))
+  }, [params.restaurantId]);
+
   useEffect(() => {
     if (!params.restaurantId)
       return;
 
     if (uuidValidate(params.restaurantId)) {
       setIsNew(false);
-      api.restaurants.fetchRestaurant(params.restaurantId)
-        .then(res => setRestaurant(res.data))
+      refresh();
     } else {
       setIsNew(true);
       setRestaurant({
@@ -33,7 +40,9 @@ export default function RestaurantView() {
   return <SPaper elevation={8}>
     <LoadingIndicator isLoading={!restaurant}>
       {restaurant &&
-        <RestaurantEditor restaurant={restaurant} isNew={isNew}/>
+        <RestaurantEditor restaurant={restaurant}
+                          isNew={isNew}
+                          onRefresh={refresh}/>
       }
     </LoadingIndicator>
   </SPaper>
