@@ -1,5 +1,6 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
+import generated.sky.meal.ordering.rest.model.*;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.rest.model.OrderPosition;
@@ -111,6 +112,7 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
                 .id(UUID.randomUUID())
                 .restaurantId(restaurantId)
                 .infos(new OrderInfos())
+                .orderState(generated.sky.meal.ordering.rest.model.OrderState.NEW)
                 .date(LocalDate.now())
                 .orderPositions(new ArrayList<>())
                 .build();

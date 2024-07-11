@@ -49,14 +49,26 @@ paths:
             $ref: "#/components/schemas/ID"
       responses:
         '200':
+          $ref: "#/components/responses/SuccessOrderResponse"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+    delete:
+      tags:
+        - Order
+      summary: Deletes as single order
+      description: Deletes as single order
+      operationId: deleteOrder
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '204':
           description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
         '400':
           description: Invalid input
         '500':
@@ -77,14 +89,7 @@ paths:
           description: ID of the restaurant for that the order will be
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
+          $ref: "#/components/responses/SuccessOrderResponse"
         '400':
           description: Invalid input
         '500':
@@ -113,14 +118,7 @@ paths:
               $ref: "#/components/schemas/OrderInfos"
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
+          $ref: "#/components/responses/SuccessOrderResponse"
         '400':
           description: Invalid input
         '500':
@@ -149,14 +147,7 @@ paths:
               $ref: "#/components/schemas/OrderPosition"
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
+          $ref: "#/components/responses/SuccessOrderResponse"
         '400':
           description: Invalid input
         '500':
@@ -190,14 +181,7 @@ paths:
               $ref: "#/components/schemas/OrderPosition"
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
+          $ref: "#/components/responses/SuccessOrderResponse"
         '400':
           description: Invalid input
         '500':
@@ -233,6 +217,109 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
+
+
+  /order/{id}/order/lock:
+    post:
+      tags:
+        - Order
+      summary: Locks Order to try ordering
+      description: Locks Order to try ordering
+      operationId: lockOrder
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessOrderResponse"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+    delete:
+      tags:
+        - Order
+      summary: Re-open Order after locking
+      description: Re-open Order after locking
+      operationId: reopenOrder
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessOrderResponse"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+  /order/{id}/ordered:
+    post:
+      tags:
+        - Order
+      summary: Set Order to be ordered and waiting for delivery
+      description: Set Order to be ordered and waiting for delivery
+      operationId: orderIsNowOrdered
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessOrderResponse"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+  /order/{id}/delivered:
+    post:
+      tags:
+        - Order
+      summary: Set Order to be delivered
+      description: Set Order to be delivered
+      operationId: orderIsNowDelivered
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessOrderResponse"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+  /order/{id}/revoke:
+    delete:
+      tags:
+        - Order
+      summary: Revoke Order
+      description: Revoke Order
+      operationId: revokeOrder
+      parameters:
+        - in: path
+          required: true
+          name: id
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        '200':
+          $ref: "#/components/responses/SuccessOrderResponse"
+        '400':
+          description: Invalid input
+        '500':
+          description: Server Problem
+
+
   /restaurant:
     get:
       tags:
@@ -302,14 +389,7 @@ paths:
             $ref: "#/components/schemas/ID"
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Restaurant'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Restaurant'
+          $ref: "#/components/responses/SuccessRestaurantResponse"
         '400':
           description: Invalid input
         '500':
@@ -338,14 +418,7 @@ paths:
               $ref: '#/components/schemas/Restaurant'
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Restaurant'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Restaurant'
+          $ref: "#/components/responses/SuccessRestaurantResponse"
         '400':
           description: Invalid input
         '500':
@@ -404,19 +477,11 @@ paths:
                       enum: [ image/png, image/jpeg, image/jpg, image/gif, image/webp ]
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Restaurant"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/Restaurant"
+          $ref: "#/components/responses/SuccessRestaurantResponse"
         '400':
           description: Invalid input
         '500':
           description: Server Problem
-
   /restaurant/{restaurantId}/menu-page/{pageId}:
     get:
       tags:
@@ -483,19 +548,11 @@ paths:
             $ref: "#/components/schemas/ID"
       responses:
         '200':
-          description: Successful operation
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Restaurant"
-            application/xml:
-              schema:
-                $ref: "#/components/schemas/Restaurant"
+          $ref: "#/components/responses/SuccessRestaurantResponse"
         '400':
           description: Invalid input
         '500':
           description: Server Problem
-
 
 components:
   schemas:
@@ -562,6 +619,7 @@ components:
         - restaurantId
         - infos
         - orderPositions
+        - orderState
       properties:
         id:
           $ref: "#/components/schemas/ID"
@@ -569,6 +627,8 @@ components:
           $ref: "#/components/schemas/ID"
         infos:
           $ref: "#/components/schemas/OrderInfos"
+        orderState:
+          $ref: "#/components/schemas/OrderState"
         date:
           type: string
           format: date
@@ -590,6 +650,16 @@ components:
         orderClosingTime:
           type: string
           format: time
+    OrderState:
+      type: string
+      enum:
+        - New
+        - Open
+        - Locked
+        - Revoked
+        - Ordered
+        - Delivered
+        - Archived
     OrderMoneyCollectionType:
       type: string
       enum:
@@ -624,19 +694,9 @@ components:
     ID:
       type: string
       format: uuid
-
-  requestBodies:
-    Restaurant:
-      description: Restaurant object
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Restaurant'
-        application/xml:
-          schema:
-            $ref: '#/components/schemas/Restaurant'
-    Order:
-      description: Order object
+  responses:
+    SuccessOrderResponse:
+      description: Successful operation
       content:
         application/json:
           schema:
@@ -644,3 +704,12 @@ components:
         application/xml:
           schema:
             $ref: '#/components/schemas/Order'
+    SuccessRestaurantResponse:
+      description: Successful operation
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Restaurant'
+        application/xml:
+          schema:
+            $ref: '#/components/schemas/Restaurant'

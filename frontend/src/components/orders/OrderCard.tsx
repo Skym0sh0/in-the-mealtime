@@ -16,9 +16,15 @@ export default function OrderCard({selected, order, restaurant, onSelect}: Order
 
   return <SOrderCard elevation={8} isSelected={selected}>
     <CardContent>
-      <Typography variant="overline" gutterBottom color="text.secondary">
-        {order.date}
-      </Typography>
+      <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
+        <Typography variant="overline" gutterBottom color="text.secondary">
+          {order.date}
+        </Typography>
+
+        <Typography variant="overline" gutterBottom color="text.secondary">
+          {order.orderState}
+        </Typography>
+      </Stack>
 
       <Stack direction="row" spacing={2}>
         <Typography gutterBottom variant="h5" component="div">

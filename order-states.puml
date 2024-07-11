@@ -6,16 +6,22 @@ NeueBestellung -->[*]: Löschen
 NeueBestellung --> OffeneBestellung : OrderPosition hinzufügen
 OffeneBestellung --> OffeneBestellung : OrderPosition hinzufügen
 
-OffeneBestellung --> GeperrteBestellung : Versuchen zu bestellen
-GeperrteBestellung --> OffeneBestellung : Zeitlimit vergangen
-GeperrteBestellung --> OffeneBestellung : Manuell wieder eröffnet
-GeperrteBestellung --> BestellteBestellung: Bestellung erfolgreich
+OffeneBestellung --> GesperrteBestellung : Versuchen zu bestellen
+GesperrteBestellung --> OffeneBestellung : Zeitlimit vergangen
+GesperrteBestellung --> OffeneBestellung : Manuell wieder eröffnet
+GesperrteBestellung --> BestellteBestellung: Bestellung erfolgreich
+
+OffeneBestellung --> ZurückgezogeneBestellung : Zurückziehen
+GesperrteBestellung --> ZurückgezogeneBestellung : Zurückziehen
+ZurückgezogeneBestellung --> [*] : nach Zeit Ablauf
 
 BestellteBestellung --> EingetroffeneBestellung : Manuelle Benachrichtigung
+
+BestellteBestellung --> ZurückgezogeneBestellung : Manueller Abbruch
 
 BestellteBestellung --> ArchivierteBestellung: nach Zeit Ablauf
 EingetroffeneBestellung --> ArchivierteBestellung: nach Zeit Ablauf
 
-ArchivierteBestellung--> [*]
+ArchivierteBestellung --> [*] : nach Zeit Ablauf
 
 @enduml

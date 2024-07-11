@@ -1,5 +1,5 @@
 import {Order, OrderPosition, Restaurant} from "../../../build/generated-ts/api";
-import {Box, Button, Paper, Stack, Typography} from "@mui/material";
+import {Box, Paper, Stack, Typography} from "@mui/material";
 import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
@@ -7,6 +7,7 @@ import OrderSummary from "./OrderSummary.tsx";
 import {api} from "../../api/api.ts";
 import OrderInfosView from "./OrderInfosView.tsx";
 import RestaurantInfos from "./RestaurantInfos.tsx";
+import OrderButtons from "./OrderButtons.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -45,9 +46,17 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
   return <Box sx={{minWidth: '860px'}}>
     <Stack spacing={2}>
-      <Typography variant="h6">
-        Bestellung bei {restaurant.name}
-      </Typography>
+      <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <div/>
+
+        <Typography variant="h6">
+          Bestellung bei {restaurant.name}
+        </Typography>
+
+        <Typography variant="caption">
+          {order.orderState}
+        </Typography>
+      </Stack>
 
       <Paper elevation={8} sx={{padding: 1}}>
         <Stack direction="row" spacing={2}>
@@ -72,16 +81,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
         </Stack>
       </Paper>
 
-      <Paper elevation={8} sx={{padding: 1}}>
-        <Stack direction="row" spacing={2} justifyContent="space-between">
-          <Button variant="contained" color="error">Löschen</Button>
-          <Button variant="contained">Bestellen</Button>
-          <Button variant="contained" color="warning">Bestellung abbrechen</Button>
-          <Button variant="contained">Ist bestellt</Button>
-          <Button variant="contained" color="secondary">Essen ist da</Button>
-          <Button variant="contained" color="info">Fertig</Button>
-        </Stack>
-      </Paper>
+        <OrderButtons order={order}/>
     </Stack>
   </Box>
 }
