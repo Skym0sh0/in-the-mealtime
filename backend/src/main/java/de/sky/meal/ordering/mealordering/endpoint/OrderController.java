@@ -1,17 +1,19 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
+import de.sky.meal.ordering.mealordering.service.OrderRepository;
 import generated.sky.meal.ordering.rest.model.*;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
-import generated.sky.meal.ordering.rest.model.OrderPosition;
 import generated.sky.meal.ordering.rest.model.Restaurant;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
@@ -24,12 +26,12 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     private final RestaurantController restaurants;
 
     private final List<Order> orders = new ArrayList<>();
+    private final OrderRepository orderRepository;
 
     private Optional<List<Restaurant>> getRestaurants() {
         return Optional.ofNullable(this.restaurants.fetchRestaurants().getBody());
     }
 
-    @PostConstruct
     public void init() {
         var rng = ThreadLocalRandom.current();
 
@@ -99,49 +101,37 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
-    public ResponseEntity<Order> archiveOrder(UUID id) {
-        return null;
-    }
-
-    @Override
     public ResponseEntity<Order> createOrder(UUID restaurantId) {
-        if (getRestaurants().orElse(List.of())
-                .stream()
-                .map(Restaurant::getId)
-                .filter(s -> s.equals(restaurantId))
-                .findAny()
-                .isEmpty())
-            return ResponseEntity.notFound().build();
+        var order = orderRepository.createNewEmptyOrder(restaurantId);
 
-        var order = Order.builder()
-                .id(UUID.randomUUID())
-                .restaurantId(restaurantId)
-                .infos(new OrderInfos())
-                .orderState(generated.sky.meal.ordering.rest.model.OrderState.NEW)
-                .date(LocalDate.now())
-                .orderPositions(new ArrayList<>())
-                .build();
-
-        orders.add(order);
         return ResponseEntity.ok(order);
     }
 
 
     @Override
     public ResponseEntity<Order> fetchOrder(UUID id) {
-        return orders.stream()
-                .filter(o -> o.getId().equals(id))
-                .findAny()
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(orderRepository.readOrder(id));
     }
 
     @Override
     public ResponseEntity<List<Order>> fetchOrders() {
-        orders.sort(Comparator.comparing(Order::getDate).reversed());
-
-        return ResponseEntity.ok(orders);
+        return ResponseEntity.ok(orderRepository.readOrders());
     }
+
+    @Override
+    public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfos orderInfos) {
+        return ResponseEntity.ok(orderRepository.updateOrderInfos(orderId, orderInfos));
+    }
+
+
+    @Override
+    public ResponseEntity<Void> deleteOrder(UUID id) {
+        orderRepository.deleteOrder(id);
+
+        return ResponseEntity.ok()
+                .build();
+    }
+
 
     @Override
     public ResponseEntity<Order> lockOrder(UUID id) {
@@ -169,17 +159,10 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
-    public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfos orderInfos) {
-        return orders.stream()
-                .filter(o -> o.getId().equals(orderId))
-                .findAny()
-                .map(o -> {
-                    o.infos(orderInfos);
-                    return o;
-                })
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<Order> archiveOrder(UUID id) {
+        return null;
     }
+
 
     @Override
     public ResponseEntity<Order> createOrderPosition(UUID orderId, OrderPosition orderPosition) {
@@ -196,10 +179,6 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @Override
-    public ResponseEntity<Void> deleteOrder(UUID id) {
-        return null;
-    }
 
     @Override
     public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, OrderPosition orderPosition) {
