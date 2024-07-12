@@ -172,7 +172,7 @@ tasks.named("compileJava") {
 
 sourceSets {
     main {
-        java.srcDirs(layout.buildDirectory.dir("generated/sources/jooq").get().asFile)
+        java.srcDirs(layout.buildDirectory.dir("generated/sources/jooq/generated").get().asFile)
         java.srcDirs(layout.buildDirectory.dir("generated/sources/spec/src/main").get().asFile)
     }
 }

@@ -32,8 +32,8 @@ public class RestaurantService {
                     .setVersion(UUID.randomUUID())
                     .setCreatedAt(now)
                     .setUpdatedAt(now)
-                    .setCreatedBy(DefaultUser.DEFAULT_USER_STR)
-                    .setUpdatedBy(DefaultUser.DEFAULT_USER_STR);
+                    .setCreatedBy(DefaultUser.DEFAULT_USER)
+                    .setUpdatedBy(DefaultUser.DEFAULT_USER);
 
             dbRestaurant.setName(restaurant.getName())
                     .setStyle(restaurant.getStyle())
@@ -70,6 +70,7 @@ public class RestaurantService {
                     .setKind(restaurant.getKind())
                     .setPhone(restaurant.getPhone())
                     .setEmail(restaurant.getEmail())
+                    .setWebsite(restaurant.getWebsite())
                     .setShortDescription(restaurant.getShortDescription())
                     .setLongDescription(restaurant.getDescription());
 
@@ -81,6 +82,7 @@ public class RestaurantService {
                                 .setCity(add.getCity());
                     });
 
+            rec.setUpdatedBy(DefaultUser.DEFAULT_USER);
             rec.setUpdatedAt(OffsetDateTime.now());
             rec.setVersion(UUID.randomUUID());
 
@@ -120,7 +122,7 @@ public class RestaurantService {
 
     public generated.sky.meal.ordering.rest.model.Restaurant addMenuPageToRestaurant(UUID restaurantId, DatabaseFile file) {
         var ts = OffsetDateTime.now();
-        var updater = DefaultUser.DEFAULT_USER_STR;
+        var updater = DefaultUser.DEFAULT_USER;
 
         return transactionTemplate.execute(status -> {
             var restaurantRec = ctx.selectFrom(Tables.RESTAURANT)
@@ -154,7 +156,7 @@ public class RestaurantService {
 
     public generated.sky.meal.ordering.rest.model.Restaurant deleteMenuPageForRestaurant(UUID restaurantId, UUID pageId) {
         var ts = OffsetDateTime.now();
-        var updater = DefaultUser.DEFAULT_USER_STR;
+        var updater = DefaultUser.DEFAULT_USER;
 
         return transactionTemplate.execute(status -> {
             var restaurantRec = ctx.selectFrom(Tables.RESTAURANT)
