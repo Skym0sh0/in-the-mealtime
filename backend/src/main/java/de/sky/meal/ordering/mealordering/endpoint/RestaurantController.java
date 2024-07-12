@@ -1,247 +1,92 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
+import de.sky.meal.ordering.mealordering.model.DatabaseFile;
+import de.sky.meal.ordering.mealordering.service.RestaurantService;
 import generated.sky.meal.ordering.rest.model.Restaurant;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
+import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
+import java.io.IOException;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Controller
+@RequiredArgsConstructor
 public class RestaurantController implements generated.sky.meal.ordering.rest.api.RestaurantApi {
-    private final List<Restaurant> restaurants = new ArrayList<>();
+    private static final int FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
-    private final Map<UUID, Page> menuPagesById = new HashMap<>();
-
-    private record TmpFile(String name, byte[] data) {
-    }
-
-    private record Page(UUID id, TmpFile thumbnail, TmpFile fullsize) {
-    }
-
-    {
-        Supplier<UUID> newMenupage = () -> {
-            var menuPageId = UUID.randomUUID();
-            try (var th = getClass().getResourceAsStream("/tmp/" + "thumbnail.jpg")) {
-                try (var fs = getClass().getResourceAsStream("/tmp/" + "fullsize.webp")) {
-                    menuPagesById.put(menuPageId, new Page(
-                            menuPageId,
-                            new TmpFile("thumbnail.jpg", StreamUtils.copyToByteArray(th)),
-                            new TmpFile("fullsize.webp", StreamUtils.copyToByteArray(fs))
-                    ));
-                }
-            } catch (Exception e) {
-                throw new RuntimeException("Init failed", e);
-            }
-            return menuPageId;
-        };
-
-        restaurants.add(
-                Restaurant.builder()
-                        .id(UUID.randomUUID())
-                        .name("Chok Dee Thaiküche")
-                        .style("thailändisch/asiatisch")
-                        .kind("Abholen/Sitzen")
-                        .phone("0221 / 47 68 48 99")
-                        .website("https://www.chok-dee-rath.de/")
-                        .shortDescription("Sehr guter Thai zum Abholen")
-                        .description("Sehr guter Thai\n".repeat(10))
-                        .address(
-                                generated.sky.meal.ordering.rest.model.Address.builder()
-                                        .street("Rösrather Straße")
-                                        .housenumber("575")
-                                        .postal("51107")
-                                        .city("Köln")
-                                        .build()
-                        )
-                        .menuPages(
-                                IntStream.range(0, 3)
-                                        .mapToObj(idx ->
-                                                generated.sky.meal.ordering.rest.model.MenuPage.builder()
-                                                        .id(newMenupage.get())
-                                                        .name("Seite-" + idx)
-                                                        .index(idx)
-                                                        .build()
-                                        )
-                                        .collect(Collectors.toCollection(ArrayList::new))
-                        )
-                        .build()
-        );
-
-        restaurants.add(
-                Restaurant.builder()
-                        .id(UUID.randomUUID())
-                        .name("Gaststätte Jägerhof")
-                        .style("gutbürgerlich/deutsch")
-                        .style("Sitzen")
-                        .phone("0221 866831")
-                        .address(generated.sky.meal.ordering.rest.model.Address.builder()
-                                .street("Rösrather Str.")
-                                .housenumber("661")
-                                .postal("51107")
-                                .city("Köln")
-                                .build())
-                        .menuPages(
-                                IntStream.range(0, 5)
-                                        .mapToObj(idx ->
-                                                generated.sky.meal.ordering.rest.model.MenuPage.builder()
-                                                        .id(newMenupage.get())
-                                                        .name("Page " + idx)
-                                                        .index(idx)
-                                                        .build()
-                                        )
-                                        .collect(Collectors.toCollection(ArrayList::new))
-                        )
-                        .build()
-        );
-    }
-
+    private final RestaurantService restaurantService;
 
     @Override
-    public synchronized ResponseEntity<Restaurant> createRestaurant(Restaurant restaurant) {
-        restaurant.setId(UUID.randomUUID());
-        restaurants.add(restaurant);
-
-        return ResponseEntity.ok(restaurant);
+    public ResponseEntity<Restaurant> createRestaurant(Restaurant restaurant) {
+        var result = restaurantService.createRestaurant(restaurant);
+        return ResponseEntity.ok(result);
     }
 
     @Override
-    public synchronized ResponseEntity<Void> deleteRestaurant(UUID id) {
-        restaurants.removeIf(r -> r.getId().equals(id));
+    public ResponseEntity<Void> deleteRestaurant(UUID id) {
+        restaurantService.deleteRestaurant(id);
 
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok()
+                .build();
     }
 
     @Override
-    public synchronized ResponseEntity<Restaurant> fetchRestaurant(UUID id) {
-        return restaurants.stream()
-                .filter(r -> r.getId().equals(id))
-                .findAny()
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<Restaurant> fetchRestaurant(UUID id) {
+        return ResponseEntity.ok(restaurantService.readRestaurant(id));
     }
 
     @Override
-    public synchronized ResponseEntity<List<Restaurant>> fetchRestaurants() {
-        restaurants.sort(Comparator.comparing(Restaurant::getName));
-
-        return ResponseEntity.ok(restaurants);
+    public ResponseEntity<List<Restaurant>> fetchRestaurants() {
+        return ResponseEntity.ok(restaurantService.readRestaurants());
     }
 
     @Override
-    public synchronized ResponseEntity<Restaurant> updateRestaurant(UUID id, Restaurant restaurant) {
-        var old = restaurants.stream()
-                .filter(r -> r.getId().equals(id))
-                .findAny();
+    public ResponseEntity<Restaurant> updateRestaurant(UUID id, Restaurant restaurant) {
+        var result = restaurantService.updateRestaurant(id, restaurant);
 
-        if (!restaurants.removeIf(r -> r.getId().equals(id)))
-            throw new NoSuchElementException("No Restaurant with ID " + id);
-
-        restaurant.setId(id);
-        restaurants.add(restaurant);
-        restaurant.setMenuPages(old.orElseThrow().getMenuPages());
-        if (restaurant.getMenuPages() == null)
-            restaurant.setMenuPages(new ArrayList<>());
-
-        return ResponseEntity.ok(restaurant);
+        return ResponseEntity.ok(result);
     }
 
     @Override
-    public synchronized ResponseEntity<Resource> fetchRestaurantsMenuPage(UUID restaurantId, UUID pageId, Boolean thumbnail) {
-        return restaurants.stream()
-                .filter(r -> r.getId().equals(restaurantId))
-                .map(Restaurant::getMenuPages)
-                .flatMap(Collection::stream)
-                .filter(p -> p.getId().equals(pageId))
-                .findAny()
-                .map(p -> menuPagesById.get(p.getId()))
-                .filter(Objects::nonNull)
-                .map(p -> Boolean.TRUE.equals(thumbnail) ? p.thumbnail() : p.fullsize())
-                .map(file -> {
-                    var type = switch (file.name().toLowerCase().substring(file.name().lastIndexOf('.') + 1)) {
-                        case "jpg" -> MediaType.IMAGE_JPEG;
-                        case "jpeg" -> MediaType.IMAGE_JPEG;
-                        case "gif" -> MediaType.IMAGE_GIF;
-                        case "webp" -> MediaType.parseMediaType("image/webp");
-                        case "png" -> MediaType.IMAGE_PNG;
-                        default -> MediaType.ALL;
-                    };
+    public ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, MultipartFile file) {
+        if (file.getSize() > FILE_SIZE_LIMIT)
+            throw new BadRequestException("File was bigger than " + FILE_SIZE_LIMIT);
 
-                    return ResponseEntity.ok()
-                            .contentType(type)
-                            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.name() + "\"")
-                            .body((Resource) new ByteArrayResource(file.data()));
-                })
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        try {
+            var result = restaurantService.addMenuPageToRestaurant(
+                    restaurantId,
+                    new DatabaseFile(file.getName(), file.getContentType(), file.getBytes())
+            );
+
+            return ResponseEntity.ok(result);
+        } catch (IOException e) {
+            throw new BadRequestException("File could not be read: " + file.getName());
+        }
     }
 
     @Override
-    public synchronized ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, MultipartFile file) {
-        return restaurants.stream()
-                .filter(r -> r.getId().equals(restaurantId))
-                .findAny()
-                .map(r -> {
-                    UUID id = UUID.randomUUID();
+    public ResponseEntity<Resource> fetchRestaurantsMenuPage(UUID restaurantId, UUID pageId, Boolean thumbnail) {
+        var result = restaurantService.readMenuPage(restaurantId, pageId, Boolean.TRUE.equals(thumbnail));
 
-                    try (var is = file.getInputStream()) {
-                        var data = StreamUtils.copyToByteArray(is);
-
-                        menuPagesById.put(id, new Page(
-                                id,
-                                new TmpFile(file.getOriginalFilename(), data),
-                                new TmpFile(file.getOriginalFilename(), data)
-                        ));
-
-                        r.getMenuPages()
-                                .add(
-                                        generated.sky.meal.ordering.rest.model.MenuPage.builder()
-                                                .id(id)
-                                                .index(r.getMenuPages().size() + 1)
-                                                .name(file.getOriginalFilename())
-                                                .build()
-                                );
-                    } catch (Exception e) {
-                        throw new RuntimeException("Konnte file nicht lesen", e);
-                    }
-
-                    return r;
-                })
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok()
+                .contentType(result.contentType())
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + result.name() + "\"")
+                .body(new ByteArrayResource(result.data()));
     }
 
     @Override
-    public synchronized ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
-        var cnt = restaurants.stream()
-                .map(Restaurant::getMenuPages)
-                .flatMap(Collection::stream)
-                .filter(p -> p.getId().equals(pageId))
-                .count();
+    public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
+        var result = restaurantService.deleteMenuPageForRestaurant(restaurantId, pageId);
 
-        return restaurants.stream()
-                .filter(r -> r.getId().equals(restaurantId))
-                .findAny()
-                .map(r -> {
-                    r.getMenuPages().removeIf(p -> p.getId().equals(pageId));
-                    return r;
-                })
-                .map(s -> {
-                    if (cnt == 1)
-                        menuPagesById.remove(pageId);
-
-                    return s;
-                })
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return ResponseEntity.ok(result);
     }
 }

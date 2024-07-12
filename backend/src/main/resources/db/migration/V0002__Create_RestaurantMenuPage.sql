@@ -1,0 +1,14 @@
+CREATE TABLE MENU_PAGE
+(
+    ID                    UUID PRIMARY KEY         NOT NULL,
+    NAME                  VARCHAR                  NOT NULL,
+    RESTAURANT_ID         UUID                     NOT NULL REFERENCES RESTAURANT (ID),
+
+    CREATED_AT            TIMESTAMP WITH TIME ZONE NOT NULL,
+    CREATED_BY            VARCHAR,
+
+    IMAGE_DATA_MEDIA_TYPE VARCHAR                  NOT NULL,
+    IMAGE_DATA            BYTEA                    NOT NULL
+);
+
+CREATE INDEX IDX_MENU_PAGE_RESTAURANT_ID ON MENU_PAGE (RESTAURANT_ID);
