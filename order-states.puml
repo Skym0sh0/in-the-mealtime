@@ -4,7 +4,9 @@
 NeueBestellung -->[*]: Löschen
 
 NeueBestellung --> OffeneBestellung : OrderPosition hinzufügen
-OffeneBestellung --> OffeneBestellung : OrderPosition hinzufügen
+OffeneBestellung --> OffeneBestellung : OrderPosition hinzufügen oder bearbeiten
+
+OffeneBestellung --> NeueBestellung: Letzte OrderPosition löschen
 
 OffeneBestellung --> GesperrteBestellung : Versuchen zu bestellen
 GesperrteBestellung --> OffeneBestellung : Zeitlimit vergangen

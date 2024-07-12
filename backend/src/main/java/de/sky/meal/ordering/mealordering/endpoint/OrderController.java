@@ -123,13 +123,28 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
         return ResponseEntity.ok(orderRepository.updateOrderInfos(orderId, orderInfos));
     }
 
-
     @Override
     public ResponseEntity<Void> deleteOrder(UUID id) {
         orderRepository.deleteOrder(id);
 
         return ResponseEntity.ok()
                 .build();
+    }
+
+    @Override
+    public ResponseEntity<Order> createOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPosition orderPosition) {
+        return ResponseEntity.ok(orderRepository.addOrderPosition(orderId, orderPosition));
+    }
+
+
+    @Override
+    public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, generated.sky.meal.ordering.rest.model.OrderPosition orderPosition) {
+        return ResponseEntity.ok(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
+    }
+
+    @Override
+    public ResponseEntity<Order> deleteOrderPosition(UUID orderId, UUID orderPositionId) {
+        return ResponseEntity.ok(orderRepository.removeOrderPosition(orderId, orderPositionId));
     }
 
 
@@ -163,50 +178,4 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
         return null;
     }
 
-
-    @Override
-    public ResponseEntity<Order> createOrderPosition(UUID orderId, OrderPosition orderPosition) {
-        orderPosition.id(UUID.randomUUID());
-
-        return orders.stream()
-                .filter(o -> o.getId().equals(orderId))
-                .findAny()
-                .map(o -> {
-                    o.addOrderPositionsItem(orderPosition);
-                    return o;
-                })
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-
-    @Override
-    public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, OrderPosition orderPosition) {
-        if (!orderPositionId.equals(orderPosition.getId()))
-            return ResponseEntity.badRequest().build();
-
-        return orders.stream()
-                .filter(o -> o.getId().equals(orderId))
-                .findAny()
-                .map(o -> {
-                    o.getOrderPositions().removeIf(p -> p.getId().equals(orderPositionId));
-                    o.addOrderPositionsItem(orderPosition);
-                    return o;
-                })
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    @Override
-    public ResponseEntity<Order> deleteOrderPosition(UUID orderId, UUID orderPositionId) {
-        return orders.stream()
-                .filter(o -> o.getId().equals(orderId))
-                .findAny()
-                .map(o -> {
-                    o.getOrderPositions().removeIf(p -> p.getId().equals(orderPositionId));
-                    return o;
-                })
-                .map(ResponseEntity::ok)
-                .orElseGet(() -> ResponseEntity.notFound().build());
-    }
 }

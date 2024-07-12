@@ -1,0 +1,19 @@
+CREATE TABLE ORDER_POSITION
+(
+    ID         UUID PRIMARY KEY         NOT NULL,
+    ORDER_ID   UUID                     NOT NULL REFERENCES MEAL_ORDER (ID),
+
+    NAME       TEXT                     NOT NULL CHECK (NAME <> ''),
+    MEAL       TEXT                     NOT NULL CHECK (MEAL <> ''),
+    PRICE      MONEY                    NOT NULL CHECK (PRICE > 0::MONEY),
+    PAID       MONEY,
+    TIP        MONEY,
+
+    VERSION    UUID                     NOT NULL,
+    CREATED_AT TIMESTAMP WITH TIME ZONE NOT NULL,
+    CREATED_BY UUID                     NOT NULL,
+    UPDATED_AT TIMESTAMP WITH TIME ZONE NOT NULL,
+    UPDATED_BY UUID                     NOT NULL
+);
+
+CREATE INDEX IDX_ORDER_POSITION_ORDER_ID ON ORDER_POSITION (ORDER_ID);

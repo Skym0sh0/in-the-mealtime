@@ -123,6 +123,11 @@ tasks.register("jooqCodegen") {
                                 .withInputSchema("public")
                                 .withOutputSchema("meal_ordering")
                                 .withExcludes(".*flyway.*")
+                                .withForcedTypes(
+                                    ForcedType()
+                                        .withName("NUMERIC")
+                                        .withTypes("MONEY")
+                                )
                         )
                         .withGenerate(
                             Generate()
