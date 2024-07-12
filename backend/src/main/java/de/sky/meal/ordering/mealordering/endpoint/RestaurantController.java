@@ -64,7 +64,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
         try {
             var result = restaurantService.addMenuPageToRestaurant(
                     restaurantId,
-                    new DatabaseFile(file.getName(), file.getContentType(), file.getBytes())
+                    new DatabaseFile(file.getOriginalFilename(), file.getContentType(), file.getBytes())
             );
 
             return ResponseEntity.ok(result);

@@ -1,7 +1,7 @@
 CREATE TABLE RESTAURANT
 (
     ID                UUID PRIMARY KEY         NOT NULL,
-    NAME              VARCHAR                  NOT NULL UNIQUE CHECK (NAME <> ''),
+    NAME              TEXT                     NOT NULL UNIQUE CHECK (NAME <> ''),
 
     VERSION           UUID                     NOT NULL,
     CREATED_AT        TIMESTAMP WITH TIME ZONE NOT NULL,
@@ -9,19 +9,19 @@ CREATE TABLE RESTAURANT
     UPDATED_AT        TIMESTAMP WITH TIME ZONE NOT NULL,
     UPDATED_BY        UUID                     NOT NULL,
 
-    STYLE             VARCHAR,
-    KIND              VARCHAR,
+    STYLE             TEXT,
+    KIND              TEXT,
 
-    PHONE             VARCHAR,
-    WEBSITE           VARCHAR,
-    EMAIL             VARCHAR,
+    PHONE             TEXT,
+    WEBSITE           TEXT,
+    EMAIL             TEXT,
 
-    STREET            VARCHAR,
-    HOUSENUMBER       VARCHAR,
-    POSTAL            VARCHAR,
-    CITY              VARCHAR,
+    STREET            TEXT,
+    HOUSENUMBER       TEXT,
+    POSTAL            TEXT,
+    CITY              TEXT,
 
-    SHORT_DESCRIPTION VARCHAR,
-    LONG_DESCRIPTION  VARCHAR
+    SHORT_DESCRIPTION TEXT,
+    LONG_DESCRIPTION  TEXT
 );
 

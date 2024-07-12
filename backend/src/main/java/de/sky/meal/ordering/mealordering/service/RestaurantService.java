@@ -8,12 +8,14 @@ import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -53,7 +55,7 @@ public class RestaurantService {
 
             dbRestaurant.insert();
 
-            return readRestaurant(id);
+            return fetchRestaurant(status, id);
         });
     }
 
@@ -88,21 +90,16 @@ public class RestaurantService {
 
             rec.update();
 
-            return readRestaurant(id);
+            return fetchRestaurant(status, id);
         });
     }
 
     public List<generated.sky.meal.ordering.rest.model.Restaurant> readRestaurants() {
-        return ctx.selectFrom(Tables.RESTAURANT)
-                .orderBy(Tables.RESTAURANT.NAME)
-                .fetch()
-                .map(RestaurantService::map);
+        return transactionTemplate.execute(this::fetchRestaurants);
     }
 
     public generated.sky.meal.ordering.rest.model.Restaurant readRestaurant(UUID id) {
-        return ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(id))
-                .map(RestaurantService::map)
-                .orElseThrow(() -> new NotFoundException("No Restaurant found with id: " + id));
+        return transactionTemplate.execute(status -> fetchRestaurant(status, id));
     }
 
     public void deleteRestaurant(UUID id) {
@@ -150,7 +147,7 @@ public class RestaurantService {
 
             restaurantRec.update();
 
-            return readRestaurant(restaurantId);
+            return fetchRestaurant(status, restaurantId);
         });
     }
 
@@ -179,7 +176,7 @@ public class RestaurantService {
 
             restaurantRec.update();
 
-            return readRestaurant(restaurantId);
+            return fetchRestaurant(status, restaurantId);
         });
     }
 
@@ -194,7 +191,30 @@ public class RestaurantService {
         );
     }
 
-    private static generated.sky.meal.ordering.rest.model.Restaurant map(RestaurantRecord rec) {
+    private List<generated.sky.meal.ordering.rest.model.Restaurant> fetchRestaurants(TransactionStatus status) {
+        var pagesByRestaurantId = ctx.selectFrom(Tables.MENU_PAGE)
+                .orderBy(Tables.MENU_PAGE.CREATED_AT.desc())
+                .fetch()
+                .intoGroups(Tables.MENU_PAGE.RESTAURANT_ID);
+
+        return ctx.selectFrom(Tables.RESTAURANT)
+                .orderBy(Tables.RESTAURANT.NAME)
+                .fetch()
+                .map(rec -> map(rec, pagesByRestaurantId.get(rec.getId())));
+    }
+
+    private generated.sky.meal.ordering.rest.model.Restaurant fetchRestaurant(TransactionStatus status, UUID id) {
+        var pages = ctx.selectFrom(Tables.MENU_PAGE)
+                .where(Tables.MENU_PAGE.RESTAURANT_ID.eq(id))
+                .orderBy(Tables.MENU_PAGE.CREATED_AT.desc())
+                .fetch();
+
+        return ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(id))
+                .map(rec -> map(rec, pages))
+                .orElseThrow(() -> new NotFoundException("No Restaurant found with id: " + id));
+    }
+
+    private static generated.sky.meal.ordering.rest.model.Restaurant map(RestaurantRecord rec, List<generated.sky.meal.ordering.schema.tables.records.MenuPageRecord> pages) {
         return generated.sky.meal.ordering.rest.model.Restaurant.builder()
                 .id(rec.getId())
                 .name(rec.getName())
@@ -213,6 +233,18 @@ public class RestaurantService {
                 )
                 .shortDescription(rec.getShortDescription())
                 .description(rec.getLongDescription())
+                .menuPages(
+                        IntStream.range(0, Optional.ofNullable(pages).map(List::size).orElse(0))
+                                .mapToObj(idx -> {
+                                    var p = pages.get(idx);
+                                    return generated.sky.meal.ordering.rest.model.MenuPage.builder()
+                                            .id(p.getId())
+                                            .index(idx)
+                                            .name(p.getName())
+                                            .build();
+                                })
+                                .toList()
+                )
                 .build();
     }
 }
