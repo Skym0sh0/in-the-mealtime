@@ -7,7 +7,7 @@ import {Paper} from "@mui/material";
 import OrderEditor from "./OrderEditor.tsx";
 
 export default function OrderView() {
-  const [autoReload, _] = useState<boolean>(false);
+  const [autoReload, _] = useState<boolean>(true);
 
   const params = useParams<{ orderId: string }>();
 
