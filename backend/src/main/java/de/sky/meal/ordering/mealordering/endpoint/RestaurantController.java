@@ -1,7 +1,7 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
 import de.sky.meal.ordering.mealordering.model.DatabaseFile;
-import de.sky.meal.ordering.mealordering.service.RestaurantService;
+import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -23,17 +23,17 @@ import java.util.UUID;
 public class RestaurantController implements generated.sky.meal.ordering.rest.api.RestaurantApi {
     private static final int FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
-    private final RestaurantService restaurantService;
+    private final RestaurantRepository restaurantRepository;
 
     @Override
     public ResponseEntity<Restaurant> createRestaurant(Restaurant restaurant) {
-        var result = restaurantService.createRestaurant(restaurant);
+        var result = restaurantRepository.createRestaurant(restaurant);
         return ResponseEntity.ok(result);
     }
 
     @Override
     public ResponseEntity<Void> deleteRestaurant(UUID id) {
-        restaurantService.deleteRestaurant(id);
+        restaurantRepository.deleteRestaurant(id);
 
         return ResponseEntity.ok()
                 .build();
@@ -41,17 +41,17 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
 
     @Override
     public ResponseEntity<Restaurant> fetchRestaurant(UUID id) {
-        return ResponseEntity.ok(restaurantService.readRestaurant(id));
+        return ResponseEntity.ok(restaurantRepository.readRestaurant(id));
     }
 
     @Override
     public ResponseEntity<List<Restaurant>> fetchRestaurants() {
-        return ResponseEntity.ok(restaurantService.readRestaurants());
+        return ResponseEntity.ok(restaurantRepository.readRestaurants());
     }
 
     @Override
     public ResponseEntity<Restaurant> updateRestaurant(UUID id, Restaurant restaurant) {
-        var result = restaurantService.updateRestaurant(id, restaurant);
+        var result = restaurantRepository.updateRestaurant(id, restaurant);
 
         return ResponseEntity.ok(result);
     }
@@ -62,7 +62,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
             throw new BadRequestException("File was bigger than " + FILE_SIZE_LIMIT);
 
         try {
-            var result = restaurantService.addMenuPageToRestaurant(
+            var result = restaurantRepository.addMenuPageToRestaurant(
                     restaurantId,
                     new DatabaseFile(file.getOriginalFilename(), file.getContentType(), file.getBytes())
             );
@@ -75,7 +75,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
 
     @Override
     public ResponseEntity<Resource> fetchRestaurantsMenuPage(UUID restaurantId, UUID pageId, Boolean thumbnail) {
-        var result = restaurantService.readMenuPage(restaurantId, pageId, Boolean.TRUE.equals(thumbnail));
+        var result = restaurantRepository.readMenuPage(restaurantId, pageId, Boolean.TRUE.equals(thumbnail));
 
         return ResponseEntity.ok()
                 .contentType(result.contentType())
@@ -85,7 +85,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
 
     @Override
     public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
-        var result = restaurantService.deleteMenuPageForRestaurant(restaurantId, pageId);
+        var result = restaurantRepository.deleteMenuPageForRestaurant(restaurantId, pageId);
 
         return ResponseEntity.ok(result);
     }

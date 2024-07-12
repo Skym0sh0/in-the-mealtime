@@ -19,7 +19,7 @@ import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
-public class RestaurantService {
+public class RestaurantRepository {
     private final DSLContext ctx;
     private final TransactionTemplate transactionTemplate;
 

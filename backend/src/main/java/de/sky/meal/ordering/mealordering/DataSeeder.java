@@ -1,6 +1,6 @@
 package de.sky.meal.ordering.mealordering;
 
-import de.sky.meal.ordering.mealordering.service.RestaurantService;
+import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +12,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class DataSeeder {
-    private final RestaurantService restaurantService;
+    private final RestaurantRepository restaurantRepository;
 
     @PostConstruct
     public void doSeeding() {
@@ -39,7 +39,7 @@ public class DataSeeder {
                 .menuPages(List.of())
                 .build();
 
-        restaurantService.createRestaurant(thai);
+        restaurantRepository.createRestaurant(thai);
     }
 
     private void addJaegerhof() {
@@ -57,6 +57,6 @@ public class DataSeeder {
                 .menuPages(List.of())
                 .build();
 
-        restaurantService.createRestaurant(jaegerhof);
+        restaurantRepository.createRestaurant(jaegerhof);
     }
 }
