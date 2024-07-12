@@ -228,18 +228,21 @@ public class OrderRepository {
 
     private List<generated.sky.meal.ordering.rest.model.Order> fetchOrders() {
         var positionsByOrderId = ctx.selectFrom(Tables.ORDER_POSITION)
-                .orderBy(Tables.ORDER_POSITION.CREATED_AT.desc())
+                .orderBy(Tables.ORDER_POSITION.CREATED_AT.asc())
                 .fetch()
                 .intoGroups(Tables.ORDER_POSITION.ORDER_ID);
 
-        return ctx.fetch(Tables.MEAL_ORDER)
+        return ctx.selectFrom(Tables.MEAL_ORDER)
+                .where(Tables.MEAL_ORDER.STATE.notIn(OrderState.ARCHIVED, OrderState.REVOKED))
+                .orderBy(Tables.MEAL_ORDER.CREATED_AT.desc())
+                .fetch()
                 .map(rec -> map(rec, positionsByOrderId.get(rec.getId())));
     }
 
     private generated.sky.meal.ordering.rest.model.Order fetchOrder(UUID id) {
         var positions = ctx.selectFrom(Tables.ORDER_POSITION)
                 .where(Tables.ORDER_POSITION.ORDER_ID.eq(id))
-                .orderBy(Tables.ORDER_POSITION.CREATED_AT.desc())
+                .orderBy(Tables.ORDER_POSITION.CREATED_AT.asc())
                 .fetch();
 
         return ctx.fetchOptional(Tables.MEAL_ORDER, Tables.MEAL_ORDER.ID.eq(id))
