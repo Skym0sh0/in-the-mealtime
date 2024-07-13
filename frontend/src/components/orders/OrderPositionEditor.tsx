@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {IconButton, InputAdornment, Stack, TextField} from "@mui/material";
+import {IconButton, InputAdornment, Paper, Stack, TextField, useTheme} from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done";
 import UndoIcon from "@mui/icons-material/Undo";
 import CloseIcon from '@mui/icons-material/Close';
@@ -104,103 +104,114 @@ export default function OrderPositionEditor({
   };
 
   const canFullyEdit = orderState === OrderStateType.New || orderState === OrderStateType.Open;
-  const canOnlyPartlyEdit =canFullyEdit || orderState === OrderStateType.Locked || orderState === OrderStateType.Ordered;
+  const canOnlyPartlyEdit = canFullyEdit || orderState === OrderStateType.Locked || orderState === OrderStateType.Ordered;
 
-  return <Stack direction="row"
-                spacing={2}
-                justifyContent="space-between"
-                alignItems="baseline">
-    <TextField size="small"
-               label="Name"
-               disabled={!canFullyEdit}
-               placeholder="Dein Name"
-               value={name}
-               onChange={e => {
-                 setName(e.target.value);
-                 setTouched(true)
-               }}
-               error={!!nameError}
-               helperText={nameError}
-    />
-    <TextField size="small"
-               label="Gericht"
-               placeholder="64 mit Tofu"
-               disabled={!canFullyEdit}
-               value={meal}
-               onChange={e => {
-                 setMeal(e.target.value);
-                 setTouched(true)
-               }}
-               error={!!mealError}
-               helperText={mealError}
-    />
-    <TextField size="small"
-               type="number"
-               label="Preis"
-               placeholder="Preis"
-               disabled={!canFullyEdit}
-               value={price}
-               onChange={e => {
-                 setPrice(e.target.value);
-                 setTouched(true)
-               }}
-               error={!!priceError}
-               helperText={priceError}
-               sx={{width: '15ch'}}
-               InputProps={{
-                 startAdornment: <InputAdornment position="start">€</InputAdornment>
-               }}
-    />
-    <TextField size="small"
-               type="number"
-               label="Bezahlt"
-               placeholder="Bezahlt"
-               disabled={!canOnlyPartlyEdit}
-               value={paid}
-               onChange={e => {
-                 setPaid(e.target.value);
-                 setTouched(true)
-               }}
-               error={!!paidError}
-               helperText={paidError}
-               sx={{width: '15ch'}}
-               InputProps={{
-                 startAdornment: <InputAdornment position="start">€</InputAdornment>
-               }}
-    />
-    <TextField size="small"
-               type="number"
-               label="Trinkgeld"
-               placeholder="Trinkgeld"
-               disabled={!canOnlyPartlyEdit}
-               value={tip}
-               onChange={e => {
-                 setTip(e.target.value);
-                 setTouched(true)
-               }}
-               error={!!tipError}
-               helperText={tipError}
-               sx={{width: '15ch'}}
-               InputProps={{
-                 startAdornment: <InputAdornment position="start">€</InputAdornment>
-               }}
-    />
+  const theme = useTheme();
+  const color = (isNew
+      ? (touched ? theme.palette.info : {main: 'white'})
+      : theme.palette.secondary
+  ).main;
 
-    <Stack direction="row">
-      <IconButton size="small"
-                  color="success"
-                  disabled={isInvalid}
-                  onClick={onClickSave}>
-        <DoneIcon fontSize="inherit"/>
-      </IconButton>
+  return <Paper sx={{
+    p: 1,
+    border: `2px solid ${color}`,
+  }}>
+    <Stack direction="row"
+           spacing={2}
+           justifyContent="space-between"
+           alignItems="baseline">
+      <TextField size="small"
+                 label="Name"
+                 disabled={!canFullyEdit}
+                 placeholder="Dein Name"
+                 value={name}
+                 onChange={e => {
+                   setName(e.target.value);
+                   setTouched(true)
+                 }}
+                 error={!!nameError}
+                 helperText={nameError}
+      />
+      <TextField size="small"
+                 label="Gericht"
+                 placeholder="64 mit Tofu"
+                 disabled={!canFullyEdit}
+                 value={meal}
+                 onChange={e => {
+                   setMeal(e.target.value);
+                   setTouched(true)
+                 }}
+                 error={!!mealError}
+                 helperText={mealError}
+      />
+      <TextField size="small"
+                 type="number"
+                 label="Preis"
+                 placeholder="Preis"
+                 disabled={!canFullyEdit}
+                 value={price}
+                 onChange={e => {
+                   setPrice(e.target.value);
+                   setTouched(true)
+                 }}
+                 error={!!priceError}
+                 helperText={priceError}
+                 sx={{width: '15ch'}}
+                 InputProps={{
+                   startAdornment: <InputAdornment position="start">€</InputAdornment>
+                 }}
+      />
+      <TextField size="small"
+                 type="number"
+                 label="Bezahlt"
+                 placeholder="Bezahlt"
+                 disabled={!canOnlyPartlyEdit}
+                 value={paid}
+                 onChange={e => {
+                   setPaid(e.target.value);
+                   setTouched(true)
+                 }}
+                 error={!!paidError}
+                 helperText={paidError}
+                 sx={{width: '15ch'}}
+                 InputProps={{
+                   startAdornment: <InputAdornment position="start">€</InputAdornment>
+                 }}
+      />
+      <TextField size="small"
+                 type="number"
+                 label="Trinkgeld"
+                 placeholder="Trinkgeld"
+                 disabled={!canOnlyPartlyEdit}
+                 value={tip}
+                 onChange={e => {
+                   setTip(e.target.value);
+                   setTouched(true)
+                 }}
+                 error={!!tipError}
+                 helperText={tipError}
+                 sx={{width: '15ch'}}
+                 InputProps={{
+                   startAdornment: <InputAdornment position="start">€</InputAdornment>
+                 }}
+      />
 
-      {isNew && <IconButton size="small" color="secondary" onClick={reset} disabled={!touched}>
-        <UndoIcon fontSize="inherit"/>
-      </IconButton>}
+      <Stack direction="row">
+        <IconButton size="small"
+                    color="success"
+                    disabled={isInvalid}
+                    onClick={onClickSave}>
+          <DoneIcon fontSize="inherit"/>
+        </IconButton>
 
-      {!isNew && <IconButton size="small" color="error" onClick={onAbort}>
-        <CloseIcon fontSize="inherit"/>
-      </IconButton>}
+        {isNew && <IconButton size="small" color="secondary" onClick={reset} disabled={!touched}>
+          <UndoIcon fontSize="inherit"/>
+        </IconButton>}
+
+        {!isNew && <IconButton size="small" color="error" onClick={onAbort}>
+          <CloseIcon fontSize="inherit"/>
+        </IconButton>}
+      </Stack>
     </Stack>
-  </Stack>;
+  </Paper>;
 }
