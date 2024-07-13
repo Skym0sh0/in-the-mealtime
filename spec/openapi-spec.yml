@@ -31,9 +31,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Order'
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{id}:
     get:
       tags:
@@ -51,9 +51,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
         - Order
@@ -70,9 +70,9 @@ paths:
         '204':
           description: Successful operation
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/restaurant/{restaurantId}:
     post:
       tags:
@@ -91,9 +91,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{orderId}/infos:
     put:
       tags:
@@ -120,9 +120,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{orderId}/order-position:
     post:
       tags:
@@ -149,9 +149,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{orderId}/order-position/{orderPositionId}:
     patch:
       tags:
@@ -183,9 +183,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
         - Order
@@ -214,11 +214,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Order'
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
-
-
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{id}/order/lock:
     post:
       tags:
@@ -236,9 +234,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
         - Order
@@ -255,9 +253,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{id}/ordered:
     post:
       tags:
@@ -275,9 +273,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{id}/delivered:
     post:
       tags:
@@ -295,9 +293,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{id}/revoke:
     delete:
       tags:
@@ -315,9 +313,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /order/{id}/archive:
     delete:
       tags:
@@ -335,12 +333,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
-
-
-
+          $ref: "#/components/responses/ServerErrorResponse"
   /restaurant:
     get:
       tags:
@@ -363,9 +358,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/Restaurant'
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
     post:
       tags:
         - Restaurant
@@ -392,9 +387,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Restaurant'
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /restaurant/{id}:
     get:
       tags:
@@ -412,9 +407,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessRestaurantResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
     put:
       tags:
         - Restaurant
@@ -441,9 +436,9 @@ paths:
         '200':
           $ref: "#/components/responses/SuccessRestaurantResponse"
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
         - Restaurant
@@ -461,9 +456,9 @@ paths:
         '204':
           description: Successful operation
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
   /restaurant/{restaurantId}/menu-page:
     put:
       tags:
@@ -547,9 +542,9 @@ paths:
                 type: string
                 format: binary
         '400':
-          description: Invalid input
+          $ref: "#/components/responses/ClientErrorResponse"
         '500':
-          description: Server Problem
+          $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
         - Restaurant
@@ -653,6 +648,7 @@ components:
         date:
           type: string
           format: date
+
         orderPositions:
           type: array
           items:
@@ -715,6 +711,11 @@ components:
     ID:
       type: string
       format: uuid
+    ErrorObject:
+      type: object
+      properties:
+        message:
+          type: string
   responses:
     SuccessOrderResponse:
       description: Successful operation
@@ -734,3 +735,21 @@ components:
         application/xml:
           schema:
             $ref: '#/components/schemas/Restaurant'
+    ClientErrorResponse:
+      description: Operation failed due to client error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+        application/xml:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+    ServerErrorResponse:
+      description: Operation failed due to client error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
+        application/xml:
+          schema:
+            $ref: "#/components/schemas/ErrorObject"
