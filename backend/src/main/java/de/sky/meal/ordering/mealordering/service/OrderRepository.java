@@ -30,15 +30,11 @@ public class OrderRepository {
     private final TransactionTemplate transactionTemplate;
 
     public generated.sky.meal.ordering.rest.model.Order readOrder(UUID id) {
-        return transactionTemplate.execute(status -> {
-            return fetchOrder(id);
-        });
+        return transactionTemplate.execute(status -> fetchOrder(id));
     }
 
     public List<generated.sky.meal.ordering.rest.model.Order> readOrders() {
-        return transactionTemplate.execute(status -> {
-            return fetchOrders();
-        });
+        return transactionTemplate.execute(status -> fetchOrders());
     }
 
     public generated.sky.meal.ordering.rest.model.Order createNewEmptyOrder(UUID restaurantId) {
@@ -71,36 +67,40 @@ public class OrderRepository {
 
     public generated.sky.meal.ordering.rest.model.Order updateOrderInfos(UUID id, OrderInfos infos) {
         return changeOrderRecord(id, (updater, rec) -> {
+            var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
+            if (!requiredStates.contains(rec.getState()))
+                throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
+
             rec.setOrderer(infos.getOrderer())
                     .setFetcher(infos.getFetcher())
-                    .setMoneyCollectorType(
-                            Optional.ofNullable(infos.getMoneyCollectionType())
-                                    .map(Enum::name)
-                                    .map(generated.sky.meal.ordering.schema.enums.MoneyCollectionType::valueOf)
-                                    .orElse(null)
-                    )
+                    .setMoneyCollectorType(Mapper.map(infos.getMoneyCollectionType()))
                     .setMoneyCollector(infos.getMoneyCollector())
-                    .setOrderClosingTime(
-                            Optional.ofNullable(infos.getOrderClosingTime())
-                                    .map(LocalTime::parse)
-                                    .orElse(null)
-                    );
+                    .setOrderClosingTime(Mapper.mapOrderClosingTime(infos));
         });
     }
 
     public void deleteOrder(UUID id) {
         transactionTemplate.executeWithoutResult(status -> {
-            var deleted = ctx.deleteFrom(Tables.MEAL_ORDER)
+            var rec = ctx.selectFrom(Tables.MEAL_ORDER)
                     .where(Tables.MEAL_ORDER.ID.eq(id))
-                    .execute();
+                    .forUpdate()
+                    .fetchOptional()
+                    .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
 
-            if (deleted == 0)
-                throw new NotFoundException("No Order found with id " + id);
+            var requiredStates = Set.of(OrderState.NEW, OrderState.ARCHIVED, OrderState.REVOKED);
+            if (!requiredStates.contains(rec.getState()))
+                throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
+
+            rec.delete();
         });
     }
 
     public generated.sky.meal.ordering.rest.model.Order addOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPosition position) {
         return changeOrderRecord(orderId, (updater, rec) -> {
+            var requiredStates = Set.of(OrderState.NEW, OrderState.OPEN, OrderState.REVOKED);
+            if (!requiredStates.contains(rec.getState()))
+                throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
+
             rec.setState(OrderState.OPEN);
 
             var posRec = ctx.newRecord(Tables.ORDER_POSITION);
@@ -116,9 +116,9 @@ public class OrderRepository {
 
             posRec.setName(position.getName())
                     .setMeal(position.getMeal())
-                    .setPrice(BigDecimal.valueOf(position.getPrice()))
-                    .setPaid(Optional.ofNullable(position.getPaid()).map(BigDecimal::new).orElse(null))
-                    .setTip(Optional.ofNullable(position.getTip()).map(BigDecimal::new).orElse(null));
+                    .setPrice(Mapper.map(position.getPrice()))
+                    .setPaid(Mapper.map(position.getPaid()))
+                    .setTip(Mapper.map(position.getTip()));
 
             posRec.insert();
         });
@@ -137,11 +137,17 @@ public class OrderRepository {
                     .setUpdatedAt(updater.timestamp())
                     .setUpdatedBy(updater.user());
 
-            posRec.setName(position.getName())
-                    .setMeal(position.getMeal())
-                    .setPrice(BigDecimal.valueOf(position.getPrice()))
-                    .setPaid(Optional.ofNullable(position.getPaid()).map(BigDecimal::new).orElse(null))
-                    .setTip(Optional.ofNullable(position.getTip()).map(BigDecimal::new).orElse(null));
+            if (rec.getState() == OrderState.OPEN) {
+                posRec.setName(position.getName())
+                        .setMeal(position.getMeal())
+                        .setPrice(Mapper.map(position.getPrice()))
+                        .setPaid(Mapper.map(position.getPaid()))
+                        .setTip(Mapper.map(position.getTip()));
+            } else if (rec.getState() == OrderState.LOCKED || rec.getState() == OrderState.ORDERED || rec.getState() == OrderState.DELIVERED) {
+                posRec.setPaid(Mapper.map(position.getPaid()))
+                        .setTip(Mapper.map(position.getTip()));
+            } else
+                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
 
             posRec.update();
         });
@@ -149,6 +155,9 @@ public class OrderRepository {
 
     public generated.sky.meal.ordering.rest.model.Order removeOrderPosition(UUID orderId, UUID positionId) {
         return changeOrderRecord(orderId, (updater, rec) -> {
+            if (rec.getState() != OrderState.OPEN)
+                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
+
             var deleted = ctx.deleteFrom(Tables.ORDER_POSITION)
                     .where(Tables.ORDER_POSITION.ID.eq(positionId))
                     .and(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
@@ -163,7 +172,6 @@ public class OrderRepository {
                 rec.setState(OrderState.OPEN);
         });
     }
-
 
     public generated.sky.meal.ordering.rest.model.Order lockOrder(UUID orderId) {
         return changeOrderRecord(orderId, (updater, rec) -> {
@@ -259,7 +267,7 @@ public class OrderRepository {
                 .where(Tables.MEAL_ORDER.STATE.notIn(OrderState.ARCHIVED, OrderState.REVOKED))
                 .orderBy(Tables.MEAL_ORDER.CREATED_AT.desc())
                 .fetch()
-                .map(rec -> map(rec, positionsByOrderId.get(rec.getId())));
+                .map(rec -> Mapper.map(rec, positionsByOrderId.get(rec.getId())));
     }
 
     private generated.sky.meal.ordering.rest.model.Order fetchOrder(UUID id) {
@@ -269,60 +277,99 @@ public class OrderRepository {
                 .fetch();
 
         return ctx.fetchOptional(Tables.MEAL_ORDER, Tables.MEAL_ORDER.ID.eq(id))
-                .map(rec -> map(rec, positions))
+                .map(rec -> Mapper.map(rec, positions))
                 .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
-    }
-
-    private static generated.sky.meal.ordering.rest.model.Order map(MealOrderRecord rec, List<generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord> rawPositions) {
-        var positions = rawPositions == null ? List.<generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord>of() : rawPositions;
-
-        return generated.sky.meal.ordering.rest.model.Order.builder()
-                .id(rec.getId())
-                .restaurantId(rec.getRestaurantId())
-                .orderState(generated.sky.meal.ordering.rest.model.OrderState.valueOf(rec.getState().name()))
-                .infos(
-                        OrderInfos.builder()
-                                .orderer(rec.getOrderer())
-                                .fetcher(rec.getFetcher())
-                                .moneyCollectionType(
-                                        Optional.ofNullable(rec.getMoneyCollectorType())
-                                                .map(Enum::name)
-                                                .map(generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType::valueOf)
-                                                .orElse(null)
-                                )
-                                .moneyCollector(rec.getMoneyCollector())
-                                .orderClosingTime(
-                                        Optional.ofNullable(rec.getOrderClosingTime())
-                                                .map(LocalTime::toString)
-                                                .orElse(null)
-                                )
-                                .build()
-                )
-                .date(rec.getCreatedAt().toLocalDate())
-                .orderPositions(
-                        IntStream.range(0, positions.size())
-                                .mapToObj(idx -> {
-                                            var r = positions.get(idx);
-
-                                            return generated.sky.meal.ordering.rest.model.OrderPosition.builder()
-                                                    .id(r.getId())
-                                                    .index(idx)
-                                                    .name(r.getName())
-                                                    .meal(r.getMeal())
-                                                    .price(Optional.of(r.getPrice()).map(BigDecimal::floatValue).orElse(null))
-                                                    .paid(Optional.ofNullable(r.getPaid()).map(BigDecimal::floatValue).orElse(null))
-                                                    .tip(Optional.ofNullable(r.getTip()).map(BigDecimal::floatValue).orElse(null))
-                                                    .build();
-                                        }
-                                )
-                                .toList()
-                )
-                .build();
     }
 
     private record Updater(UUID user, OffsetDateTime timestamp) {
         public Updater() {
             this(DefaultUser.DEFAULT_USER, OffsetDateTime.now());
+        }
+    }
+
+    private static class Mapper {
+        private static generated.sky.meal.ordering.rest.model.Order map(MealOrderRecord rec, List<generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord> rawPositions) {
+            var positions = rawPositions == null ? List.<generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord>of() : rawPositions;
+
+            return generated.sky.meal.ordering.rest.model.Order.builder()
+                    .id(rec.getId())
+                    .restaurantId(rec.getRestaurantId())
+                    .orderState(map(rec.getState()))
+                    .infos(
+                            OrderInfos.builder()
+                                    .orderer(rec.getOrderer())
+                                    .fetcher(rec.getFetcher())
+                                    .moneyCollectionType(map(rec.getMoneyCollectorType()))
+                                    .moneyCollector(rec.getMoneyCollector())
+                                    .orderClosingTime(mapOrderClosingTime(rec.getOrderClosingTime()))
+                                    .build()
+                    )
+                    .date(rec.getCreatedAt().toLocalDate())
+                    .orderPositions(
+                            IntStream.range(0, positions.size())
+                                    .mapToObj(idx -> {
+                                                var r = positions.get(idx);
+
+                                                return generated.sky.meal.ordering.rest.model.OrderPosition.builder()
+                                                        .id(r.getId())
+                                                        .index(idx)
+                                                        .name(r.getName())
+                                                        .meal(r.getMeal())
+                                                        .price(map(r.getPrice()))
+                                                        .paid(map(r.getPaid()))
+                                                        .tip(map(r.getTip()))
+                                                        .build();
+                                            }
+                                    )
+                                    .toList()
+                    )
+                    .build();
+        }
+
+        private static LocalTime mapOrderClosingTime(OrderInfos infos) {
+            return Optional.ofNullable(infos.getOrderClosingTime())
+                    .map(LocalTime::parse)
+                    .orElse(null);
+        }
+
+        private static String mapOrderClosingTime(LocalTime time) {
+            return Optional.ofNullable(time)
+                    .map(LocalTime::toString)
+                    .orElse(null);
+        }
+
+        private static generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType map(generated.sky.meal.ordering.schema.enums.MoneyCollectionType type) {
+            return Optional.ofNullable(type)
+                    .map(Enum::name)
+                    .map(generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType::valueOf)
+                    .orElse(null);
+        }
+
+        private static generated.sky.meal.ordering.schema.enums.MoneyCollectionType map(generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType type) {
+            return Optional.ofNullable(type)
+                    .map(Enum::name)
+                    .map(generated.sky.meal.ordering.schema.enums.MoneyCollectionType::valueOf)
+                    .orElse(null);
+        }
+
+        private static generated.sky.meal.ordering.schema.enums.OrderState map(generated.sky.meal.ordering.rest.model.OrderState state) {
+            return generated.sky.meal.ordering.schema.enums.OrderState.valueOf(state.name());
+        }
+
+        private static generated.sky.meal.ordering.rest.model.OrderState map(generated.sky.meal.ordering.schema.enums.OrderState state) {
+            return generated.sky.meal.ordering.rest.model.OrderState.valueOf(state.name());
+        }
+
+        private static Float map(BigDecimal money) {
+            return Optional.ofNullable(money)
+                    .map(BigDecimal::floatValue)
+                    .orElse(null);
+        }
+
+        private static BigDecimal map(Float money) {
+            return Optional.ofNullable(money)
+                    .map(BigDecimal::new)
+                    .orElse(null);
         }
     }
 }
