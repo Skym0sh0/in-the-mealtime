@@ -112,10 +112,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OrderInfos"
+              $ref: "#/components/schemas/OrderInfosPatch"
           application/xml:
             schema:
-              $ref: "#/components/schemas/OrderInfos"
+              $ref: "#/components/schemas/OrderInfosPatch"
       responses:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
@@ -141,10 +141,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OrderPosition"
+              $ref: "#/components/schemas/OrderPositionPatch"
           application/xml:
             schema:
-              $ref: "#/components/schemas/OrderPosition"
+              $ref: "#/components/schemas/OrderPositionPatch"
       responses:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
@@ -175,10 +175,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/OrderPosition"
+              $ref: "#/components/schemas/OrderPositionPatch"
           application/xml:
             schema:
-              $ref: "#/components/schemas/OrderPosition"
+              $ref: "#/components/schemas/OrderPositionPatch"
       responses:
         '200':
           $ref: "#/components/responses/SuccessOrderResponse"
@@ -217,7 +217,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{id}/order/lock:
+  /order/{id}/lock:
     post:
       tags:
         - Order
@@ -336,6 +336,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
+
   /restaurant:
     get:
       tags:
@@ -372,10 +373,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Restaurant'
+              $ref: '#/components/schemas/RestaurantPatch'
           application/xml:
             schema:
-              $ref: '#/components/schemas/Restaurant'
+              $ref: '#/components/schemas/RestaurantPatch'
       responses:
         '200':
           description: Successful operation
@@ -428,10 +429,10 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Restaurant'
+              $ref: '#/components/schemas/RestaurantPatch'
           application/xml:
             schema:
-              $ref: '#/components/schemas/Restaurant'
+              $ref: '#/components/schemas/RestaurantPatch'
       responses:
         '200':
           $ref: "#/components/responses/SuccessRestaurantResponse"
@@ -572,14 +573,9 @@ paths:
 
 components:
   schemas:
-    Restaurant:
+    RestaurantPatch:
       type: object
-      required:
-        - id
-        - name
       properties:
-        id:
-          $ref: "#/components/schemas/ID"
         name:
           type: string
         style:
@@ -596,6 +592,20 @@ components:
           type: string
         shortDescription:
           type: string
+        address:
+          $ref: '#/components/schemas/Address'
+    Restaurant:
+      type: object
+      required:
+        - id
+        - name
+        - address
+        - menuPages
+      allOf:
+        - $ref: "#/components/schemas/RestaurantPatch"
+      properties:
+        id:
+          $ref: "#/components/schemas/ID"
         address:
           $ref: '#/components/schemas/Address'
         menuPages:
@@ -648,12 +658,11 @@ components:
         date:
           type: string
           format: date
-
         orderPositions:
           type: array
           items:
             $ref: "#/components/schemas/OrderPosition"
-    OrderInfos:
+    OrderInfosPatch:
       type: object
       properties:
         orderer:
@@ -667,6 +676,45 @@ components:
         orderClosingTime:
           type: string
           format: time
+    OrderInfos:
+      allOf:
+        - $ref: "#/components/schemas/OrderInfosPatch"
+    OrderPositionPatch:
+      required:
+        - name
+        - meal
+        - price
+      properties:
+        name:
+          type: string
+        meal:
+          type: string
+        price:
+          type: number
+          format: float
+        paid:
+          type: number
+          format: float
+        tip:
+          type: number
+          format: float
+
+    OrderPosition:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/OrderPositionPatch"
+      required:
+        - id
+        - name
+        - meal
+        - price
+      properties:
+        id:
+          $ref: "#/components/schemas/ID"
+        index:
+          type: integer
+          format: int32
+
     OrderState:
       type: string
       enum:
@@ -682,32 +730,6 @@ components:
       enum:
         - Bar
         - PayPal
-    OrderPosition:
-      type: object
-      required:
-        - id
-        - name
-        - meal
-        - price
-      properties:
-        id:
-          $ref: "#/components/schemas/ID"
-        index:
-          type: integer
-          format: int32
-        name:
-          type: string
-        meal:
-          type: string
-        price:
-          type: number
-          format: float
-        paid:
-          type: number
-          format: float
-        tip:
-          type: number
-          format: float
     ID:
       type: string
       format: uuid
