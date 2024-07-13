@@ -77,12 +77,14 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
             <OrderSummary order={order}/>
 
             <Stack spacing={1}>
-              <OrderPositionsTable orderPositions={order.orderPositions}
+              <OrderPositionsTable orderState={order.orderState}
+                                   orderPositions={order.orderPositions}
                                    selectedPosition={selectedPosition}
                                    onSelect={onSelectToEditPosition}
                                    onDelete={onDeletePosition}/>
 
-              <OrderPositionEditor onSave={onCreatePosition}
+              <OrderPositionEditor orderState={order.orderState}
+                                   onSave={onCreatePosition}
                                    onUpdate={onUpdatePosition}
                                    onAbort={onDeselect}
                                    inputPosition={selectedPosition}/>

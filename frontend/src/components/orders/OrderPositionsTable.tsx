@@ -2,13 +2,14 @@ import {IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHea
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
-import {OrderPosition} from "../../../build/generated-ts/api/api.ts";
+import {OrderPosition, OrderStateType} from "../../../build/generated-ts/api/api.ts";
 
-export default function OrderPositionsTable({orderPositions, selectedPosition, onSelect, onDelete}: {
+export default function OrderPositionsTable({orderState, orderPositions, selectedPosition, onSelect, onDelete}: {
+  orderState: OrderStateType,
   orderPositions: OrderPosition[],
   selectedPosition: OrderPosition | null,
-  onSelect: (pos: OrderPosition) => void
-  onDelete: (pos: OrderPosition) => void
+  onSelect: (pos: OrderPosition) => void,
+  onDelete: (pos: OrderPosition) => void,
 }) {
   return <TableContainer component={Paper} sx={{minHeight: '50vh', maxHeight: '50vh', border: '1px solid lightgray'}}>
     <Table size="small" stickyHeader={true}>
@@ -28,6 +29,7 @@ export default function OrderPositionsTable({orderPositions, selectedPosition, o
         {
           orderPositions.map((line, idx) => {
             return <OrderTableRow key={line.id}
+                                  orderState={orderState}
                                   idx={idx}
                                   selected={line.id === selectedPosition?.id}
                                   position={line}
@@ -41,13 +43,25 @@ export default function OrderPositionsTable({orderPositions, selectedPosition, o
   </TableContainer>;
 }
 
-function OrderTableRow({idx, position, selected, onSelect, onDelete}: {
+function OrderTableRow({idx, position, orderState, selected, onSelect, onDelete}: {
   idx: number,
   position: OrderPosition,
+  orderState: OrderStateType,
   selected: boolean,
   onSelect: (pos: OrderPosition) => void
   onDelete: (pos: OrderPosition) => void
 }) {
+  const isPaid = position.price + (position.tip ?? 0) <= (position.paid ?? 0);
+
+
+  const isEditable = orderState === OrderStateType.New || orderState === OrderStateType.Open
+    || (!isPaid && (
+      orderState === OrderStateType.Locked
+      || orderState === OrderStateType.Ordered
+    ));
+
+  const isDeletable = orderState === OrderStateType.New || orderState === OrderStateType.Open;
+
   return <TableRow selected={selected}>
     <TableCell align="left" color="text.secondary">
       {
@@ -73,18 +87,18 @@ function OrderTableRow({idx, position, selected, onSelect, onDelete}: {
     </TableCell>
 
     <TableCell align="right">
-      <IconButton size="small"
-                  color="primary"
-                  disabled={selected}
-                  onClick={() => onSelect(position)}>
+      {isEditable && <IconButton size="small"
+                                 color="primary"
+                                 disabled={selected}
+                                 onClick={() => onSelect(position)}>
         <EditIcon fontSize="inherit"/>
-      </IconButton>
-      <IconButton size="small"
-                  color="secondary"
-                  disabled={selected}
-                  onClick={() => onDelete(position)}>
+      </IconButton>}
+      {isDeletable && <IconButton size="small"
+                                  color="secondary"
+                                  disabled={selected}
+                                  onClick={() => onDelete(position)}>
         <DeleteIcon fontSize="inherit"/>
-      </IconButton>
+      </IconButton>}
     </TableCell>
   </TableRow>
 }
