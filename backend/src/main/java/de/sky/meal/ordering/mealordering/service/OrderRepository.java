@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
-import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -77,7 +76,7 @@ public class OrderRepository {
                     .setFetcher(infos.getFetcher())
                     .setMoneyCollectorType(Mapper.map(infos.getMoneyCollectionType()))
                     .setMoneyCollector(infos.getMoneyCollector())
-                    .setOrderClosingTime(Mapper.mapOrderClosingTime(infos));
+                    .setOrderClosingTime(infos.getOrderClosingTime());
         });
     }
 
@@ -306,7 +305,7 @@ public class OrderRepository {
                                     .fetcher(rec.getFetcher())
                                     .moneyCollectionType(map(rec.getMoneyCollectorType()))
                                     .moneyCollector(rec.getMoneyCollector())
-                                    .orderClosingTime(mapOrderClosingTime(rec.getOrderClosingTime()))
+                                    .orderClosingTime(rec.getOrderClosingTime())
                                     .build()
                     )
                     .date(rec.getCreatedAt().toLocalDate())
@@ -329,18 +328,6 @@ public class OrderRepository {
                                     .toList()
                     )
                     .build();
-        }
-
-        private static LocalTime mapOrderClosingTime(OrderInfos infos) {
-            return Optional.ofNullable(infos.getOrderClosingTime())
-                    .map(LocalTime::parse)
-                    .orElse(null);
-        }
-
-        private static String mapOrderClosingTime(LocalTime time) {
-            return Optional.ofNullable(time)
-                    .map(LocalTime::toString)
-                    .orElse(null);
         }
 
         private static generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType map(generated.sky.meal.ordering.schema.enums.MoneyCollectionType type) {

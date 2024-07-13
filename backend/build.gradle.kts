@@ -6,6 +6,7 @@ import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+import java.time.LocalTime
 
 buildscript {
     repositories {
@@ -157,6 +158,12 @@ openApiGenerate {
     outputDir.set(layout.buildDirectory.dir("generated/sources/spec").get().asFile.path)
     apiPackage.set("generated.sky.meal.ordering.rest.api")
     modelPackage.set("generated.sky.meal.ordering.rest.model")
+    typeMappings.set(mapOf(
+        "time" to "LocalTime"
+    ))
+    importMappings.set(mapOf(
+        "LocalTime" to LocalTime::class.java.getName()
+    ))
     configOptions.set(
         mapOf(
             "library" to "spring-boot",
