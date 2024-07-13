@@ -28,7 +28,9 @@ export default function RestaurantsOverview() {
                           id: 'new-restaurant',
                           name: 'Neues Restaurant',
                           style: 'Neu',
-                          shortDescription: 'Erstelle neues Restaurant'
+                          shortDescription: 'Erstelle neues Restaurant',
+                          address: {},
+                          menuPages: [],
                         }}/>
       </SFlexGrid>
     </LoadingIndicator>

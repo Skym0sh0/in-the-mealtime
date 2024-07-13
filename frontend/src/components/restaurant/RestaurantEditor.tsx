@@ -2,14 +2,14 @@ import {useCallback, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {api} from "../../api/api.ts";
 import styled from "styled-components";
-import {Restaurant} from "../../../build/generated-ts/api/index.ts";
+import {Restaurant, RestaurantPatch} from "../../../build/generated-ts/api/index.ts";
 import {Button, Divider, Stack, TextField, Typography} from "@mui/material";
 import MenuPageEditor from "./MenuPageEditor.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
   isNew: boolean;
-  onRefresh: () => void;
+  onRefresh?: () => void;
 };
 
 export default function RestaurantEditor({restaurant, isNew, onRefresh}: RestaurantEditorProps) {
@@ -45,11 +45,10 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
   }, [navigate]);
 
   const onSave = useCallback(() => {
-    if (!restaurant?.id)
+    if (!isNew && !restaurant?.id)
       return;
 
-    const newRestaurant: Restaurant = {
-      id: restaurant.id,
+    const newRestaurant: RestaurantPatch = {
       name: name,
       style: style,
       kind: kind,
@@ -64,20 +63,19 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
         postal: postal,
         city: city,
       },
-      menuPages: [],
     };
 
     (isNew
         ? () => api.restaurants.createRestaurant(newRestaurant)
-        : () => api.restaurants.updateRestaurant(newRestaurant.id, newRestaurant)
+        : () => api.restaurants.updateRestaurant(restaurant.id, newRestaurant)
     )()
       .then(res => res.data)
       .then(rest => menuPagesOnSave?.(rest)?.then(() => rest) ?? rest)
       .then(rest => {
         navigate({pathname: `/restaurant/${rest.id}`}, {replace: true});
       })
-      .then(() => onRefresh())
-  }, [restaurant.id, name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, menuPagesOnSave, navigate, onRefresh]);
+      .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
+  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant?.id, onRefresh]);
 
   return <Stack spacing={2}>
     <Typography variant="h4">{isNew ? 'Neues' : ''} Restaurant</Typography>

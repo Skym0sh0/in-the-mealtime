@@ -5,7 +5,7 @@ import {Paper} from "@mui/material";
 import {useCallback, useEffect, useState} from "react";
 import styled from "styled-components";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
-import {v4 as uuidv4, validate as uuidValidate} from 'uuid';
+import {validate as uuidValidate} from 'uuid';
 import RestaurantEditor from "./RestaurantEditor.tsx";
 
 export default function RestaurantView() {
@@ -32,17 +32,16 @@ export default function RestaurantView() {
     } else {
       setIsNew(true);
       setRestaurant({
-        id: uuidv4(),
       } as Restaurant)
     }
-  }, []);
+  }, [params.restaurantId]);
 
   return <SPaper elevation={8}>
     <LoadingIndicator isLoading={!restaurant}>
       {restaurant &&
         <RestaurantEditor restaurant={restaurant}
                           isNew={isNew}
-                          onRefresh={refresh}/>
+                          onRefresh={isNew ? undefined : refresh}/>
       }
     </LoadingIndicator>
   </SPaper>
