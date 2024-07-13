@@ -1,18 +1,18 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {v4 as uuidv4} from "uuid";
 import {IconButton, InputAdornment, Stack, TextField} from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done";
 import UndoIcon from "@mui/icons-material/Undo";
 import CloseIcon from '@mui/icons-material/Close';
-import {OrderPosition} from "../../../build/generated-ts/api";
+import {OrderPosition, OrderPositionPatch} from "../../../build/generated-ts/api";
 
 type OrderPositionEditorProps = {
-  onSave: (pos: OrderPosition) => Promise<void>;
-  onUpdate: (pos: OrderPosition) => Promise<void>;
+  onSave: (pos: OrderPositionPatch) => Promise<void>;
+  onUpdate: (id: string, pos: OrderPositionPatch) => Promise<void>;
+  onAbort: () => void;
   inputPosition: OrderPosition | null;
 };
 
-export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: OrderPositionEditorProps) {
+export default function OrderPositionEditor({onSave, onUpdate, onAbort, inputPosition}: OrderPositionEditorProps) {
   const [touched, setTouched] = useState(false);
 
   const [name, setName] = useState('');
@@ -81,20 +81,18 @@ export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: O
       return;
 
     const newPosition = {
-      id: inputPosition?.id ?? uuidv4(),
       name: name,
       meal: meal,
       price: Number.parseFloat(price),
       paid: Number.parseFloat(paid) || undefined,
       tip: Number.parseFloat(tip) || undefined,
-    };
-
+    } as OrderPositionPatch;
 
     if (isNew)
       onSave(newPosition)
         .then(() => reset())
     else
-      onUpdate(newPosition)
+      onUpdate(inputPosition.id, newPosition)
         .then()
   };
 
@@ -181,11 +179,11 @@ export default function OrderPositionEditor({onSave, onUpdate, inputPosition}: O
         <DoneIcon fontSize="inherit"/>
       </IconButton>
 
-      {isNew && <IconButton size="small" color="secondary" onClick={reset}>
+      {isNew && <IconButton size="small" color="secondary" onClick={reset} disabled={!touched}>
         <UndoIcon fontSize="inherit"/>
       </IconButton>}
 
-      {!isNew && <IconButton size="small" color="error">
+      {!isNew && <IconButton size="small" color="error" onClick={onAbort}>
         <CloseIcon fontSize="inherit"/>
       </IconButton>}
     </Stack>

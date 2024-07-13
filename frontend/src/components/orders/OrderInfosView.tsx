@@ -1,4 +1,4 @@
-import {Order, OrderInfos} from "../../../build/generated-ts/api";
+import {Order, OrderInfosPatch} from "../../../build/generated-ts/api";
 import {Link, Paper, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
 import {debounce} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from "react";
@@ -24,10 +24,11 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     setOrderClosingTime(order.infos.orderClosingTime ? DateTime.fromISO(order.infos.orderClosingTime) : DateTime.fromISO('11:45'))
   }, [order.infos.orderer, order.infos.fetcher, order.infos.moneyCollectionType, order.infos.moneyCollector, order.infos.orderClosingTime]);
 
-  const onUpdate = useCallback(debounce((infos: OrderInfos) => {
+  const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
     api.orders.setOrderInfo(order.id, infos)
       .then(() => onUpdateInfos())
-  }, 500), [order.id, onUpdateInfos])
+      .then(() => setTouched(false))
+  }, 2000), [order.id, onUpdateInfos])
 
   useEffect(() => {
     if (!touched)
@@ -39,7 +40,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       moneyCollectionType: collectorType,
       moneyCollector: collector,
       orderClosingTime: orderClosingTime?.toLocaleString(DateTime.TIME_24_WITH_SECONDS)
-    } as OrderInfos)
+    } as OrderInfosPatch)
   }, [touched, orderer, fetcher, collector, orderClosingTime]);
 
   const onChange = () => setTouched(true);
@@ -62,7 +63,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   return <Paper elevation={2} sx={{p: 1, minWidth: '176px'}}>
     <Stack spacing={1}>
       <Typography variant="h6">
-        Infos
+        Infos {touched && '*'}
       </Typography>
 
       <Stack spacing={2} alignItems="center">

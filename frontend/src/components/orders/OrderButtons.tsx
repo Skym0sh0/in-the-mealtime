@@ -1,5 +1,5 @@
 import {Button, Paper, Stack, Typography} from "@mui/material";
-import {Order, OrderState} from "../../../build/generated-ts/api/api";
+import {Order, OrderStateType} from "../../../build/generated-ts/api/api";
 import {assertNever} from "../../utils/utils.ts";
 import useOrderPositionSummary from "./useOrderPositionSummary.ts";
 import {api} from "../../api/api.ts";
@@ -60,10 +60,10 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
 
   const create = () => {
     switch (order.orderState) {
-      case OrderState.New:
+      case OrderStateType.New:
         return deleteButton
 
-      case OrderState.Open:
+      case OrderStateType.Open:
         return <>
           {revokeButton}
 
@@ -75,7 +75,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
           </Button>
         </>
 
-      case OrderState.Locked:
+      case OrderStateType.Locked:
         return <>
           {revokeButton}
 
@@ -91,7 +91,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
           </Button>
         </>
 
-      case OrderState.Ordered:
+      case OrderStateType.Ordered:
         return <>
           {revokeButton}
 
@@ -103,17 +103,17 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
           </Button>
         </>
 
-      case OrderState.Revoked:
+      case OrderStateType.Revoked:
         return <Typography>Bestellung abgebrochen. Vielleicht ist das Restaurant geschlossen?</Typography>
 
-      case OrderState.Delivered:
+      case OrderStateType.Delivered:
         return <>
           <Typography>Essen ist da. Guten Appetit !</Typography>
 
           {archiveButton}
         </>
 
-      case OrderState.Archived:
+      case OrderStateType.Archived:
         return <Typography>Bestellung ist archiviert</Typography>
 
       default:

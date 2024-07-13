@@ -1,4 +1,4 @@
-import {Order, OrderPosition, Restaurant} from "../../../build/generated-ts/api";
+import {Order, OrderPosition, OrderPositionPatch, Restaurant} from "../../../build/generated-ts/api";
 import {Box, Paper, Stack, Typography} from "@mui/material";
 import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useState} from "react";
@@ -18,15 +18,15 @@ type OrderEditorProps = {
 export default function OrderEditor({restaurant, order, onChange}: OrderEditorProps) {
   const [selectedPosition, setSelectedPosition] = useState<OrderPosition | null>(null);
 
-  const onCreatePosition: (position: OrderPosition) => Promise<void> = useCallback((position: OrderPosition) => {
+  const onCreatePosition: (position: OrderPositionPatch) => Promise<void> = useCallback((position: OrderPositionPatch) => {
     return api.orders.createOrderPosition(order.id, position)
       .then(() => {
         onChange()
       })
   }, [order.id, onChange]);
 
-  const onUpdatePosition: (position: OrderPosition) => Promise<void> = useCallback((position: OrderPosition) => {
-    return api.orders.updateOrderPosition(order.id, position.id, position)
+  const onUpdatePosition: (positionId: string, position: OrderPositionPatch) => Promise<void> = useCallback((positionId: string, position: OrderPositionPatch) => {
+    return api.orders.updateOrderPosition(order.id, positionId, position)
       .then(() => {
         setSelectedPosition(null)
         onChange()
@@ -43,6 +43,8 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
   const onSelectToEditPosition = useCallback((position: OrderPosition) => {
     setSelectedPosition(position)
   }, []);
+
+  const onDeselect = useCallback(() => setSelectedPosition(null), [])
 
   return <Box sx={{minWidth: '860px'}}>
     <Stack spacing={2}>
@@ -73,6 +75,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
               <OrderPositionEditor onSave={onCreatePosition}
                                    onUpdate={onUpdatePosition}
+                                   onAbort={onDeselect}
                                    inputPosition={selectedPosition}/>
             </Stack>
           </Stack>
