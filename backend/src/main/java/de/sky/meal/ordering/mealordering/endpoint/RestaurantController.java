@@ -2,7 +2,9 @@ package de.sky.meal.ordering.mealordering.endpoint;
 
 import de.sky.meal.ordering.mealordering.model.DatabaseFile;
 import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
+import generated.sky.meal.ordering.rest.api.RestaurantApi;
 import generated.sky.meal.ordering.rest.model.Restaurant;
+import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +18,11 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 
 @Service
 @Controller
 @RequiredArgsConstructor
-public class RestaurantController implements generated.sky.meal.ordering.rest.api.RestaurantApi {
+public class RestaurantController implements RestaurantApi {
     private static final int FILE_SIZE_LIMIT = 5 * 1024 * 1024;
 
     private final RestaurantRepository restaurantRepository;

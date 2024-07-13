@@ -654,7 +654,7 @@ components:
         infos:
           $ref: "#/components/schemas/OrderInfos"
         orderState:
-          $ref: "#/components/schemas/OrderState"
+          $ref: "#/components/schemas/OrderStateType"
         date:
           type: string
           format: date
@@ -715,7 +715,7 @@ components:
           type: integer
           format: int32
 
-    OrderState:
+    OrderStateType:
       type: string
       enum:
         - New
@@ -738,6 +738,29 @@ components:
       properties:
         message:
           type: string
+
+    Creatable:
+      type: object
+      properties:
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+    Updatable:
+      allOf:
+        - $ref: "#/components/schemas/Creatable"
+        - type: object
+          properties:
+            version:
+              type: string
+              format: uuid
+            updatedAt:
+              type: string
+              format: date-time
+            updatedBy:
+              type: string
+              format: uuid
   responses:
     SuccessOrderResponse:
       description: Successful operation

@@ -1,8 +1,10 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
+import generated.sky.meal.ordering.rest.api.OrderApi;
 import generated.sky.meal.ordering.rest.model.Order;
-import generated.sky.meal.ordering.rest.model.OrderInfos;
+import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
+import generated.sky.meal.ordering.rest.model.OrderPositionPatch;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,7 +14,7 @@ import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
-public class OrderController implements generated.sky.meal.ordering.rest.api.OrderApi {
+public class OrderController implements OrderApi {
     private final OrderRepository orderRepository;
 
     @Override
@@ -31,7 +33,7 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
-    public ResponseEntity<Order> setOrderInfo(UUID orderId, generated.sky.meal.ordering.rest.model.OrderInfosPatch orderInfos) {
+    public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfosPatch orderInfos) {
         return ResponseEntity.ok(orderRepository.updateOrderInfos(orderId, orderInfos));
     }
 
@@ -44,12 +46,12 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
-    public ResponseEntity<Order> createOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPositionPatch orderPosition) {
+    public ResponseEntity<Order> createOrderPosition(UUID orderId, OrderPositionPatch orderPosition) {
         return ResponseEntity.ok(orderRepository.addOrderPosition(orderId, orderPosition));
     }
 
     @Override
-    public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, generated.sky.meal.ordering.rest.model.OrderPositionPatch orderPosition) {
+    public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, OrderPositionPatch orderPosition) {
         return ResponseEntity.ok(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
     }
 
