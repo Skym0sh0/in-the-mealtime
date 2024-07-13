@@ -42,12 +42,12 @@ export default function OrderSummary({order}: { order: Order }) {
 
         <Stack direction="row" spacing={2}>
           <STextField size="small"
-                      disabled={true}
+                      disabled={!overallSum.countMissing}
                       label="Fehlen"
                       error={!!overallSum.countMissing}
                       value={`${overallSum.countMissing} Gerichte`}/>
           <STextField size="small"
-                      disabled={true}
+                      disabled={!overallSum.paidMissing}
                       label="Bezahlung fehlt"
                       error={!!overallSum.paidMissing}
                       value={formatMonetaryAmount(overallSum.paidMissing)}/>

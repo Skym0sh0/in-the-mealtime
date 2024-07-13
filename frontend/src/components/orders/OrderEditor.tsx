@@ -1,13 +1,14 @@
 import {Order, OrderPosition, OrderPositionPatch, Restaurant} from "../../../build/generated-ts/api";
 import {Box, Paper, Stack, Typography} from "@mui/material";
 import OrderPositionsTable from "./OrderPositionsTable.tsx";
-import {useCallback, useState} from "react";
+import {useCallback, useMemo, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
 import OrderSummary from "./OrderSummary.tsx";
 import {api} from "../../api/api.ts";
 import OrderInfosView from "./OrderInfosView.tsx";
 import RestaurantInfos from "./RestaurantInfos.tsx";
 import OrderButtons from "./OrderButtons.tsx";
+import {DateTime} from "luxon";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -46,13 +47,21 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
   const onDeselect = useCallback(() => setSelectedPosition(null), [])
 
+  const date = useMemo(() => {
+    if (!order.date)
+      return null
+
+    const dt = DateTime.fromISO(order.date);
+    return `${dt.toFormat("EEEE", {locale: 'de'})} (${dt.toFormat("dd.MM.yyyy", {locale: 'de'})})`;
+  }, [order.date])
+
   return <Box sx={{minWidth: '860px'}}>
     <Stack spacing={2}>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <div/>
 
         <Typography variant="h6">
-          Bestellung bei {restaurant.name}
+          Bestellung am {date}
         </Typography>
 
         <Typography variant="caption">

@@ -127,7 +127,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
     return null;
 
   return <Paper elevation={8} sx={{padding: 1}}>
-    <Stack direction="row" spacing={2} justifyContent="flex-end">
+    <Stack direction="row" spacing={2} justifyContent="flex-end" alignItems="center">
       {elements}
     </Stack>
   </Paper>
