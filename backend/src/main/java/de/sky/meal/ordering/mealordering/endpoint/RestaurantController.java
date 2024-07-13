@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 
 @Service
 @Controller
@@ -26,7 +27,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     private final RestaurantRepository restaurantRepository;
 
     @Override
-    public ResponseEntity<Restaurant> createRestaurant(Restaurant restaurant) {
+    public ResponseEntity<Restaurant> createRestaurant(RestaurantPatch restaurant) {
         var result = restaurantRepository.createRestaurant(restaurant);
         return ResponseEntity.ok(result);
     }
@@ -50,7 +51,7 @@ public class RestaurantController implements generated.sky.meal.ordering.rest.ap
     }
 
     @Override
-    public ResponseEntity<Restaurant> updateRestaurant(UUID id, Restaurant restaurant) {
+    public ResponseEntity<Restaurant> updateRestaurant(UUID id, RestaurantPatch restaurant) {
         var result = restaurantRepository.updateRestaurant(id, restaurant);
 
         return ResponseEntity.ok(result);

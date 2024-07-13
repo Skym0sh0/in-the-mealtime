@@ -66,7 +66,7 @@ public class OrderRepository {
         });
     }
 
-    public generated.sky.meal.ordering.rest.model.Order updateOrderInfos(UUID id, OrderInfos infos) {
+    public generated.sky.meal.ordering.rest.model.Order updateOrderInfos(UUID id, generated.sky.meal.ordering.rest.model.OrderInfosPatch infos) {
         return changeOrderRecord(id, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
             if (!requiredStates.contains(rec.getState()))
@@ -96,7 +96,7 @@ public class OrderRepository {
         });
     }
 
-    public generated.sky.meal.ordering.rest.model.Order addOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPosition position) {
+    public generated.sky.meal.ordering.rest.model.Order addOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPositionPatch position) {
         return changeOrderRecord(orderId, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.NEW, OrderState.OPEN, OrderState.REVOKED);
             if (!requiredStates.contains(rec.getState()))
@@ -125,7 +125,7 @@ public class OrderRepository {
         });
     }
 
-    public generated.sky.meal.ordering.rest.model.Order updateOrderPosition(UUID orderId, UUID positionId, generated.sky.meal.ordering.rest.model.OrderPosition position) {
+    public generated.sky.meal.ordering.rest.model.Order updateOrderPosition(UUID orderId, UUID positionId, generated.sky.meal.ordering.rest.model.OrderPositionPatch position) {
         return changeOrderRecord(orderId, (updater, rec) -> {
             var posRec = ctx.selectFrom(Tables.ORDER_POSITION)
                     .where(Tables.ORDER_POSITION.ID.eq(positionId))

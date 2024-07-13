@@ -31,7 +31,7 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
-    public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfos orderInfos) {
+    public ResponseEntity<Order> setOrderInfo(UUID orderId, generated.sky.meal.ordering.rest.model.OrderInfosPatch orderInfos) {
         return ResponseEntity.ok(orderRepository.updateOrderInfos(orderId, orderInfos));
     }
 
@@ -44,12 +44,12 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
     }
 
     @Override
-    public ResponseEntity<Order> createOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPosition orderPosition) {
+    public ResponseEntity<Order> createOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPositionPatch orderPosition) {
         return ResponseEntity.ok(orderRepository.addOrderPosition(orderId, orderPosition));
     }
 
     @Override
-    public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, generated.sky.meal.ordering.rest.model.OrderPosition orderPosition) {
+    public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, generated.sky.meal.ordering.rest.model.OrderPositionPatch orderPosition) {
         return ResponseEntity.ok(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
     }
 

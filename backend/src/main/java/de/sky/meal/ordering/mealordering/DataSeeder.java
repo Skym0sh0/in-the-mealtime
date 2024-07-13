@@ -22,7 +22,7 @@ public class DataSeeder {
     }
 
     private void addThai() {
-        var thai = generated.sky.meal.ordering.rest.model.Restaurant.builder()
+        var thai = generated.sky.meal.ordering.rest.model.RestaurantPatch.builder()
                 .name("Chok Dee Thaiküche")
                 .style("thailändisch/asiatisch")
                 .kind("Abholen/Sitzen")
@@ -36,14 +36,13 @@ public class DataSeeder {
                                 .city("Köln")
                                 .build()
                 )
-                .menuPages(List.of())
                 .build();
 
         restaurantRepository.createRestaurant(thai);
     }
 
     private void addJaegerhof() {
-        var jaegerhof = generated.sky.meal.ordering.rest.model.Restaurant.builder()
+        var jaegerhof = generated.sky.meal.ordering.rest.model.RestaurantPatch.builder()
                 .name("Gaststätte Jägerhof")
                 .style("gutbürgerlich/deutsch")
                 .style("Sitzen")
@@ -54,7 +53,6 @@ public class DataSeeder {
                         .postal("51107")
                         .city("Köln")
                         .build())
-                .menuPages(List.of())
                 .build();
 
         restaurantRepository.createRestaurant(jaegerhof);
