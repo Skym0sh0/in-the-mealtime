@@ -9,6 +9,7 @@ import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
+import org.jooq.tools.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -21,6 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -177,6 +179,9 @@ public class OrderRepository {
         return changeOrderRecord(orderId, (updater, rec) -> {
             if (rec.getState() != OrderState.OPEN)
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
+
+            if (Stream.of(rec.getOrderer(), rec.getFetcher(), rec.getMoneyCollector()).anyMatch(StringUtils::isBlank))
+                throw new BadRequestException("Order %s has no order, fetcher or money collector".formatted(orderId));
 
             rec.setState(OrderState.LOCKED);
             rec.setLockedAt(updater.timestamp());
