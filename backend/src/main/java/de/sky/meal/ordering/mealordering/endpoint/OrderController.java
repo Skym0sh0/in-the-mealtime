@@ -1,112 +1,24 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
-import generated.sky.meal.ordering.rest.model.*;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
-import generated.sky.meal.ordering.rest.model.Restaurant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.IntFunction;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 @Controller
 @RequiredArgsConstructor
 public class OrderController implements generated.sky.meal.ordering.rest.api.OrderApi {
-
-    private final RestaurantController restaurants;
-
-    private final List<Order> orders = new ArrayList<>();
     private final OrderRepository orderRepository;
-
-    private Optional<List<Restaurant>> getRestaurants() {
-        return Optional.ofNullable(this.restaurants.fetchRestaurants().getBody());
-    }
-
-    public void init() {
-        var rng = ThreadLocalRandom.current();
-
-        IntFunction<OrderPosition> positionCreator = (idx) -> {
-            String[] names = {
-                    "Anna", "Max", "Erik", "Lisa", "Ben", "Nina", "Paul", "Sophie", "Lukas", "Marie",
-                    "Julia", "Tim", "Laura", "Tom", "Sarah", "Jan", "Lea", "Jonas", "Mia", "Felix",
-                    "Emma", "Leon", "Hannah", "Finn", "Clara", "Noah", "Lena", "Elias", "Mila", "Lara",
-                    "Johannes", "Hanna", "Oscar", "Amy", "David", "Emily", "Leo", "Hanne", "Nick",
-                    "Ella", "Alex", "Greta", "Markus", "Isabel", "Anton", "Nico", "Jana", "Matthias",
-                    "Charlotte", "Fabian", "Tina", "Henri", "Leonard", "Kira", "Marlene", "Julius",
-                    "Lilly", "Kai", "Alina", "Linus", "Dana", "Cedric", "Rosa", "Henry", "Fiona",
-                    "Tobias", "Teresa", "Viktor", "Zoey", "Marco", "Nele", "Carl", "Romy", "Philipp",
-                    "Valerie", "Sebastian", "Melina", "Emil", "Felicitas", "Samuel", "Ida", "Marius",
-                    "Ronja", "Simon", "Katharina", "Bastian", "Helena", "Matthias", "Victoria", "Basti",
-                    "Stefan", "Miriam", "Dominik", "Lina", "Daniel", "Carla"
-            };
-            String[] ext = {
-                    "",
-                    " mit Tofu",
-                    " mit Ente",
-                    " mit Hähnchen",
-                    " mit Rind",
-            };
-
-            var hasPaid = rng.nextDouble() < 0.4;
-            var price = rng.nextInt(5, 16) * 1.f;
-            var tip = rng.nextInt(0, 5) / 2.0f;
-
-            return OrderPosition.builder()
-                    .id(UUID.randomUUID())
-                    .index(idx)
-                    .name(names[rng.nextInt(0, names.length)])
-                    .meal("%s%s".formatted(rng.nextInt(20, 70), ext[rng.nextInt(0, ext.length)]))
-                    .price(price)
-                    .paid(!hasPaid ? null : price + tip)
-                    .tip(tip)
-                    .build();
-        };
-
-        IntStream.range(0, 0)
-                .mapToObj(idx -> {
-                            return getRestaurants()
-                                    .filter(s -> !s.isEmpty())
-                                    .map(restaurants -> {
-                                        return Order.builder()
-                                                .id(UUID.randomUUID())
-                                                .restaurantId(
-                                                        restaurants
-                                                                .get(idx % restaurants.size())
-                                                                .getId()
-                                                )
-                                                .date(LocalDate.now().minusDays(idx))
-                                                .orderPositions(
-                                                        rng.ints()
-                                                                .limit(rng.nextInt(1, 10))
-                                                                .mapToObj(positionCreator)
-                                                                .collect(Collectors.toCollection(ArrayList::new))
-                                                )
-                                                .build();
-                                    });
-                        }
-                )
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .forEach(orders::add);
-    }
 
     @Override
     public ResponseEntity<Order> createOrder(UUID restaurantId) {
-        var order = orderRepository.createNewEmptyOrder(restaurantId);
-
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(orderRepository.createNewEmptyOrder(restaurantId));
     }
-
 
     @Override
     public ResponseEntity<Order> fetchOrder(UUID id) {
@@ -136,7 +48,6 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
         return ResponseEntity.ok(orderRepository.addOrderPosition(orderId, orderPosition));
     }
 
-
     @Override
     public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, generated.sky.meal.ordering.rest.model.OrderPosition orderPosition) {
         return ResponseEntity.ok(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
@@ -147,35 +58,33 @@ public class OrderController implements generated.sky.meal.ordering.rest.api.Ord
         return ResponseEntity.ok(orderRepository.removeOrderPosition(orderId, orderPositionId));
     }
 
-
     @Override
     public ResponseEntity<Order> lockOrder(UUID id) {
-        return null;
+        return ResponseEntity.ok(orderRepository.lockOrder(id));
     }
 
     @Override
     public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
-        return null;
+        return ResponseEntity.ok(orderRepository.setOrderToDelivered(id));
     }
 
     @Override
     public ResponseEntity<Order> orderIsNowOrdered(UUID id) {
-        return null;
+        return ResponseEntity.ok(orderRepository.setOrderToIsOrdered(id));
     }
 
     @Override
     public ResponseEntity<Order> reopenOrder(UUID id) {
-        return null;
+        return ResponseEntity.ok(orderRepository.reopenOrder(id));
     }
 
     @Override
     public ResponseEntity<Order> revokeOrder(UUID id) {
-        return null;
+        return ResponseEntity.ok(orderRepository.revokeOrder(id));
     }
 
     @Override
     public ResponseEntity<Order> archiveOrder(UUID id) {
-        return null;
+        return ResponseEntity.ok(orderRepository.archiveOrder(id));
     }
-
 }

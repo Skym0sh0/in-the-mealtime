@@ -5,6 +5,7 @@ import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.schema.Tables;
 import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -16,7 +17,9 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.stream.IntStream;
 
 @Service
@@ -67,13 +70,7 @@ public class OrderRepository {
     }
 
     public generated.sky.meal.ordering.rest.model.Order updateOrderInfos(UUID id, OrderInfos infos) {
-        return transactionTemplate.execute(status -> {
-            var rec = ctx.selectFrom(Tables.MEAL_ORDER)
-                    .where(Tables.MEAL_ORDER.ID.eq(id))
-                    .forUpdate()
-                    .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
-
+        return changeOrderRecord(id, (updater, rec) -> {
             rec.setOrderer(infos.getOrderer())
                     .setFetcher(infos.getFetcher())
                     .setMoneyCollectorType(
@@ -88,14 +85,6 @@ public class OrderRepository {
                                     .map(LocalTime::parse)
                                     .orElse(null)
                     );
-
-            rec.setVersion(UUID.randomUUID())
-                    .setUpdatedBy(DefaultUser.DEFAULT_USER)
-                    .setUpdatedAt(OffsetDateTime.now());
-
-            rec.update();
-
-            return fetchOrder(id);
         });
     }
 
@@ -111,23 +100,8 @@ public class OrderRepository {
     }
 
     public generated.sky.meal.ordering.rest.model.Order addOrderPosition(UUID orderId, generated.sky.meal.ordering.rest.model.OrderPosition position) {
-        var updater = DefaultUser.DEFAULT_USER;
-        var ts = OffsetDateTime.now();
-
-        return transactionTemplate.execute(status -> {
-            var rec = ctx.selectFrom(Tables.MEAL_ORDER)
-                    .where(Tables.MEAL_ORDER.ID.eq(orderId))
-                    .forUpdate()
-                    .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No Order found with id " + orderId));
-
+        return changeOrderRecord(orderId, (updater, rec) -> {
             rec.setState(OrderState.OPEN);
-
-            rec.setVersion(UUID.randomUUID())
-                    .setUpdatedBy(updater)
-                    .setUpdatedAt(ts);
-
-            rec.update();
 
             var posRec = ctx.newRecord(Tables.ORDER_POSITION);
 
@@ -135,10 +109,10 @@ public class OrderRepository {
                     .setOrderId(orderId);
 
             posRec.setVersion(UUID.randomUUID())
-                    .setCreatedAt(ts)
-                    .setCreatedBy(updater)
-                    .setUpdatedAt(ts)
-                    .setUpdatedBy(updater);
+                    .setCreatedAt(updater.timestamp())
+                    .setCreatedBy(updater.user())
+                    .setUpdatedAt(updater.timestamp())
+                    .setUpdatedBy(updater.user());
 
             posRec.setName(position.getName())
                     .setMeal(position.getMeal())
@@ -147,28 +121,11 @@ public class OrderRepository {
                     .setTip(Optional.ofNullable(position.getTip()).map(BigDecimal::new).orElse(null));
 
             posRec.insert();
-
-            return fetchOrder(orderId);
         });
     }
 
     public generated.sky.meal.ordering.rest.model.Order updateOrderPosition(UUID orderId, UUID positionId, generated.sky.meal.ordering.rest.model.OrderPosition position) {
-        var updater = DefaultUser.DEFAULT_USER;
-        var ts = OffsetDateTime.now();
-
-        return transactionTemplate.execute(status -> {
-            var rec = ctx.selectFrom(Tables.MEAL_ORDER)
-                    .where(Tables.MEAL_ORDER.ID.eq(orderId))
-                    .forUpdate()
-                    .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No Order found with id " + orderId));
-
-            rec.setVersion(UUID.randomUUID())
-                    .setUpdatedBy(updater)
-                    .setUpdatedAt(ts);
-
-            rec.update();
-
+        return changeOrderRecord(orderId, (updater, rec) -> {
             var posRec = ctx.selectFrom(Tables.ORDER_POSITION)
                     .where(Tables.ORDER_POSITION.ID.eq(positionId))
                     .and(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
@@ -177,8 +134,8 @@ public class OrderRepository {
                     .orElseThrow(() -> new NotFoundException("No OrderPosition found with id " + positionId + " for Order " + orderId));
 
             posRec.setVersion(UUID.randomUUID())
-                    .setUpdatedAt(ts)
-                    .setUpdatedBy(updater);
+                    .setUpdatedAt(updater.timestamp())
+                    .setUpdatedBy(updater.user());
 
             posRec.setName(position.getName())
                     .setMeal(position.getMeal())
@@ -187,16 +144,11 @@ public class OrderRepository {
                     .setTip(Optional.ofNullable(position.getTip()).map(BigDecimal::new).orElse(null));
 
             posRec.update();
-
-            return fetchOrder(orderId);
         });
     }
 
     public generated.sky.meal.ordering.rest.model.Order removeOrderPosition(UUID orderId, UUID positionId) {
-        var updater = DefaultUser.DEFAULT_USER;
-        var ts = OffsetDateTime.now();
-
-        return transactionTemplate.execute(status -> {
+        return changeOrderRecord(orderId, (updater, rec) -> {
             var deleted = ctx.deleteFrom(Tables.ORDER_POSITION)
                     .where(Tables.ORDER_POSITION.ID.eq(positionId))
                     .and(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
@@ -205,20 +157,91 @@ public class OrderRepository {
             if (deleted == 0)
                 throw new NotFoundException("No OrderPosition found with id " + positionId + " for Order with id " + orderId);
 
+            if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(orderId)) == 0)
+                rec.setState(OrderState.NEW);
+            else
+                rec.setState(OrderState.OPEN);
+        });
+    }
+
+
+    public generated.sky.meal.ordering.rest.model.Order lockOrder(UUID orderId) {
+        return changeOrderRecord(orderId, (updater, rec) -> {
+            if (rec.getState() != OrderState.OPEN)
+                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
+
+            rec.setState(OrderState.LOCKED);
+            rec.setLockedAt(updater.timestamp());
+        });
+    }
+
+    public generated.sky.meal.ordering.rest.model.Order reopenOrder(UUID orderId) {
+        return changeOrderRecord(orderId, (updater, rec) -> {
+            if (rec.getState() != OrderState.LOCKED)
+                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.LOCKED));
+
+            rec.setState(OrderState.OPEN);
+            rec.setLockedAt(updater.timestamp());
+        });
+    }
+
+    public generated.sky.meal.ordering.rest.model.Order setOrderToIsOrdered(UUID orderId) {
+        return changeOrderRecord(orderId, (updater, rec) -> {
+            if (rec.getState() != OrderState.LOCKED)
+                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.LOCKED));
+
+            rec.setState(OrderState.ORDERED);
+            rec.setOrderedAt(updater.timestamp());
+        });
+    }
+
+    public generated.sky.meal.ordering.rest.model.Order setOrderToDelivered(UUID orderId) {
+        return changeOrderRecord(orderId, (updater, rec) -> {
+            if (rec.getState() != OrderState.ORDERED)
+                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.ORDERED));
+
+            rec.setState(OrderState.DELIVERED);
+            rec.setDeliveredAt(updater.timestamp());
+        });
+    }
+
+    public generated.sky.meal.ordering.rest.model.Order revokeOrder(UUID orderId) {
+        return changeOrderRecord(orderId, (updater, rec) -> {
+            var requiredStates = Set.of(OrderState.OPEN, OrderState.LOCKED, OrderState.ORDERED);
+            if (!requiredStates.contains(rec.getState()))
+                throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
+
+            rec.setState(OrderState.REVOKED);
+            rec.setRevokedAt(updater.timestamp());
+        });
+    }
+
+    public generated.sky.meal.ordering.rest.model.Order archiveOrder(UUID orderId) {
+        return changeOrderRecord(orderId, (updater, rec) -> {
+            var requiredStates = Set.of(OrderState.DELIVERED, OrderState.ORDERED);
+            if (!requiredStates.contains(rec.getState()))
+                throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
+
+            rec.setState(OrderState.ARCHIVED);
+            rec.setArchivedAt(updater.timestamp());
+        });
+    }
+
+    private generated.sky.meal.ordering.rest.model.Order changeOrderRecord(UUID orderId, BiConsumer<Updater, MealOrderRecord> callback) {
+        var updater = new Updater();
+
+        return transactionTemplate.execute(status -> {
             var rec = ctx.selectFrom(Tables.MEAL_ORDER)
                     .where(Tables.MEAL_ORDER.ID.eq(orderId))
                     .forUpdate()
                     .fetchOptional()
                     .orElseThrow(() -> new NotFoundException("No Order found with id " + orderId));
 
-            if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(orderId)) == 0)
-                rec.setState(OrderState.NEW);
-            else
-                rec.setState(OrderState.OPEN);
+            callback.accept(updater, rec);
 
             rec.setVersion(UUID.randomUUID())
-                    .setUpdatedBy(updater)
-                    .setUpdatedAt(ts);
+                    .setUpdatedBy(updater.user())
+                    .setUpdatedAt(updater.timestamp());
 
             rec.update();
 
@@ -295,5 +318,11 @@ public class OrderRepository {
                                 .toList()
                 )
                 .build();
+    }
+
+    private record Updater(UUID user, OffsetDateTime timestamp) {
+        public Updater() {
+            this(DefaultUser.DEFAULT_USER, OffsetDateTime.now());
+        }
     }
 }

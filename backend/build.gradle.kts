@@ -126,7 +126,7 @@ tasks.register("jooqCodegen") {
                                 .withForcedTypes(
                                     ForcedType()
                                         .withName("NUMERIC")
-                                        .withTypes("MONEY")
+                                        .withIncludeTypes("MONEY")
                                 )
                         )
                         .withGenerate(
