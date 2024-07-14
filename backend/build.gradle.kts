@@ -26,6 +26,8 @@ plugins {
     id("org.springframework.boot") version "3.3.1"
     id("io.spring.dependency-management") version "1.1.5"
     id("org.openapi.generator") version "7.7.0"
+    id("com.google.cloud.tools.jib") version "3.4.2"
+    id("com.gorylenko.gradle-git-properties") version "2.4.2"
 }
 
 java {
@@ -41,6 +43,7 @@ configurations {
 }
 
 dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-jersey")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.springframework.boot:spring-boot-starter-web")
@@ -76,6 +79,31 @@ dependencies {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+}
+
+gitProperties {
+    extProperty = "git.properties"
+}
+
+tasks.register("prepareGitProperties") {
+    dependsOn("generateGitProperties")
+
+    doFirst {
+        val gitProps = (project.ext["git.properties"] as? Map<*, *>)?.mapNotNull { (key, value) ->
+            if (key is String && value is String)
+                key to value
+            else
+                null
+        }?.toMap() ?: mapOf()
+
+        gitProps.forEach { (key, value) ->
+            project.extra.set(key, value)
+        }
+    }
+}
+
+tasks.named("compileJava") {
+    dependsOn("prepareGitProperties")
 }
 
 tasks.register<Copy>("copyWebApp") {
@@ -157,12 +185,16 @@ openApiGenerate {
     outputDir.set(layout.buildDirectory.dir("generated/sources/spec").get().asFile.path)
     apiPackage.set("generated.sky.meal.ordering.rest.api")
     modelPackage.set("generated.sky.meal.ordering.rest.model")
-    typeMappings.set(mapOf(
-        "time" to "LocalTime"
-    ))
-    importMappings.set(mapOf(
-        "LocalTime" to LocalTime::class.java.getName()
-    ))
+    typeMappings.set(
+        mapOf(
+            "time" to "LocalTime"
+        )
+    )
+    importMappings.set(
+        mapOf(
+            "LocalTime" to LocalTime::class.java.getName()
+        )
+    )
     configOptions.set(
         mapOf(
             "library" to "spring-boot",
@@ -182,11 +214,36 @@ openApiGenerate {
 
 tasks.named("compileJava") {
     dependsOn(tasks.openApiGenerate)
+    dependsOn("prepareGitProperties")
 }
 
 sourceSets {
     main {
         java.srcDirs(layout.buildDirectory.dir("generated/sources/jooq/generated").get().asFile)
         java.srcDirs(layout.buildDirectory.dir("generated/sources/spec/src/main").get().asFile)
+    }
+}
+
+jib {
+    from {
+        image =
+            "registry://eclipse-temurin:22.0.1_8-jre@sha256:7294e7c43aba19e457c7476e8fefffa2f89ed8167417935bcd576bd2cbd90de8"
+    }
+    to {
+        image = "in-the-mealtime"
+        tags = setOf("latest")
+    }
+    container {
+        creationTime.set(project.provider { project.extra["git.commit.time"] as String })
+        mainClass = "de.sky.meal.ordering.mealordering.InTheMealtimeApplication"
+        ports = listOf("8080")
+        labels.set(project.provider {
+            mapOf(
+                "git.url" to project.extra["git.remote.origin.url"] as String,
+                "git.time" to project.extra["git.commit.time"] as String,
+                "git.commit" to project.extra["git.commit.id"] as String,
+                "git.email" to project.extra["git.commit.user.email"] as String,
+            )
+        })
     }
 }
