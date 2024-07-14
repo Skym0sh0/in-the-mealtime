@@ -9,7 +9,7 @@ tags:
   - name: Order
     description: Everything about Orders
 paths:
-  /order:
+  /api/order:
     get:
       tags:
         - Order
@@ -34,7 +34,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{id}:
+  /api/order/{id}:
     get:
       tags:
         - Order
@@ -73,7 +73,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/restaurant/{restaurantId}:
+  /api/order/restaurant/{restaurantId}:
     post:
       tags:
         - Order
@@ -94,7 +94,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{orderId}/infos:
+  /api/order/{orderId}/infos:
     put:
       tags:
         - Order
@@ -123,7 +123,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{orderId}/order-position:
+  /api/order/{orderId}/order-position:
     post:
       tags:
         - Order
@@ -152,7 +152,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{orderId}/order-position/{orderPositionId}:
+  /api/order/{orderId}/order-position/{orderPositionId}:
     patch:
       tags:
         - Order
@@ -217,7 +217,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{id}/lock:
+  /api/order/{id}/lock:
     post:
       tags:
         - Order
@@ -256,7 +256,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{id}/ordered:
+  /api/order/{id}/ordered:
     post:
       tags:
         - Order
@@ -276,7 +276,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{id}/delivered:
+  /api/order/{id}/delivered:
     post:
       tags:
         - Order
@@ -296,7 +296,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{id}/revoke:
+  /api/order/{id}/revoke:
     delete:
       tags:
         - Order
@@ -316,7 +316,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /order/{id}/archive:
+  /api/order/{id}/archive:
     delete:
       tags:
         - Order
@@ -337,7 +337,7 @@ paths:
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
 
-  /restaurant:
+  /api/restaurant:
     get:
       tags:
         - Restaurant
@@ -391,7 +391,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /restaurant/{id}:
+  /api/restaurant/{id}:
     get:
       tags:
         - Restaurant
@@ -460,7 +460,7 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
-  /restaurant/{restaurantId}/menu-page:
+  /api/restaurant/{restaurantId}/menu-page:
     put:
       tags:
         - Restaurant
@@ -499,7 +499,7 @@ paths:
           description: Invalid input
         '500':
           description: Server Problem
-  /restaurant/{restaurantId}/menu-page/{pageId}:
+  /api/restaurant/{restaurantId}/menu-page/{pageId}:
     get:
       tags:
         - Restaurant

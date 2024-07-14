@@ -208,6 +208,7 @@ openApiGenerate {
             "interfaceOnly" to "true",
             "skipDefaultInterface" to "true",
             "returnSuccessCode" to "true",
+            "useTags" to "true"
         )
     )
 }

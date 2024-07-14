@@ -24,7 +24,7 @@ services:
       SPRING.DATASOURCE.USERNAME: in_the_mealtime_user_prod
       spring.datasource.password: in_the_mealtime_pw_prod
     ports:
-      - "8080:8080"
+      - "48080:8080"
     networks:
       - in-the-mealtime
     depends_on:

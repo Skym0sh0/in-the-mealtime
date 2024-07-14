@@ -8,17 +8,25 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+import org.springframework.web.servlet.resource.ResourceResolverChain;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-public class WebConfig {
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
     private static final String CORRELATION_ID = "X-Correlation-ID";
 
     @Component
@@ -58,6 +66,31 @@ public class WebConfig {
                     log.info("<<< [{}] Request {} \"{}\" finished with Status {} in {}", correlationId, request.getMethod(), request.getServletPath(), response.getStatus(), sw.stop());
                 }
             }
+        }
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/**")
+                .addResourceLocations("classpath:/static/")
+                .resourceChain(true)
+                .addResolver(new IndexFallbackResourceResolver());
+    }
+
+    @Slf4j
+    private static class IndexFallbackResourceResolver extends PathResourceResolver {
+        @Override
+        protected Resource resolveResourceInternal(HttpServletRequest request, String requestPath, List<? extends Resource> locations, ResourceResolverChain chain) {
+            // Give PathResourceResolver a chance to resolve a resource on its own.
+            Resource resource = super.resolveResourceInternal(request, requestPath, locations, chain);
+
+            log.debug(">>> Resolve resource {} + {} => {}", request.getServletPath(), requestPath, resource);
+
+            if (resource == null) {
+                // If resource wasn't found, use index.html file.
+                resource = super.resolveResourceInternal(request, "index.html", locations, chain);
+            }
+            return resource;
         }
     }
 }
