@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run Application Test Mode" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <module name="meal-ordering.backend.test" />
+    <module name="in-the-mealtime.backend.test" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="de.sky.meal.ordering.mealordering.TestMealOrderingApplication" />
     <extension name="coverage">
       <pattern>

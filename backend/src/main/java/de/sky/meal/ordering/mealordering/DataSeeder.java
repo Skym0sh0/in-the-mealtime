@@ -4,10 +4,10 @@ import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
+@Profile("dev")
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -16,6 +16,11 @@ public class DataSeeder {
 
     @PostConstruct
     public void doSeeding() {
+        if (!restaurantRepository.readRestaurants().isEmpty()) {
+            log.info("Restaurant Data is present. No seeding of initial restaurants");
+            return;
+        }
+
         addThai();
 
         addJaegerhof();
