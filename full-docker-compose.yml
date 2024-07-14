@@ -1,0 +1,37 @@
+name: in-the-mealtime-full
+version: '3.8'
+
+services:
+  database:
+    image: postgres:16.3@sha256:0aafd2ae7e6c391f39fb6b7621632d79f54068faebc726caf469e87bd1d301c0
+    container_name: database
+    environment:
+      POSTGRES_DB: in_the_mealtime_prod
+      POSTGRES_USER: in_the_mealtime_user_prod
+      POSTGRES_PASSWORD: in_the_mealtime_pw_prod
+#    ports:
+#      - "5432:5432"
+    networks:
+      - in-the-mealtime
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  app:
+    image: in-the-mealtime:latest
+    container_name: app
+    environment:
+      SPRING.DATASOURCE.URL: jdbc:postgresql://database:5432/in_the_mealtime_prod
+      SPRING.DATASOURCE.USERNAME: in_the_mealtime_user_prod
+      spring.datasource.password: in_the_mealtime_pw_prod
+    ports:
+      - "8080:8080"
+    networks:
+      - in-the-mealtime
+    depends_on:
+      - database
+
+networks:
+  in-the-mealtime:
+
+volumes:
+  postgres_data:
