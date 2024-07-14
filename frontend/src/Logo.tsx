@@ -5,7 +5,7 @@ export default function Logo(props:any) {
     <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <circle cx="16" cy="16" r="16" fill="#f8b400"/>
 
-      <circle cx="16" cy="16" r="10" fill="white" stroke="#333" stroke-width="2"/>
+      <circle cx="16" cy="16" r="10" fill="white" stroke="#333" strokeWidth="2"/>
 
       <g transform="translate(0, 6)">
         <rect x="10" y="6" width="2" height="12" fill="#aaa"/>
