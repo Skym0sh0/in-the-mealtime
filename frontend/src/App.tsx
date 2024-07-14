@@ -1,5 +1,4 @@
 import './App.css'
-import AdbIcon from '@mui/icons-material/Adb';
 import {
   AppBar,
   Box,
@@ -15,10 +14,11 @@ import {
 import {GlobalRouting} from "./routes/Routes.tsx";
 import {AdapterLuxon} from '@mui/x-date-pickers/AdapterLuxon'
 import {LocalizationProvider} from "@mui/x-date-pickers";
+import Logo from "./Logo.tsx";
 
 function NamedLogo() {
   return <Stack direction="row" spacing={1} alignItems="center">
-    <AdbIcon/>
+    <Logo/>
 
     <Typography variant="h5"
                 component="div"
@@ -31,7 +31,7 @@ function NamedLogo() {
                   color: 'inherit',
                   textDecoration: 'none',
                 }}>
-      Meal Ordering
+      In the Mealtime
     </Typography>
   </Stack>;
 }

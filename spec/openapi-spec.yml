@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
-  title: Meal Ordering
-  description: This is the API for Meal Ordering
+  title: In The Mealtime
+  description: This is the API for In The Mealtime
   version: 1.0.0
 tags:
   - name: Restaurant
