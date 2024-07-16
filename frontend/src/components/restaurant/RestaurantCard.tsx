@@ -10,7 +10,7 @@ type RestaurantCardProps = {
 export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps) {
   const avatar = useMemo(() => {
     if (isNew)
-      return null;
+      return '?';
 
     return restaurant.name.split(' ')
       .slice(0, 2)
@@ -32,7 +32,13 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
     return Math.abs(hash).toString(16);
   }, [restaurant.name, isNew]);
 
-  return <Card sx={{minWidth: 500}} elevation={8}>
+  const phone = useMemo(() => {
+    if (!restaurant.phone)
+      return null;
+    return restaurant.phone.replace(/\D/g, '');
+  }, [restaurant.phone]);
+
+  return <Card style={{width: 350}} elevation={8}>
     <CardContent>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
         <Avatar sizes="sm" sx={{bgcolor: `#${color}`}}>
@@ -55,15 +61,18 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
       </Typography>
 
       <Typography variant="body2" color="text.secondary">
-        {restaurant.shortDescription}
+        {restaurant.shortDescription ?? 'bla bla'}
       </Typography>
     </CardContent>
 
     <CardActions>
       <Stack sx={{width: '100%'}} direction="row" justifyContent="space-between">
-        <Button>
-          {restaurant.phone}
-        </Button>
+        {restaurant.phone
+          ? <Button size="small" href={"tel:" + phone}>
+            {restaurant.phone}
+          </Button>
+          : <div/>
+        }
 
         <Button size="small" href={`/restaurant/${restaurant.id}`} variant="contained">
           {isNew ? 'Neu anlegen' : 'Bearbeiten'}

@@ -1,5 +1,5 @@
 import {Restaurant} from "../../../build/generated-ts/api/api.ts";
-import {Paper, Typography} from "@mui/material";
+import {Box, Stack} from "@mui/material";
 import styled from "styled-components";
 import {api} from "../../api/api.ts";
 import {useEffect, useState} from "react";
@@ -14,33 +14,33 @@ export default function RestaurantsOverview() {
       .then(res => setRestaurants(res.data))
   }, []);
 
-  return <Paper elevation={8}>
-    <Typography variant="h3">
-      Restaurants
-    </Typography>
+  return <Box>
+    <Stack direction="column" justifyContent="center" alignItems="center">
+      <LoadingIndicator isLoading={restaurants === null}>
+        <SFlexGrid>
+          <RestaurantCard isNew={true}
+                          restaurant={{
+                            id: 'new-restaurant',
+                            name: 'Neues Restaurant',
+                            style: 'Neu',
+                            shortDescription: 'Erstelle neues Restaurant',
+                            address: {},
+                            menuPages: [],
+                          }}/>
 
-    <LoadingIndicator isLoading={restaurants === null}>
-      <SFlexGrid>
-        {restaurants && restaurants.map(r => <RestaurantCard key={r.id} restaurant={r}/>)}
+          {restaurants && restaurants.map(r => <RestaurantCard key={r.id} restaurant={r}/>)}
+        </SFlexGrid>
 
-        <RestaurantCard isNew={true}
-                        restaurant={{
-                          id: 'new-restaurant',
-                          name: 'Neues Restaurant',
-                          style: 'Neu',
-                          shortDescription: 'Erstelle neues Restaurant',
-                          address: {},
-                          menuPages: [],
-                        }}/>
-      </SFlexGrid>
-    </LoadingIndicator>
-  </Paper>;
+      </LoadingIndicator>
+    </Stack>
+  </Box>;
 }
 
-const SFlexGrid = styled(Paper)`
+const SFlexGrid = styled(Box)`
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
-    justify-content: space-around;
+    justify-content: center;
     align-content: baseline;
     align-items: center;
     gap: 1em;
