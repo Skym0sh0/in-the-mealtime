@@ -22,7 +22,7 @@ services:
     environment:
       SPRING.DATASOURCE.URL: jdbc:postgresql://database_prod:5432/in_the_mealtime_prod
       SPRING.DATASOURCE.USERNAME: in_the_mealtime_user_prod
-      spring.datasource.password: in_the_mealtime_pw_prod
+      SPRING.DATASOURCE.PASSWORD: in_the_mealtime_pw_prod
     ports:
       - "48080:8080"
     networks:
