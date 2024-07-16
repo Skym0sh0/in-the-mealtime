@@ -1,33 +1,20 @@
 import './App.css'
-import {
-  AppBar,
-  Box,
-  Button,
-  Container,
-  createTheme,
-  CssBaseline,
-  Stack,
-  ThemeProvider,
-  Toolbar,
-  Typography
-} from "@mui/material";
+import {AppBar, Box, Button, createTheme, CssBaseline, Stack, ThemeProvider, Toolbar, Typography} from "@mui/material";
 import {GlobalRouting} from "./routes/Routes.tsx";
 import {AdapterLuxon} from '@mui/x-date-pickers/AdapterLuxon'
 import {LocalizationProvider} from "@mui/x-date-pickers";
 import Logo from "./Logo.tsx";
+import {DRAWER_WIDTH} from "./utils/utils.ts";
+import styled from "styled-components";
 
 function NamedLogo() {
-  return <Stack direction="row" spacing={1} alignItems="center">
+  return <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" sx={{width: DRAWER_WIDTH}}>
     <Logo/>
 
     <Typography variant="h5"
-                component="div"
                 sx={{
-                  mr: 2,
-                  display: {xs: 'none', md: 'flex'},
                   fontFamily: 'monospace',
-                  fontWeight: 700,
-                  letterSpacing: '.3rem',
+                  letterSpacing: '.2rem',
                   color: 'inherit',
                   textDecoration: 'none',
                 }}>
@@ -37,14 +24,16 @@ function NamedLogo() {
 }
 
 function AppBarLinks() {
-  return <Toolbar>
-    <Button color="inherit" href="/order">
-      Bestellungen
-    </Button>
+  return <Toolbar sx={{flexGrow: '1'}}>
+    <Stack direction="row" spacing={2}>
+      <Button color="inherit" href="/order">
+        Bestellungen
+      </Button>
 
-    <Button color="inherit" href="/restaurant">
-      Restaurants
-    </Button>
+      <Button color="inherit" href="/restaurant">
+        Restaurants
+      </Button>
+    </Stack>
   </Toolbar>;
 }
 
@@ -60,34 +49,35 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <LocalizationProvider dateAdapter={AdapterLuxon}>
-        <Box sx={{display: 'flex'}}>
-          <CssBaseline/>
+        <Box sx={{width: '100%', height: '100%'}}>
+          <Box sx={{display: 'flex', width: '100%', height: '100%'}}>
+            <CssBaseline/>
 
-          <AppBar position="fixed" sx={{paddingX: '2em', zIndex: (theme) => theme.zIndex.drawer + 1}}>
-            <Stack direction="row" spacing={2} justifyContent="space-between">
-              <Stack direction="row" spacing={2}>
+            <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}}>
+              <SStack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
                 <NamedLogo/>
 
                 <AppBarLinks/>
-              </Stack>
 
-              <AppBarMenu/>
-            </Stack>
-          </AppBar>
+                <AppBarMenu/>
+              </SStack>
+            </AppBar>
 
-          <Box component="main" sx={{flexGrow: 1, p: 3}}>
-            <Toolbar/>
-
-            <Container maxWidth="xl">
+            <Box sx={{flexGrow: 1, p: 1,  width: '100%', height: '100%'}}>
+              <Toolbar/>
 
               <GlobalRouting/>
-
-            </Container>
+            </Box>
           </Box>
         </Box>
       </LocalizationProvider>
     </ThemeProvider>
+
   )
 }
 
 export default App
+
+const SStack = styled(Stack)`
+    padding-right: 2em;
+`;

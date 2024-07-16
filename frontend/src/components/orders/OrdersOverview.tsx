@@ -6,6 +6,7 @@ import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {api} from "../../api/api.ts";
 import OrdersCardsList from "./OrdersCardsList.tsx";
 import {Outlet} from "react-router-dom";
+import {DRAWER_WIDTH} from "../../utils/utils.ts";
 
 export default function OrdersOverview() {
   const [restaurants, setRestaurants] = useState<Restaurant[] | null>(null);
@@ -44,14 +45,12 @@ export default function OrdersOverview() {
   </LoadingIndicator>;
 }
 
-const drawerWidth = 360;
-
 const SDrawer = styled(Drawer)`
-    width: ${drawerWidth}px;
+    width: ${DRAWER_WIDTH}px;
     flex-shrink: 0;
 
     & .MuiDrawer-paper {
-        width: ${drawerWidth}px;
+        width: ${DRAWER_WIDTH}px;
         box-sizing: border-box;
     }
 `;
