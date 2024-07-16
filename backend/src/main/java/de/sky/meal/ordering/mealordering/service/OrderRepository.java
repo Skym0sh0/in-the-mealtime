@@ -223,7 +223,7 @@ public class OrderRepository {
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
 
             if (Stream.of(rec.getOrderer(), rec.getFetcher(), rec.getMoneyCollector()).anyMatch(StringUtils::isBlank))
-                throw new BadRequestException("Order %s has no order, fetcher or money collector".formatted(orderId));
+                throw new BadRequestException("Order %s has no orderer, fetcher or money collector".formatted(orderId));
 
             rec.setState(OrderState.LOCKED);
             rec.setLockedAt(updater.timestamp());

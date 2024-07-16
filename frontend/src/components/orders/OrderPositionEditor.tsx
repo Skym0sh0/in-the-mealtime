@@ -13,6 +13,8 @@ type OrderPositionEditorProps = {
   inputPosition: OrderPosition | null;
 };
 
+const NO_ERROR = ' ';
+
 export default function OrderPositionEditor({
                                               orderState,
                                               onSave,
@@ -29,45 +31,53 @@ export default function OrderPositionEditor({
   const [tip, setTip] = useState('');
 
   const nameError = useMemo(() => {
-    return touched && !name ? "Name fehlt" : undefined;
+    return touched && !name ? "Name fehlt" : NO_ERROR;
   }, [name, touched]);
   const mealError = useMemo(() => {
-    return touched && !meal ? "Gericht fehlt" : undefined;
+    return touched && !meal ? "Gericht fehlt" : NO_ERROR;
   }, [meal, touched]);
   const priceError = useMemo(() => {
-    return touched && (!price || Number.isNaN(Number.parseFloat(price))) ? "Preis fehlerhaft" : undefined;
+    if (!touched)
+      return NO_ERROR;
+
+    const amount = Number.parseFloat(price);
+    if (!price || Number.isNaN(amount) || amount <= 0) {
+      return "Preis fehlerhaft";
+    } else {
+      return NO_ERROR;
+    }
   }, [price, touched]);
   const paidError = useMemo(() => {
-    if (!paid)
-      return undefined
+    if (!paid && !inputPosition)
+      return NO_ERROR
 
     const amount = Number.parseFloat(paid);
     if (Number.isNaN(amount))
-      return "Bezahlung fehlerhaft"
+      return "fehlerhaft"
 
     if (amount < Number.parseFloat(price))
-      return "Zu wenig bezahlt";
+      return "Zu wenig";
 
-    return undefined
-  }, [paid, price]);
+    return NO_ERROR
+  }, [inputPosition, paid, price]);
   const tipError = useMemo(() => {
     if (!tip)
-      return undefined
+      return NO_ERROR
 
     const amount = Number.parseFloat(tip);
-    if (Number.isNaN(amount))
-      return "Tip fehlerhaft"
+    if (Number.isNaN(amount) || amount < 0)
+      return "fehlerhaft"
 
     if (amount > (Number.parseFloat(paid) - Number.parseFloat(price)))
       return "Zu viel Trinkgeld"
 
-    return undefined
+    return NO_ERROR
   }, [tip, paid, price]);
 
   const isNew = !inputPosition;
 
   const isInvalid = !touched || [nameError, mealError, priceError, paidError, tipError]
-    .some(b => b !== undefined);
+    .some(b => b !== NO_ERROR);
 
   const reset = useCallback(() => {
     setTouched(false);
@@ -81,7 +91,7 @@ export default function OrderPositionEditor({
 
   useEffect(() => {
     reset()
-  }, [inputPosition]);
+  }, [inputPosition, reset]);
 
   const onClickSave = () => {
     if (isInvalid)
@@ -104,7 +114,7 @@ export default function OrderPositionEditor({
   };
 
   const canFullyEdit = orderState === OrderStateType.New || orderState === OrderStateType.Open;
-  const canOnlyPartlyEdit = canFullyEdit || orderState === OrderStateType.Locked || orderState === OrderStateType.Ordered;
+  const canOnlyPartlyEdit = canFullyEdit || (inputPosition && (orderState === OrderStateType.Locked || orderState === OrderStateType.Ordered));
 
   const theme = useTheme();
   const color = (isNew
@@ -113,7 +123,7 @@ export default function OrderPositionEditor({
   ).main;
 
   return <Paper sx={{
-    p: 1,
+    padding: '1em',
     border: `2px solid ${color}`,
   }}>
     <Stack direction="row"
@@ -129,7 +139,7 @@ export default function OrderPositionEditor({
                    setName(e.target.value);
                    setTouched(true)
                  }}
-                 error={!!nameError}
+                 error={!!nameError.trim()}
                  helperText={nameError}
       />
       <TextField size="small"
@@ -141,7 +151,7 @@ export default function OrderPositionEditor({
                    setMeal(e.target.value);
                    setTouched(true)
                  }}
-                 error={!!mealError}
+                 error={!!mealError.trim()}
                  helperText={mealError}
       />
       <TextField size="small"
@@ -154,7 +164,7 @@ export default function OrderPositionEditor({
                    setPrice(e.target.value);
                    setTouched(true)
                  }}
-                 error={!!priceError}
+                 error={!!priceError.trim()}
                  helperText={priceError}
                  sx={{width: '15ch'}}
                  InputProps={{
@@ -171,7 +181,7 @@ export default function OrderPositionEditor({
                    setPaid(e.target.value);
                    setTouched(true)
                  }}
-                 error={!!paidError}
+                 error={!!paidError.trim()}
                  helperText={paidError}
                  sx={{width: '15ch'}}
                  InputProps={{
@@ -188,7 +198,7 @@ export default function OrderPositionEditor({
                    setTip(e.target.value);
                    setTouched(true)
                  }}
-                 error={!!tipError}
+                 error={!!tipError.trim()}
                  helperText={tipError}
                  sx={{width: '15ch'}}
                  InputProps={{

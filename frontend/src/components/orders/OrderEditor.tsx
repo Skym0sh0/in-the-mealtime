@@ -57,12 +57,15 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
   return <Box sx={{minWidth: '860px'}}>
     <Stack spacing={2}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <div/>
+      <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
 
-        <Typography variant="h6">
+        <Typography variant="h5">
           Bestellung am {date}
         </Typography>
+
+        <div style={{flexGrow: '1'}}>
+          <OrderButtons order={order} onRefresh={onChange}/>
+        </div>
 
         <Typography variant="caption">
           {order.orderState}
@@ -70,32 +73,32 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
       </Stack>
 
       <Paper elevation={8} sx={{padding: 1}}>
-        <Stack direction="row" spacing={2}>
-          <OrderInfosView order={order} onUpdateInfos={onChange}/>
+        <Stack spacing={1}>
+          <Stack direction="row" spacing={2}>
+            <OrderInfosView order={order} onUpdateInfos={onChange}/>
 
-          <Stack spacing={2}>
-            <OrderSummary order={order}/>
+            <Stack spacing={2}>
+              <OrderSummary order={order}/>
 
-            <Stack spacing={1}>
-              <OrderPositionsTable orderState={order.orderState}
-                                   orderPositions={order.orderPositions}
-                                   selectedPosition={selectedPosition}
-                                   onSelect={onSelectToEditPosition}
-                                   onDelete={onDeletePosition}/>
-
-              <OrderPositionEditor orderState={order.orderState}
-                                   onSave={onCreatePosition}
-                                   onUpdate={onUpdatePosition}
-                                   onAbort={onDeselect}
-                                   inputPosition={selectedPosition}/>
+              <Stack spacing={1}>
+                <OrderPositionsTable orderState={order.orderState}
+                                     orderPositions={order.orderPositions}
+                                     selectedPosition={selectedPosition}
+                                     onSelect={onSelectToEditPosition}
+                                     onDelete={onDeletePosition}/>
+              </Stack>
             </Stack>
+
+            <RestaurantInfos restaurant={restaurant}/>
           </Stack>
 
-          <RestaurantInfos restaurant={restaurant}/>
+          <OrderPositionEditor orderState={order.orderState}
+                               onSave={onCreatePosition}
+                               onUpdate={onUpdatePosition}
+                               onAbort={onDeselect}
+                               inputPosition={selectedPosition}/>
         </Stack>
       </Paper>
-
-      <OrderButtons order={order} onRefresh={onChange}/>
     </Stack>
   </Box>
 }

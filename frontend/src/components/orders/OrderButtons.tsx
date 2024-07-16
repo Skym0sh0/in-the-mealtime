@@ -1,4 +1,4 @@
-import {Button, Paper, Stack, Typography} from "@mui/material";
+import {Button, Stack, Typography} from "@mui/material";
 import {Order, OrderStateType} from "../../../build/generated-ts/api/api";
 import {assertNever} from "../../utils/utils.ts";
 import useOrderPositionSummary from "./useOrderPositionSummary.ts";
@@ -46,15 +46,15 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
   }, [order.id, onRefresh]);
 
 
-  const revokeButton = <Button variant="contained" color="error" onClick={handleRevoke}>
+  const revokeButton = <Button variant="contained" size="small" color="error" onClick={handleRevoke}>
     Bestellung zurückziehen
   </Button>;
 
-  const deleteButton = <Button variant="contained" color="error" onClick={handleDelete}>
+  const deleteButton = <Button variant="contained"  size="small" color="error" onClick={handleDelete}>
     Löschen
   </Button>
 
-  const archiveButton = <Button variant="contained" color="info" onClick={handleArchive}>
+  const archiveButton = <Button variant="contained"  size="small" color="info" onClick={handleArchive}>
     Archivieren
   </Button>
 
@@ -68,8 +68,9 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
           {revokeButton}
 
           <Button variant="contained"
+                  size="small"
                   color="success"
-                  disabled={!order.infos.orderer}
+                  disabled={!order.infos.orderer || !order.infos.fetcher || !order.infos.moneyCollector}
                   onClick={handleOrdering}>
             Bestellen
           </Button>
@@ -79,11 +80,12 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
         return <>
           {revokeButton}
 
-          <Button variant="contained" color="warning" onClick={handleReopen}>
+          <Button variant="contained" size="small"  color="warning" onClick={handleReopen}>
             Bestellung wieder öffnen
           </Button>
 
           <Button variant="contained"
+                  size="small"
                   color="success"
                   disabled={!order.infos.fetcher || !order.infos.moneyCollector}
                   onClick={handleOrderIsOrdered}>
@@ -96,6 +98,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
           {revokeButton}
 
           <Button variant="contained"
+                  size="small"
                   color="success"
                   disabled={summary.paidMissing > 0}
                   onClick={handleDelivery}>
@@ -126,9 +129,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
   if (!elements)
     return null;
 
-  return <Paper elevation={8} sx={{padding: 1}}>
-    <Stack direction="row" spacing={2} justifyContent="flex-end" alignItems="center">
-      {elements}
-    </Stack>
-  </Paper>
+  return <Stack direction="row" spacing={2} justifyContent="flex-end" alignItems="center">
+    {elements}
+  </Stack>
 }

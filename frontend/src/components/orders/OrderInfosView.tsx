@@ -14,14 +14,14 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   const [fetcher, setFetcher] = useState('');
   const [collectorType, setCollectorType] = useState<OrderMoneyCollectionType>(OrderMoneyCollectionType.Bar);
   const [collector, setCollector] = useState('');
-  const [orderClosingTime, setOrderClosingTime] = useState<DateTime | null>(DateTime.fromISO('11:45'));
+  const [orderClosingTime, setOrderClosingTime] = useState<DateTime | null>(DateTime.fromISO('11:30'));
 
   useEffect(() => {
     setOrderer(order.infos.orderer ?? '')
     setFetcher(order.infos.fetcher ?? '')
     setCollectorType(order.infos.moneyCollectionType ?? OrderMoneyCollectionType.Bar)
     setCollector(order.infos.moneyCollector ?? '')
-    setOrderClosingTime(order.infos.orderClosingTime ? DateTime.fromISO(order.infos.orderClosingTime) : DateTime.fromISO('11:45'))
+    setOrderClosingTime(order.infos.orderClosingTime ? DateTime.fromISO(order.infos.orderClosingTime) : DateTime.fromISO('11:30'))
   }, [order.infos.orderer, order.infos.fetcher, order.infos.moneyCollectionType, order.infos.moneyCollector, order.infos.orderClosingTime]);
 
   const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
@@ -67,6 +67,20 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       </Typography>
 
       <Stack spacing={2} alignItems="center">
+        <TimeField size="small"
+                   ampm={false}
+                   label="Bestellschluss"
+                   value={orderClosingTime}
+                   slotProps={{
+                     textField: {
+                       error: !orderClosingTime || !orderClosingTime.isValid
+                     }
+                   }}
+                   onChange={e => {
+                     setOrderClosingTime(e)
+                     onChange();
+                   }}/>
+
         <TextField size="small"
                    label="Wer bestellt?"
                    value={orderer}
@@ -86,20 +100,6 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                    error={!fetcher}
         />
 
-        <ToggleButtonGroup size="small"
-                           exclusive={true}
-                           value={collectorType}
-                           onChange={(_, val) => val !== null && setCollectorType(val)}>
-          {
-            Object.keys(OrderMoneyCollectionType)
-              .map(key => {
-                return <ToggleButton key={key} value={key}>
-                  {key}
-                </ToggleButton>
-              })
-          }
-        </ToggleButtonGroup>
-
         <TextField size="small"
                    label="Geld wohin?"
                    value={collector}
@@ -118,19 +118,19 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                    }
                    error={!collector}/>
 
-        <TimeField size="small"
-                   ampm={false}
-                   label="Bestellschluss"
-                   value={orderClosingTime}
-                   slotProps={{
-                     textField: {
-                       error: !orderClosingTime || !orderClosingTime.isValid
-                     }
-                   }}
-                   onChange={e => {
-                     setOrderClosingTime(e)
-                     onChange();
-                   }}/>
+        <ToggleButtonGroup size="small"
+                           exclusive={true}
+                           value={collectorType}
+                           onChange={(_, val) => val !== null && setCollectorType(val)}>
+          {
+            Object.keys(OrderMoneyCollectionType)
+              .map(key => {
+                return <ToggleButton key={key} value={key}>
+                  {key}
+                </ToggleButton>
+              })
+          }
+        </ToggleButtonGroup>
       </Stack>
     </Stack>
   </Paper>
