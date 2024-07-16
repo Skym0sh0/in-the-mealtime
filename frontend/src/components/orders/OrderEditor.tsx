@@ -77,7 +77,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
           <Stack direction="row" spacing={2}>
             <OrderInfosView order={order} onUpdateInfos={onChange}/>
 
-            <Stack spacing={2}>
+            <Stack spacing={2} sx={{flexGrow: '1'}}>
               <OrderSummary order={order}/>
 
               <Stack spacing={1}>

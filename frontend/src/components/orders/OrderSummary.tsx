@@ -18,6 +18,10 @@ export default function OrderSummary({order}: { order: Order }) {
         <Stack direction="row" spacing={2}>
           <STextField size="small"
                       disabled={true}
+                      label="Teilnehmer"
+                      value={`${overallSum.participants} Teilnehmer`}/>
+          <STextField size="small"
+                      disabled={true}
                       label="Anzahl"
                       value={`${overallSum.count} Gerichte`}/>
           <STextField size="small"

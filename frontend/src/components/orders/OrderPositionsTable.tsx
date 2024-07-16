@@ -17,11 +17,12 @@ export default function OrderPositionsTable({orderState, orderPositions, selecte
         <TableRow>
           <TableCell align="left" style={{width: '5%'}}>#</TableCell>
           <TableCell align="left" style={{width: '10%'}}>Name</TableCell>
-          <TableCell align="left" style={{width: '40%'}}>Gericht</TableCell>
+          <TableCell align="left" style={{width: '35%'}}>Gericht</TableCell>
           <TableCell align="right" style={{width: '10%'}}>Preis</TableCell>
           <TableCell align="right" style={{width: '10%'}}>Bezahlt</TableCell>
           <TableCell align="right" style={{width: '10%'}}>Trinkgeld</TableCell>
-          <TableCell align="right" style={{width: '15%'}}/>
+          <TableCell align="right" style={{width: '10%'}}>Rückgeld</TableCell>
+          <TableCell align="right" style={{width: '10%'}}/>
         </TableRow>
       </TableHead>
 
@@ -53,6 +54,7 @@ function OrderTableRow({idx, position, orderState, selected, onSelect, onDelete}
 }) {
   const isPaid = position.price + (position.tip ?? 0) <= (position.paid ?? 0);
 
+  const returnMoney = isPaid ? (position.paid ?? 0) - position.price - (position.tip ?? 0) : null;
 
   const isEditable = orderState === OrderStateType.New || orderState === OrderStateType.Open
     || (!isPaid && (
@@ -84,6 +86,9 @@ function OrderTableRow({idx, position, orderState, selected, onSelect, onDelete}
     </TableCell>
     <TableCell align="right">
       {formatMonetaryAmount(position.tip)}
+    </TableCell>
+    <TableCell align="right">
+      {formatMonetaryAmount(returnMoney)}
     </TableCell>
 
     <TableCell align="right">
