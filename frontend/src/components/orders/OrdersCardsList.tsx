@@ -12,11 +12,12 @@ type RestaurantsById = {
 }
 
 type OrdersCardsListProps = {
-  restaurants: Restaurant[]
-  onRefresh: () => void;
+  restaurants: Restaurant[],
+  orderableRestaurantIds: string[],
+  onRefresh: () => void,
 };
 
-export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsListProps) {
+export default function OrdersCardsList({restaurants, orderableRestaurantIds, onRefresh}: OrdersCardsListProps) {
   const navigate = useNavigate();
   const params = useParams<{ orderId: string }>();
 
@@ -44,10 +45,8 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
   }, [restaurants]);
 
   const restaurantsWithOpenOrder = useMemo(() => {
-    return (orders ?? []).map(o => o.restaurantId)
-      .map(id => restaurantsById[id])
-      .filter(r => !!r)
-  }, [orders, restaurantsById]);
+    return restaurants.filter(r => !orderableRestaurantIds.includes(r.id))
+  }, [orderableRestaurantIds, restaurants]);
 
   // detect referenced restaurants that do not exist
   useEffect(() => {
@@ -60,14 +59,16 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
 
     if (existsOrderWithUnreferencedRestaurant)
       onRefresh();
-  }, []);
+  }, [onRefresh, orders, restaurantsById]);
 
   const refresh = useCallback(() => {
+    onRefresh();
+
     api.orders.fetchOrders()
       .then(res => {
         setOrders(res.data);
       })
-  }, []);
+  }, [onRefresh]);
 
   // periodically (re-)load orders
   useEffect(() => {
@@ -77,7 +78,7 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
       return;
     const interval = setInterval(refresh, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [autoReload, refresh]);
 
   // handle if selected order does not exist anymore or if there is something to auto select
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
 
     if (!selectedOrderId)
       select(orders[0].id)
-  }, [orders]);
+  }, [orders, select, selectedOrderId]);
 
   return <Stack>
     <NewOrderButton restaurants={restaurants}

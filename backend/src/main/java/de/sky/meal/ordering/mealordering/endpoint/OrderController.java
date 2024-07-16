@@ -9,17 +9,24 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
 public class OrderController implements OrderApi {
+
     private final OrderRepository orderRepository;
 
     @Override
+    public ResponseEntity<List<UUID>> fetchOrderableRestaurants() {
+        return ResponseEntity.ok(orderRepository.readOrderableRestaurantIds(LocalDate.now()));
+    }
+
+    @Override
     public ResponseEntity<Order> createOrder(UUID restaurantId) {
-        return ResponseEntity.ok(orderRepository.createNewEmptyOrder(restaurantId));
+        return ResponseEntity.ok(orderRepository.createNewEmptyOrder(LocalDate.now(), restaurantId));
     }
 
     @Override

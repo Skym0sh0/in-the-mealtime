@@ -9,22 +9,31 @@ import {Outlet} from "react-router-dom";
 
 export default function OrdersOverview() {
   const [restaurants, setRestaurants] = useState<Restaurant[] | null>(null);
+  const [orderableRestaurantIds, setOrderableRestaurantIds] = useState<string[]>([]);
 
   const refreshRestaurants = useCallback(() => {
-    api.restaurants.fetchRestaurants()
-      .then(res => setRestaurants(res.data))
+    Promise.all([
+      api.restaurants.fetchRestaurants(),
+      api.orders.fetchOrderableRestaurants()
+    ])
+      .then(([rests, ids]) => {
+        setRestaurants(rests.data)
+        setOrderableRestaurantIds(ids.data)
+      });
   }, []);
 
   useEffect(() => {
     refreshRestaurants();
-  }, []);
+  }, [refreshRestaurants]);
 
   return <LoadingIndicator isLoading={restaurants === null}>
     <Box style={{display: "flex"}}>
       <SDrawer variant="permanent">
         <Toolbar/>
         <Paper sx={{height: '100%', maxHeight: '100%'}}>
-          {restaurants && <OrdersCardsList restaurants={restaurants} onRefresh={refreshRestaurants}/>}
+          {restaurants && <OrdersCardsList restaurants={restaurants}
+                                           orderableRestaurantIds={orderableRestaurantIds}
+                                           onRefresh={refreshRestaurants}/>}
         </Paper>
       </SDrawer>
 

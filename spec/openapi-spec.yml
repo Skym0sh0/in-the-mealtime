@@ -73,6 +73,31 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         '500':
           $ref: "#/components/responses/ServerErrorResponse"
+  /api/order/restaurant:
+    get:
+      tags:
+        - Order
+      summary: Fetch orderable restaurants
+      description: Fetch orderable restaurants
+      operationId: fetchOrderableRestaurants
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ID'
+            application/xml:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ID'
+        '400':
+          $ref: "#/components/responses/ClientErrorResponse"
+        '500':
+          $ref: "#/components/responses/ServerErrorResponse"
   /api/order/restaurant/{restaurantId}:
     post:
       tags:

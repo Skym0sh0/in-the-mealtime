@@ -60,13 +60,27 @@ public class OrderRepository {
         ));
     }
 
-    public Order createNewEmptyOrder(UUID restaurantId) {
+    public List<UUID> readOrderableRestaurantIds(LocalDate date) {
+        return transactionTemplate.execute(status ->
+                ctx.selectDistinct(Tables.RESTAURANT.ID)
+                        .from(Tables.RESTAURANT)
+                        .where(Tables.RESTAURANT.ID.notIn(
+                                DSL.select(Tables.MEAL_ORDER.RESTAURANT_ID)
+                                        .from(Tables.MEAL_ORDER)
+                                        .where(Tables.MEAL_ORDER.TARGET_DATE.eq(date))
+                                        .and(Tables.MEAL_ORDER.STATE.in(OrderState.NEW, OrderState.OPEN, OrderState.LOCKED))
+                        ))
+                        .fetch(Tables.RESTAURANT.ID)
+        );
+    }
+
+    public Order createNewEmptyOrder(LocalDate date, UUID restaurantId) {
         return transactionTemplate.execute(status -> {
             ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
                     .orElseThrow(() -> new NotFoundException("No Restaurant found with id " + restaurantId));
 
             if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId)
-                    .and(Tables.MEAL_ORDER.TARGET_DATE.eq(LocalDate.now()))
+                    .and(Tables.MEAL_ORDER.TARGET_DATE.eq(date))
                     .and(Tables.MEAL_ORDER.STATE.in(OrderState.NEW, OrderState.OPEN, OrderState.LOCKED)))) {
                 throw new ClientErrorException("There is already an open Order for restaurant with id " + restaurantId, Response.Status.CONFLICT);
             }
@@ -86,7 +100,8 @@ public class OrderRepository {
                     .setUpdatedAt(ts)
                     .setUpdatedBy(creator);
 
-            rec.setState(OrderState.NEW);
+            rec.setState(OrderState.NEW)
+                    .setTargetDate(date);
 
             rec.insert();
 
@@ -342,7 +357,7 @@ public class OrderRepository {
                                     .orderClosingTime(rec.getOrderClosingTime())
                                     .build()
                     )
-                    .date(rec.getCreatedAt().toLocalDate())
+                    .date(rec.getTargetDate())
                     .orderPositions(
                             IntStream.range(0, positions.size())
                                     .mapToObj(idx -> {
