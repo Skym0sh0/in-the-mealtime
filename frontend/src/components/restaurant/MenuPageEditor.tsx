@@ -106,13 +106,17 @@ export default function MenuPageEditor({restaurant, onChange, onInit}: {
   const removeFile = useCallback((page: EditorMenuPage) => {
     if (page.alreadyExisted)
       return;
+
+    onChange()
     setNewFiles(prev => prev.filter(f => f.id !== page.id))
-  }, []);
+  }, [onChange]);
   const removePage = useCallback((page: EditorMenuPage) => {
     if (!page.alreadyExisted)
       return;
+
+    onChange()
     setExistingPagesToDelete(prev => [...prev, page.id])
-  }, []);
+  }, [onChange]);
   const undoRemove = useCallback((page: EditorMenuPage) => {
     if (!page.alreadyExisted && !page.toBeDeleted)
       return;

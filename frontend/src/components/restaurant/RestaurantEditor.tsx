@@ -74,6 +74,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       .then(res => res.data)
       .then(rest => menuPagesOnSave?.(rest)?.then(() => rest) ?? rest)
       .then(rest => {
+        setTouched(false)
         navigate({pathname: `/restaurant/${rest.id}`}, {replace: true});
       })
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
