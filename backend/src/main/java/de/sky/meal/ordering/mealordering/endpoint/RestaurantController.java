@@ -23,7 +23,9 @@ import java.util.UUID;
 @Controller
 @RequiredArgsConstructor
 public class RestaurantController implements RestaurantApi {
-    private static final int FILE_SIZE_LIMIT = 5 * 1024 * 1024;
+
+    private static final int FILE_SIZE_LIMIT = 5 * 1024 * 1024; // 5MB
+    private static final int MAX_MENU_PAGES = 20;
 
     private final RestaurantRepository restaurantRepository;
 
@@ -62,6 +64,9 @@ public class RestaurantController implements RestaurantApi {
     public ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, MultipartFile file) {
         if (file.getSize() > FILE_SIZE_LIMIT)
             throw new BadRequestException("File was bigger than " + FILE_SIZE_LIMIT);
+
+        if (restaurantRepository.readRestaurant(restaurantId).getMenuPages().size() > MAX_MENU_PAGES)
+            throw new BadRequestException("There are more already " + MAX_MENU_PAGES + " menu pages");
 
         try {
             var result = restaurantRepository.addMenuPageToRestaurant(
