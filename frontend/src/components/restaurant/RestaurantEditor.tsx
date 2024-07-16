@@ -13,6 +13,8 @@ type RestaurantEditorProps = {
 };
 
 export default function RestaurantEditor({restaurant, isNew, onRefresh}: RestaurantEditorProps) {
+  const [touched, setTouched] = useState(false);
+
   const [name, setName] = useState(restaurant.name || '');
   const [style, setStyle] = useState(restaurant.style || '');
   const [kind, setKind] = useState(restaurant.kind || '');
@@ -49,7 +51,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       return;
 
     const newRestaurant: RestaurantPatch = {
-      name: name,
+      name: name.trim(),
       style: style,
       kind: kind,
       phone: phone,
@@ -77,21 +79,48 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
   }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant?.id, onRefresh]);
 
+  const nameIsValid = !!name && !!name.trim();
+  const isValid = nameIsValid;
+
   return <Stack spacing={2}>
     <Typography variant="h4">{isNew ? 'Neues' : ''} Restaurant</Typography>
 
     <Stack spacing={2}>
       <Stack direction="row" spacing={2} justifyContent="space-between">
         <SStack spacing={2}>
-          <STextField size="small" label="Name" value={name} onChange={e => setName(e.target.value)}/>
-          <STextField size="small" label="Style" value={style} onChange={e => setStyle(e.target.value)}/>
-          <STextField size="small" label="Typ" value={kind} onChange={e => setKind(e.target.value)}/>
+          <STextField size="small"
+                      label="Name"
+                      value={name}
+                      onChange={e => {
+                        setName(e.target.value);
+                        setTouched(true)
+                      }}
+                      error={!nameIsValid}
+                      helperText={!nameIsValid && "Name muss vorhanden sein"}
+          />
+          <STextField size="small" label="Style" value={style} onChange={e => {
+            setStyle(e.target.value);
+            setTouched(true)
+          }}/>
+          <STextField size="small" label="Typ" value={kind} onChange={e => {
+            setKind(e.target.value);
+            setTouched(true)
+          }}/>
         </SStack>
 
         <SStack spacing={2} justifyContent="space-between">
-          <STextField size="small" label="Phone" value={phone} onChange={e => setPhone(e.target.value)}/>
-          <STextField size="small" label="Website" value={website} onChange={e => setWebsite(e.target.value)}/>
-          <STextField size="small" label="Email" value={email} onChange={e => setEmail(e.target.value)}/>
+          <STextField size="small" label="Phone" value={phone} onChange={e => {
+            setPhone(e.target.value);
+            setTouched(true)
+          }}/>
+          <STextField size="small" label="Website" value={website} onChange={e => {
+            setWebsite(e.target.value);
+            setTouched(true)
+          }}/>
+          <STextField size="small" label="Email" value={email} onChange={e => {
+            setEmail(e.target.value);
+            setTouched(true)
+          }}/>
         </SStack>
       </Stack>
 
@@ -99,14 +128,26 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
       <Stack spacing={2} justifyContent="space-between">
         <SStack direction="row" spacing={2} justifyContent="space-between">
-          <STextField size="small" label="Street" value={street} onChange={e => setStreet(e.target.value)}/>
+          <STextField size="small" label="Street" value={street} onChange={e => {
+            setStreet(e.target.value);
+            setTouched(true)
+          }}/>
           <TextField size="small" label="Housenumber" value={housenumber}
-                     onChange={e => setHousenumber(e.target.value)}/>
+                     onChange={e => {
+                       setHousenumber(e.target.value);
+                       setTouched(true)
+                     }}/>
         </SStack>
 
         <SStack direction="row" spacing={2} justifyContent="space-between">
-          <TextField size="small" label="Postal" value={postal} onChange={e => setPostal(e.target.value)}/>
-          <STextField size="small" label="City" value={city} onChange={e => setCity(e.target.value)}/>
+          <TextField size="small" label="Postal" value={postal} onChange={e => {
+            setPostal(e.target.value);
+            setTouched(true)
+          }}/>
+          <STextField size="small" label="City" value={city} onChange={e => {
+            setCity(e.target.value);
+            setTouched(true)
+          }}/>
         </SStack>
       </Stack>
 
@@ -116,11 +157,17 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
         <TextField size="small"
                    label="Short Description"
                    value={shortDescription}
-                   onChange={e => setShortDescription(e.target.value)}/>
+                   onChange={e => {
+                     setShortDescription(e.target.value);
+                     setTouched(true)
+                   }}/>
         <TextField size="small"
                    label="Description"
                    value={description}
-                   onChange={e => setDescription(e.target.value)}
+                   onChange={e => {
+                     setDescription(e.target.value);
+                     setTouched(true)
+                   }}
                    multiline={true}
                    rows={5}/>
       </SStack>
@@ -128,6 +175,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       <Divider/>
 
       <MenuPageEditor restaurant={restaurant}
+                      onChange={() => setTouched(true)}
                       onInit={handleInit}/>
     </Stack>
 
@@ -148,7 +196,8 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
         <Button onClick={onSave}
                 color="primary"
-                variant="contained">
+                variant="contained"
+                disabled={!(isValid && touched)}>
           Speichern
         </Button>
       </Stack>

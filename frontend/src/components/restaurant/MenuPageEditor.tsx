@@ -27,8 +27,9 @@ type FileWithId = {
   file: File,
 }
 
-export default function MenuPageEditor({restaurant, onInit}: {
+export default function MenuPageEditor({restaurant, onChange, onInit}: {
   restaurant: Restaurant,
+  onChange: () => void;
   onInit?: (action: (rest: Restaurant) => Promise<void>) => void,
 }) {
   const [newFiles, setNewFiles] = useState<FileWithId[]>([])
@@ -87,8 +88,10 @@ export default function MenuPageEditor({restaurant, onInit}: {
   }, [menuPages, newFiles, existingPagesToDelete, sorting])
 
   const addFiles = useCallback((files: File[]) => {
+    onChange()
+
     setNewFiles(prev => {
-      let filesWithId: FileWithId[] = files.map(f => ({
+      const filesWithId: FileWithId[] = files.map(f => ({
         id: uuidv4(),
         file: f
       }));
@@ -98,7 +101,7 @@ export default function MenuPageEditor({restaurant, onInit}: {
       return [...prev, ...filesWithId]
     })
 
-  }, []);
+  }, [onChange]);
 
   const removeFile = useCallback((page: EditorMenuPage) => {
     if (page.alreadyExisted)
