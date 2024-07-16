@@ -1,6 +1,7 @@
 package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
+import de.sky.meal.ordering.mealordering.config.OrderConfiguration;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
@@ -14,14 +15,19 @@ import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.impl.DSL;
 import org.jooq.tools.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -35,21 +41,35 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class OrderRepository {
 
-    private final DSLContext ctx;
+    private final OrderConfiguration config;
+
     private final TransactionTemplate transactionTemplate;
+    private final DSLContext ctx;
 
     public Order readOrder(UUID id) {
         return transactionTemplate.execute(status -> fetchOrder(id));
     }
 
     public List<Order> readOrders() {
-        return transactionTemplate.execute(status -> fetchOrders());
+        return transactionTemplate.execute(status -> fetchOrders(
+                DSL.or(
+                        Tables.MEAL_ORDER.STATE.notIn(OrderState.ARCHIVED, OrderState.REVOKED),
+                        Tables.MEAL_ORDER.REVOKED_AT.ge(OffsetDateTime.now().minus(config.closedOrderLingering())),
+                        Tables.MEAL_ORDER.ARCHIVED_AT.ge(OffsetDateTime.now().minus(config.closedOrderLingering()))
+                )
+        ));
     }
 
     public Order createNewEmptyOrder(UUID restaurantId) {
         return transactionTemplate.execute(status -> {
             ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
                     .orElseThrow(() -> new NotFoundException("No Restaurant found with id " + restaurantId));
+
+            if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId)
+                    .and(Tables.MEAL_ORDER.TARGET_DATE.eq(LocalDate.now()))
+                    .and(Tables.MEAL_ORDER.STATE.in(OrderState.NEW, OrderState.OPEN, OrderState.LOCKED)))) {
+                throw new ClientErrorException("There is already an open Order for restaurant with id " + restaurantId, Response.Status.CONFLICT);
+            }
 
             var id = UUID.randomUUID();
             var ts = OffsetDateTime.now();
@@ -270,13 +290,17 @@ public class OrderRepository {
     }
 
     private List<Order> fetchOrders() {
+        return fetchOrders(DSL.trueCondition());
+    }
+
+    private List<Order> fetchOrders(Condition cond) {
         var positionsByOrderId = ctx.selectFrom(Tables.ORDER_POSITION)
                 .orderBy(Tables.ORDER_POSITION.CREATED_AT.asc())
                 .fetch()
                 .intoGroups(Tables.ORDER_POSITION.ORDER_ID);
 
         return ctx.selectFrom(Tables.MEAL_ORDER)
-                .where(Tables.MEAL_ORDER.STATE.notIn(OrderState.ARCHIVED, OrderState.REVOKED))
+                .where(cond)
                 .orderBy(Tables.MEAL_ORDER.CREATED_AT.desc())
                 .fetch()
                 .map(rec -> Mapper.map(rec, positionsByOrderId.get(rec.getId())));
@@ -294,12 +318,14 @@ public class OrderRepository {
     }
 
     private record Updater(UUID user, OffsetDateTime timestamp) {
+
         public Updater() {
             this(DefaultUser.DEFAULT_USER, OffsetDateTime.now());
         }
     }
 
     private static class Mapper {
+
         private static Order map(MealOrderRecord rec, List<OrderPositionRecord> rawPositions) {
             var positions = rawPositions == null ? List.<OrderPositionRecord>of() : rawPositions;
 
