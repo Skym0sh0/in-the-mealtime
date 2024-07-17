@@ -1,4 +1,4 @@
-import {Box, Link, Paper, Stack, Typography} from "@mui/material";
+import {Box, Link, Stack, Typography} from "@mui/material";
 import {Restaurant} from "../../../build/generated-ts/api";
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -6,6 +6,8 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {assertNever} from "../../utils/utils.ts";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MenuPages from "./MenuPages.tsx";
+import {useEffect, useMemo, useRef, useState} from "react";
+import useWindowSizing from "../../utils/useWindowSizing.ts";
 
 enum InfoLineStyle {
   Normal,
@@ -16,10 +18,20 @@ enum InfoLineStyle {
 }
 
 function SingleInfoLine({line, style}: { line?: string, style: InfoLineStyle }) {
+  const phone = useMemo(() => {
+    return (line ?? '').replace(/\D/g, '')
+  }, [line]);
+
+  const link = useMemo(() => {
+    return (line ?? '').trim().toLowerCase().startsWith('http')
+      ? line
+      : "http://" + line
+  }, [line]);
+
   if (!line || !line.trim())
     return null;
 
-  const trimmed = line.trim();
+  const trimmed = line.trim()
 
   switch (style) {
     case InfoLineStyle.Normal:
@@ -29,7 +41,7 @@ function SingleInfoLine({line, style}: { line?: string, style: InfoLineStyle }) 
 
     case InfoLineStyle.Link:
       return <Link sx={{display: 'flex', alignItems: 'center'}}
-                   href={trimmed}
+                   href={link}
                    target="_blank"
                    rel="noopener noreferrer">
         <OpenInNewIcon fontSize="small" sx={{mr: 1}}/>
@@ -41,10 +53,10 @@ function SingleInfoLine({line, style}: { line?: string, style: InfoLineStyle }) 
     case InfoLineStyle.Phone:
       return <Link sx={{display: 'flex', alignItems: 'center'}}
                    underline="hover"
-                   href={"tel:" + trimmed}>
+                   href={"tel:" + phone}>
         <PhoneIcon fontSize="small" sx={{mr: 1}}/>
         <Typography variant="caption">
-          {trimmed}
+          {line}
         </Typography>
       </Link>
 
@@ -78,26 +90,39 @@ function SingleInfoLine({line, style}: { line?: string, style: InfoLineStyle }) 
 }
 
 export default function RestaurantInfos({restaurant}: { restaurant: Restaurant }) {
-  return <Paper elevation={2} sx={{p: 1, minWidth: '176px'}}>
-    <Stack spacing={1} sx={{height: '100%'}}>
-      <Typography variant="h6">
-        Restaurant
-      </Typography>
+  const elementRef = useRef<HTMLDivElement | null>(null);
+  const [height, setHeight] = useState(10);
 
-      <Stack>
-        <SingleInfoLine style={InfoLineStyle.Phone}
-                        line={restaurant.phone}/>
-        <SingleInfoLine style={InfoLineStyle.Email}
-                        line={restaurant.email}/>
-        <SingleInfoLine style={InfoLineStyle.Link}
-                        line={restaurant.website}/>
-        <SingleInfoLine style={InfoLineStyle.Address}
-                        line={`${restaurant.address?.street} ${restaurant.address?.housenumber} ${restaurant.address?.postal} ${restaurant.address?.city}`}/>
-      </Stack>
+  const [, windowheight] = useWindowSizing();
 
-      <Box sx={{flexGrow: 1}}>
-        <MenuPages restaurant={restaurant}/>
-      </Box>
+  useEffect(() => {
+    if (elementRef.current) {
+      setHeight(elementRef.current.clientHeight);
+    }
+  }, [windowheight]);
+
+  return <Stack direction="column"
+                justifyContent="center" alignItems="center"
+                spacing={1} sx={{height: '100%'}}>
+    <Typography variant="h6">
+      Restaurant
+    </Typography>
+
+    <Stack spacing={1}>
+      <SingleInfoLine style={InfoLineStyle.Phone}
+                      line={restaurant.phone}/>
+      <SingleInfoLine style={InfoLineStyle.Email}
+                      line={restaurant.email}/>
+      <SingleInfoLine style={InfoLineStyle.Link}
+                      line={restaurant.website}/>
+      <SingleInfoLine style={InfoLineStyle.Address}
+                      line={`${restaurant.address?.street} ${restaurant.address?.housenumber} ${restaurant.address?.postal} ${restaurant.address?.city}`}/>
     </Stack>
-  </Paper>
+
+    <Box sx={{flexGrow: 1, height: '100%', width: '100%'}}>
+      <div style={{height: '100%', width: '100%'}} ref={elementRef}>
+        <MenuPages height={`${height}px`} restaurant={restaurant}/>
+      </div>
+    </Box>
+  </Stack>;
 }

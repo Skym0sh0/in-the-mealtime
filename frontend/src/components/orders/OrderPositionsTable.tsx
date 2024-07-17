@@ -4,14 +4,28 @@ import EditIcon from '@mui/icons-material/Edit';
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 import {OrderPosition, OrderStateType} from "../../../build/generated-ts/api/api.ts";
 
-export default function OrderPositionsTable({orderState, orderPositions, selectedPosition, onSelect, onDelete}: {
+export default function OrderPositionsTable({
+                                              height,
+                                              orderState,
+                                              orderPositions,
+                                              selectedPosition,
+                                              onSelect,
+                                              onDelete
+                                            }: {
+  height: number,
   orderState: OrderStateType,
   orderPositions: OrderPosition[],
   selectedPosition: OrderPosition | null,
   onSelect: (pos: OrderPosition) => void,
   onDelete: (pos: OrderPosition) => void,
 }) {
-  return <TableContainer component={Paper} sx={{minHeight: '50vh', maxHeight: '50vh', border: '1px solid lightgray'}}>
+  return <TableContainer component={Paper}
+                         sx={{
+                           minHeight: '240px',
+                           height: `${height}px`,
+                           maxHeight: `${height}px`,
+                           border: '1px solid lightgray'
+                         }}>
     <Table size="small" stickyHeader={true}>
       <TableHead>
         <TableRow>

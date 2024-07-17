@@ -48,13 +48,16 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
   return <LoadingIndicator isLoading={loading}>
     <Card onClick={handleClick} sx={{
       border: '1px solid black',
-      width: '80px',
+      width: '120px',
       height: '80px',
-      p: '2px',
+      p: '1em',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       flexShrink: 0,
+      ':hover': {
+        cursor: 'pointer',
+      },
     }}>
       <CardMedia component="img"
                  image={thumbnail}
@@ -68,30 +71,33 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
     <Modal open={opened} onClose={handleClose}>
       <Box sx={{
         position: 'absolute',
-        top: '50%',
-        left: '50%',
+        top: '50%', left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '80%',
-        height: '95%',
-        maxHeight: '95%',
-        bgcolor: 'background.paper',
+        width: '80vw',
+        height: '80vh',
+        backgroundColor: 'background.paper',
+        borderRadius: '1em',
         boxShadow: 24,
         p: 2,
-        overflow: 'visible'
       }}>
         <Stack spacing={1} sx={{height: '100%'}} justifyContent='center' alignItems="center">
           <Typography>
             {page.name}
           </Typography>
 
-          <img src={fullsize}
-               alt="Lädt ..."
-               style={{
-                 flexGrow: 1,
-                 border: '1px solid black',
-                 objectFit: 'contain', objectPosition: 'center'
-               }}
-          />
+          <div style={{width: '100%', height: '100%', overflow: 'hidden'}}>
+            <img src={fullsize}
+                 alt="Lädt ..."
+                 style={{
+                   width: '100%', height: '100%',
+                   display: 'block',
+                   flexGrow: 1,
+                   border: '1px solid black',
+                   objectFit: 'contain',
+                   objectPosition: 'center'
+                 }}
+            />
+          </div>
 
           {navigation}
         </Stack>
@@ -100,7 +106,7 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
   </LoadingIndicator>
 }
 
-export default function MenuPages({restaurant}: { restaurant: Restaurant }) {
+export default function MenuPages({height, restaurant}: { height?: string, restaurant: Restaurant }) {
   const [currentlyOpenedIndex, setCurrentlyOpenedIndex] = useState<number | null>(null)
 
   const pages: MenuPage[] = restaurant.menuPages ?? [];
@@ -117,18 +123,11 @@ export default function MenuPages({restaurant}: { restaurant: Restaurant }) {
                 justifyContent="flex-start"
                 alignItems="center"
                 sx={{
-                  height: '45vh',
-                  maxHeight: '100%',
+                  height: height,
+                  maxHeight: height,
                   width: '100%',
                   overflowY: 'auto',
-                  flexGrow: 1,
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'flex-start',
-                  alignItems: 'center',
-                  gap: 1,
-                  padding: '10px 0',
+                  padding: '1em',
                 }}>
     {
       pages.map(p => {

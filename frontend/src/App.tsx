@@ -63,10 +63,12 @@ function App() {
               </SStack>
             </AppBar>
 
-            <Box sx={{flexGrow: 1, p: 1,  width: '100%', height: '100%'}}>
+            <Box component="main" sx={{flexGrow: 1, p: 1, width: '100%', height: '100%',}}>
               <Toolbar/>
 
-              <GlobalRouting/>
+              <div style={{height: 'calc(100% - 64px)', maxHeight: 'calc(100% - 64px)'}}>
+                <GlobalRouting/>
+              </div>
             </Box>
           </Box>
         </Box>

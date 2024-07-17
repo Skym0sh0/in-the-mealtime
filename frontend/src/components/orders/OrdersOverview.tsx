@@ -5,8 +5,8 @@ import {Restaurant} from "../../../build/generated-ts/api";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {api} from "../../api/api.ts";
 import OrdersCardsList from "./OrdersCardsList.tsx";
-import {Outlet} from "react-router-dom";
 import {DRAWER_WIDTH} from "../../utils/utils.ts";
+import {Outlet} from "react-router-dom";
 
 export default function OrdersOverview() {
   const [restaurants, setRestaurants] = useState<Restaurant[] | null>(null);
@@ -28,7 +28,7 @@ export default function OrdersOverview() {
   }, [refreshRestaurants]);
 
   return <LoadingIndicator isLoading={restaurants === null}>
-    <Box style={{display: "flex"}}>
+    <Box style={{display: "flex", height: '100%'}}>
       <SDrawer variant="permanent">
         <Toolbar/>
         <Paper sx={{height: '100%', maxHeight: '100%'}}>
@@ -38,7 +38,7 @@ export default function OrdersOverview() {
         </Paper>
       </SDrawer>
 
-      <Box component="main" sx={{flexGrow: 1}}>
+      <Box sx={{flexGrow: 1, height: '100%'}}>
         <Outlet/>
       </Box>
     </Box>

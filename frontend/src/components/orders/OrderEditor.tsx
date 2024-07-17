@@ -1,7 +1,7 @@
 import {Order, OrderPosition, OrderPositionPatch, Restaurant} from "../../../build/generated-ts/api";
 import {Box, Paper, Stack, Typography} from "@mui/material";
 import OrderPositionsTable from "./OrderPositionsTable.tsx";
-import {useCallback, useMemo, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
 import OrderSummary from "./OrderSummary.tsx";
 import {api} from "../../api/api.ts";
@@ -9,6 +9,7 @@ import OrderInfosView from "./OrderInfosView.tsx";
 import RestaurantInfos from "./RestaurantInfos.tsx";
 import OrderButtons from "./OrderButtons.tsx";
 import {DateTime} from "luxon";
+import useWindowSizing from "../../utils/useWindowSizing.ts";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -55,12 +56,21 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
     return `${dt.toFormat("EEEE", {locale: 'de'})} (${dt.toFormat("dd.MM.yyyy", {locale: 'de'})})`;
   }, [order.date])
 
-  return <Box sx={{minWidth: '860px'}}>
-    <Stack spacing={2}>
-      <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
+  const tableParentElement = useRef<HTMLDivElement | null>(null);
+  const [tableHeight, setTableHeight] = useState(10);
+  const [, windowheight] = useWindowSizing();
 
-        <Typography variant="h5">
-          Bestellung am {date}
+  useEffect(() => {
+    if (tableParentElement.current) {
+      setTableHeight(tableParentElement.current.clientHeight);
+    }
+  }, [windowheight]);
+
+  return <Paper sx={{padding: '1em', width: '100%', height: '100%'}}>
+    <Stack direction="column" spacing={2} sx={{height: '100%'}}>
+      <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
+        <Typography variant="h5" color="black">
+          Bestellung "{restaurant.name}" am {date}
         </Typography>
 
         <div style={{flexGrow: '1'}}>
@@ -72,24 +82,32 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
         </Typography>
       </Stack>
 
-      <Paper elevation={8} sx={{padding: 1}}>
-        <Stack spacing={1}>
-          <Stack direction="row" spacing={2}>
-            <OrderInfosView order={order} onUpdateInfos={onChange}/>
+      <Paper sx={{height: '100%', flexGrow: '1'}}>
+        <Stack direction="column" spacing={2} sx={{height: '100%'}}>
+          <Stack direction="row" spacing={1} style={{flexGrow: '1'}}>
+            <Paper elevation={4} sx={{minWidth: '5em', width: '15%'}}>
+              <OrderInfosView order={order} onUpdateInfos={onChange}/>
+            </Paper>
 
-            <Stack spacing={2} sx={{flexGrow: '1'}}>
-              <OrderSummary order={order}/>
+            <Box sx={{minWidth: '15em', width: '70%', flexGrow: '1'}}>
+              <Stack direction="column" spacing={1} style={{height: '100%'}}>
+                <OrderSummary order={order}/>
 
-              <Stack spacing={1}>
-                <OrderPositionsTable orderState={order.orderState}
-                                     orderPositions={order.orderPositions}
-                                     selectedPosition={selectedPosition}
-                                     onSelect={onSelectToEditPosition}
-                                     onDelete={onDeletePosition}/>
+                <div style={{flexGrow: '1', height: '100%'}}
+                     ref={tableParentElement}>
+                  <OrderPositionsTable height={tableHeight}
+                                       orderState={order.orderState}
+                                       orderPositions={order.orderPositions}
+                                       selectedPosition={selectedPosition}
+                                       onSelect={onSelectToEditPosition}
+                                       onDelete={onDeletePosition}/>
+                </div>
               </Stack>
-            </Stack>
+            </Box>
 
-            <RestaurantInfos restaurant={restaurant}/>
+            <Paper elevation={4} sx={{minWidth: '5em', width: '15%'}}>
+              <RestaurantInfos restaurant={restaurant}/>
+            </Paper>
           </Stack>
 
           <OrderPositionEditor orderState={order.orderState}
@@ -100,5 +118,5 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
         </Stack>
       </Paper>
     </Stack>
-  </Box>
+  </Paper>
 }

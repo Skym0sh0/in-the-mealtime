@@ -1,5 +1,5 @@
 import {Order, OrderInfosPatch} from "../../../build/generated-ts/api";
-import {Link, Paper, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
+import {Link, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
 import {debounce} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {DateTime} from "luxon";
@@ -60,78 +60,76 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       setCollectorType(OrderMoneyCollectionType.PayPal)
   }, [collector]);
 
-  return <Paper elevation={2} sx={{p: 1, minWidth: '176px'}}>
-    <Stack spacing={1}>
-      <Typography variant="h6">
-        Infos {touched && '*'}
-      </Typography>
+  return <Stack direction="column" spacing={2} justifyContent="flex-start" alignItems="center" sx={{height: '100%'}}>
+    <Typography variant="h6">
+      Infos {touched && '*'}
+    </Typography>
 
-      <Stack spacing={2} alignItems="center">
-        <TimeField size="small"
-                   ampm={false}
-                   label="Bestellschluss"
-                   value={orderClosingTime}
-                   slotProps={{
-                     textField: {
-                       error: !orderClosingTime || !orderClosingTime.isValid
-                     }
-                   }}
-                   onChange={e => {
-                     setOrderClosingTime(e)
-                     onChange();
-                   }}/>
-
-        <TextField size="small"
-                   label="Wer bestellt?"
-                   value={orderer}
-                   onChange={e => {
-                     setOrderer(e.target.value)
-                     onChange();
-                   }}
-                   error={!orderer}
-        />
-        <TextField size="small"
-                   label="Wer holt ab?"
-                   value={fetcher}
-                   onChange={e => {
-                     setFetcher(e.target.value)
-                     onChange();
-                   }}
-                   error={!fetcher}
-        />
-
-        <TextField size="small"
-                   label="Geld wohin?"
-                   value={collector}
-                   onChange={e => {
-                     setCollector(e.target.value)
-                     onChange();
-                   }}
-                   helperText={
-                     paypalLink
-                       ? <Link target="_blank"
-                               rel="noopener noreferrer"
-                               href={paypalLink}>
-                         {collector}
-                       </Link>
-                       : undefined
+    <Stack spacing={2} alignItems="center">
+      <TimeField size="small"
+                 ampm={false}
+                 label="Bestellschluss"
+                 value={orderClosingTime}
+                 slotProps={{
+                   textField: {
+                     error: !orderClosingTime || !orderClosingTime.isValid
                    }
-                   error={!collector}/>
+                 }}
+                 onChange={e => {
+                   setOrderClosingTime(e)
+                   onChange();
+                 }}/>
 
-        <ToggleButtonGroup size="small"
-                           exclusive={true}
-                           value={collectorType}
-                           onChange={(_, val) => val !== null && setCollectorType(val)}>
-          {
-            Object.keys(OrderMoneyCollectionType)
-              .map(key => {
-                return <ToggleButton key={key} value={key}>
-                  {key}
-                </ToggleButton>
-              })
-          }
-        </ToggleButtonGroup>
-      </Stack>
+      <TextField size="small"
+                 label="Wer bestellt?"
+                 value={orderer}
+                 onChange={e => {
+                   setOrderer(e.target.value)
+                   onChange();
+                 }}
+                 error={!orderer}
+      />
+      <TextField size="small"
+                 label="Wer holt ab?"
+                 value={fetcher}
+                 onChange={e => {
+                   setFetcher(e.target.value)
+                   onChange();
+                 }}
+                 error={!fetcher}
+      />
+
+      <TextField size="small"
+                 label="Geld wohin?"
+                 value={collector}
+                 onChange={e => {
+                   setCollector(e.target.value)
+                   onChange();
+                 }}
+                 helperText={
+                   paypalLink
+                     ? <Link target="_blank"
+                             rel="noopener noreferrer"
+                             href={paypalLink}>
+                       {collector}
+                     </Link>
+                     : undefined
+                 }
+                 error={!collector}/>
+
+      <ToggleButtonGroup size="small"
+                         exclusive={true}
+                         value={collectorType}
+                         onChange={(_, val) => val !== null && setCollectorType(val)}>
+        {
+          Object.keys(OrderMoneyCollectionType)
+            .map(key => {
+              return <ToggleButton key={key} value={key}>
+                {key}
+              </ToggleButton>
+            })
+        }
+      </ToggleButtonGroup>
     </Stack>
-  </Paper>
+  </Stack>;
 }

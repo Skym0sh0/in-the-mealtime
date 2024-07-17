@@ -3,11 +3,11 @@ import {useCallback, useEffect, useState} from "react";
 import {api} from "../../api/api.ts";
 import {Order, Restaurant} from "../../../build/generated-ts/api/index.ts";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
-import {Paper} from "@mui/material";
+import {Box} from "@mui/material";
 import OrderEditor from "./OrderEditor.tsx";
 
 export default function OrderView() {
-  const [autoReload, _] = useState<boolean>(true);
+  const [autoReload, ] = useState<boolean>(true);
 
   const params = useParams<{ orderId: string }>();
 
@@ -34,11 +34,11 @@ export default function OrderView() {
 
     const interval = setInterval(refresh, 5000)
     return () => clearInterval(interval)
-  }, [refresh]);
+  }, [autoReload, refresh]);
 
-  return <LoadingIndicator isLoading={order === null || restaurant === null}>
-    <Paper elevation={8} sx={{padding: '1em'}}>
+  return <Box sx={{padding: '2em', height: '100%'}}>
+    <LoadingIndicator isLoading={order === null || restaurant === null}>
       {restaurant && order && <OrderEditor restaurant={restaurant} order={order} onChange={refresh}/>}
-    </Paper>
-  </LoadingIndicator>
+    </LoadingIndicator>
+  </Box>
 }
