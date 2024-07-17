@@ -733,6 +733,7 @@ components:
         - name
         - meal
         - price
+        - index
       properties:
         id:
           $ref: "#/components/schemas/ID"

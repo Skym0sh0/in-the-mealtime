@@ -29,14 +29,15 @@ export default function OrderPositionsTable({
     <Table size="small" stickyHeader={true}>
       <TableHead>
         <TableRow>
-          <TableCell align="left" style={{width: '5%'}}>#</TableCell>
-          <TableCell align="left" style={{width: '10%'}}>Name</TableCell>
-          <TableCell align="left" style={{width: '35%'}}>Gericht</TableCell>
-          <TableCell align="right" style={{width: '10%'}}>Preis</TableCell>
-          <TableCell align="right" style={{width: '10%'}}>Bezahlt</TableCell>
-          <TableCell align="right" style={{width: '10%'}}>Trinkgeld</TableCell>
-          <TableCell align="right" style={{width: '10%'}}>Rückgeld</TableCell>
-          <TableCell align="right" style={{width: '10%'}}/>
+          <TableCell align="left" style={{width: '2%', fontWeight: 'bold'}}></TableCell>
+          <TableCell align="left" style={{width: '3%', fontWeight: 'bold'}}>#</TableCell>
+          <TableCell align="left" style={{width: '10%', fontWeight: 'bold'}}>Name</TableCell>
+          <TableCell align="left" style={{width: '35%', fontWeight: 'bold'}}>Gericht</TableCell>
+          <TableCell align="right" style={{width: '10%', fontWeight: 'bold'}}>Preis</TableCell>
+          <TableCell align="right" style={{width: '10%', fontWeight: 'bold'}}>Bezahlt</TableCell>
+          <TableCell align="right" style={{width: '10%', fontWeight: 'bold'}}>Trinkgeld</TableCell>
+          <TableCell align="right" style={{width: '10%', fontWeight: 'bold'}}>Rückgeld</TableCell>
+          <TableCell align="right" style={{width: '10%', fontWeight: 'bold'}}/>
         </TableRow>
       </TableHead>
 
@@ -80,10 +81,14 @@ function OrderTableRow({idx, position, orderState, selected, onSelect, onDelete}
 
   return <TableRow selected={selected}>
     <TableCell align="left" color="text.secondary">
+      {idx + 1}
+    </TableCell>
+
+    <TableCell align="left" color="text.secondary">
       {
         selected
           ? <EditIcon color="warning" fontSize="small"/>
-          : (idx + 1)
+          : (position.index + 1)
       }
     </TableCell>
     <TableCell align="left">

@@ -91,8 +91,6 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
             <Box sx={{minWidth: '15em', width: '70%', flexGrow: '1'}}>
               <Stack direction="column" spacing={1} style={{height: '100%'}}>
-                <OrderSummary order={order}/>
-
                 <div style={{flexGrow: '1', height: '100%'}}
                      ref={tableParentElement}>
                   <OrderPositionsTable height={tableHeight}
@@ -102,6 +100,8 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
                                        onSelect={onSelectToEditPosition}
                                        onDelete={onDeletePosition}/>
                 </div>
+
+                <OrderSummary order={order}/>
               </Stack>
             </Box>
 
