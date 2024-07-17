@@ -98,7 +98,7 @@ export default function OrdersCardsList({restaurants, orderableRestaurantIds, on
       select(orders[0].id)
   }, [orders, select, selectedOrderId]);
 
-  return <Stack>
+  return <Stack sx={{padding: '0.5em'}}>
     <NewOrderButton restaurants={restaurants}
                     restaurantsWithOpenOrder={restaurantsWithOpenOrder}
                     onChange={refresh}/>

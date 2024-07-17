@@ -96,10 +96,17 @@ export default function RestaurantInfos({restaurant}: { restaurant: Restaurant }
   const [, windowheight] = useWindowSizing();
 
   useEffect(() => {
-    if (elementRef.current) {
+    if (elementRef.current)
       setHeight(elementRef.current.clientHeight);
-    }
   }, [windowheight]);
+
+  const address = useMemo(() => {
+    if (!restaurant.address)
+      return undefined;
+
+    const add = restaurant.address;
+    return `${add.street} ${add.housenumber} ${add.postal} ${add.city}`
+  }, [restaurant.address]);
 
   return <Stack direction="column"
                 justifyContent="center" alignItems="center"
@@ -109,14 +116,11 @@ export default function RestaurantInfos({restaurant}: { restaurant: Restaurant }
     </Typography>
 
     <Stack spacing={1}>
-      <SingleInfoLine style={InfoLineStyle.Phone}
-                      line={restaurant.phone}/>
-      <SingleInfoLine style={InfoLineStyle.Email}
-                      line={restaurant.email}/>
-      <SingleInfoLine style={InfoLineStyle.Link}
-                      line={restaurant.website}/>
-      <SingleInfoLine style={InfoLineStyle.Address}
-                      line={`${restaurant.address?.street} ${restaurant.address?.housenumber} ${restaurant.address?.postal} ${restaurant.address?.city}`}/>
+      <SingleInfoLine style={InfoLineStyle.Normal} line={restaurant.name}/>
+      <SingleInfoLine style={InfoLineStyle.Phone} line={restaurant.phone}/>
+      <SingleInfoLine style={InfoLineStyle.Email} line={restaurant.email}/>
+      <SingleInfoLine style={InfoLineStyle.Link} line={restaurant.website}/>
+      <SingleInfoLine style={InfoLineStyle.Address} line={address}/>
     </Stack>
 
     <Box sx={{flexGrow: 1, height: '100%', width: '100%'}}>

@@ -69,7 +69,6 @@ export default function OrderCard({selected, order, restaurant, onSelect}: Order
 const SOrderCard = muiStyled(Card, {
   shouldForwardProp: (prop) => prop !== 'isSelected'
 })(({theme, isSelected}) => ({
-  maxWidth: 345,
   margin: 'auto',
   boxShadow: theme.shadows[8],
   border: isSelected ? `2px solid ${theme.palette.primary.main}` : 'none',
