@@ -31,10 +31,9 @@ export default function RestaurantView() {
       refresh();
     } else {
       setIsNew(true);
-      setRestaurant({
-      } as Restaurant)
+      setRestaurant({} as Restaurant)
     }
-  }, [params.restaurantId]);
+  }, [params.restaurantId, refresh]);
 
   return <SPaper elevation={8}>
     <LoadingIndicator isLoading={!restaurant}>
