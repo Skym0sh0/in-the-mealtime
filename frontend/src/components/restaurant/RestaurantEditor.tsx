@@ -82,7 +82,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
         navigate({pathname: `/restaurant/${rest.id}`}, {replace: true});
       })
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
-      .finally(()=>setIsWorking(false))
+      .finally(() => setIsWorking(false))
   }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant?.id, onRefresh]);
 
   const nameIsValid = !!name && !!name.trim();
