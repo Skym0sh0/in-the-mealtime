@@ -230,8 +230,12 @@ jib {
             "registry://eclipse-temurin:22.0.1_8-jre@sha256:7294e7c43aba19e457c7476e8fefffa2f89ed8167417935bcd576bd2cbd90de8"
     }
     to {
-        image = "in-the-mealtime"
+        image = (System.getenv("DOCKER_REPOSITORY") ?: "default-docker-repository") + "/in-the-mealtime"
         tags = setOf("latest")
+        auth {
+            username = System.getenv("DOCKER_USERNAME") ?: "default-username"
+            password = System.getenv("DOCKER_PASSWORD") ?: "default-password"
+        }
     }
     container {
         creationTime.set(project.provider { project.extra["git.commit.time"] as String })
