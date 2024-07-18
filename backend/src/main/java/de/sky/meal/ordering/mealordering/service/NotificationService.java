@@ -19,11 +19,18 @@ public class NotificationService {
     private final RocketChatService chatService;
 
     private String getUrl(Order order) {
-        return config.webBaseUrl() + "/order/" + order.getId();
+        var baseUrl = !config.webBaseUrl().endsWith("/")
+                ? config.webBaseUrl()
+                : config.webBaseUrl().substring(0, config.webBaseUrl().length() - 1);
+
+        return baseUrl + "/order/" + order.getId();
     }
 
     private String getUrl(Restaurant restaurant) {
-        return config.webBaseUrl() + "/restaurant/" + restaurant.getId();
+        var baseUrl = !config.webBaseUrl().endsWith("/")
+                ? config.webBaseUrl()
+                : config.webBaseUrl().substring(0, config.webBaseUrl().length() - 1);
+        return baseUrl + "/restaurant/" + restaurant.getId();
     }
 
     public void onNewOrder(Order order) {

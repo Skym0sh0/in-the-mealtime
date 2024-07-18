@@ -44,7 +44,7 @@ public class RocketChatService {
                     .header(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                     .header("X-Auth-Token", tokenResponse.data().authToken())
                     .header("X-User-Id", tokenResponse.data().userId())
-                    .body(new RocketChatMessage(conf.targetChannel(), "[Mealtime]: " + message))
+                    .body(new RocketChatMessage(conf.targetChannel(), "`Mealtime:` " + message))
                     .retrieve();
 
             log.info("RocketCHat message successfully sent: {}", response.toEntity(String.class));
