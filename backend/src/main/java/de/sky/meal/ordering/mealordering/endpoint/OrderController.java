@@ -90,6 +90,7 @@ public class OrderController implements OrderApi {
 
         return ResponseEntity.ok(order);
     }
+
     @Override
     public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
         var order = orderRepository.setOrderToDelivered(id);
@@ -119,10 +120,6 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> archiveOrder(UUID id) {
-        var order = orderRepository.archiveOrder(id);
-
-        notifier.onOrderIsArchived(order);
-
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(orderRepository.archiveOrder(id));
     }
 }
