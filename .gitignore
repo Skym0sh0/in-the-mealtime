@@ -60,3 +60,5 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+/**/application-secret.properties
