@@ -36,7 +36,7 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
       if (fullsize)
         URL.revokeObjectURL(fullsize)
     }
-  }, []);
+  }, [page.id, restaurant.id]);
 
   const handleClick = () => {
     onSelect()
