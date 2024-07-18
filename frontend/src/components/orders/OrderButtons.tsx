@@ -5,6 +5,12 @@ import useOrderPositionSummary from "./useOrderPositionSummary.ts";
 import {api} from "../../api/api.ts";
 import {useCallback} from "react";
 import {useNavigate} from "react-router-dom";
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import HighlightOffIcon from '@mui/icons-material/HighlightOff';
+import DeleteIcon from '@mui/icons-material/Delete';
+import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
+import CakeIcon from '@mui/icons-material/Cake';
 
 export default function OrderButtons({order, onRefresh}: { order: Order, onRefresh: () => void, }) {
   const summary = useOrderPositionSummary(order);
@@ -46,15 +52,29 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
   }, [order.id, onRefresh]);
 
 
-  const revokeButton = <Button variant="contained" size="small" color="error" onClick={handleRevoke}>
+  const revokeButton = <Button id="btn-order-state-revoke"
+                               variant="contained"
+                               size="small"
+                               color="error"
+                               onClick={handleRevoke}
+                               startIcon={<HighlightOffIcon/>}>
     Bestellung zurückziehen
   </Button>;
 
-  const deleteButton = <Button variant="contained"  size="small" color="error" onClick={handleDelete}>
+  const deleteButton = <Button id="btn-order-state-delete"
+                               variant="contained"
+                               size="small"
+                               color="error"
+                               onClick={handleDelete}
+                               startIcon={<DeleteIcon/>}>
     Löschen
   </Button>
 
-  const archiveButton = <Button variant="contained"  size="small" color="info" onClick={handleArchive}>
+  const archiveButton = <Button id="btn-order-state-archive"
+                                variant="contained"
+                                size="small"
+                                color="info"
+                                onClick={handleArchive}>
     Archivieren
   </Button>
 
@@ -67,11 +87,13 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
         return <>
           {revokeButton}
 
-          <Button variant="contained"
+          <Button id="btn-order-state-lock-order"
+                  variant="contained"
                   size="small"
                   color="success"
                   disabled={!order.infos.orderer || !order.infos.fetcher || !order.infos.moneyCollector}
-                  onClick={handleOrdering}>
+                  onClick={handleOrdering}
+                  startIcon={<LockIcon/>}>
             Bestellung aufgeben
           </Button>
         </>
@@ -80,15 +102,22 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
         return <>
           {revokeButton}
 
-          <Button variant="contained" size="small"  color="warning" onClick={handleReopen}>
+          <Button id="btn-order-state-reopen"
+                  variant="contained"
+                  size="small"
+                  color="warning"
+                  onClick={handleReopen}
+                  startIcon={<LockOpenIcon/>}>
             Bestellung wieder öffnen
           </Button>
 
-          <Button variant="contained"
+          <Button id="btn-order-state-is-ordered"
+                  variant="contained"
                   size="small"
                   color="success"
                   disabled={!order.infos.fetcher || !order.infos.moneyCollector}
-                  onClick={handleOrderIsOrdered}>
+                  onClick={handleOrderIsOrdered}
+                  endIcon={<ScheduleSendIcon/>}>
             Ist Bestellt
           </Button>
         </>
@@ -97,11 +126,13 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
         return <>
           {revokeButton}
 
-          <Button variant="contained"
+          <Button id="btn-order-state-delivered"
+                  variant="contained"
                   size="small"
                   color="success"
                   disabled={summary.paidMissing > 0}
-                  onClick={handleDelivery}>
+                  onClick={handleDelivery}
+                  startIcon={<CakeIcon/>}>
             Bestellung eingetroffen
           </Button>
         </>
