@@ -1,6 +1,7 @@
 import {IconButton, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow} from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import UndoIcon from '@mui/icons-material/Undo';
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 import {OrderPosition, OrderStateType} from "../../../build/generated-ts/api/api.ts";
 
@@ -10,6 +11,7 @@ export default function OrderPositionsTable({
                                               orderPositions,
                                               selectedPosition,
                                               onSelect,
+                                              onDeselect,
                                               onDelete
                                             }: {
   height: number,
@@ -17,6 +19,7 @@ export default function OrderPositionsTable({
   orderPositions: OrderPosition[],
   selectedPosition: OrderPosition | null,
   onSelect: (pos: OrderPosition) => void,
+  onDeselect: () => void,
   onDelete: (pos: OrderPosition) => void,
 }) {
   return <TableContainer component={Paper}
@@ -50,6 +53,7 @@ export default function OrderPositionsTable({
                                   selected={line.id === selectedPosition?.id}
                                   position={line}
                                   onSelect={onSelect}
+                                  onDeselect={onDeselect}
                                   onDelete={onDelete}
             />;
           })
@@ -59,12 +63,13 @@ export default function OrderPositionsTable({
   </TableContainer>;
 }
 
-function OrderTableRow({idx, position, orderState, selected, onSelect, onDelete}: {
+function OrderTableRow({idx, position, orderState, selected, onSelect, onDeselect, onDelete}: {
   idx: number,
   position: OrderPosition,
   orderState: OrderStateType,
   selected: boolean,
   onSelect: (pos: OrderPosition) => void
+  onDeselect: () => void
   onDelete: (pos: OrderPosition) => void
 }) {
   const isPaid = position.price + (position.tip ?? 0) <= (position.paid ?? 0);
@@ -111,18 +116,31 @@ function OrderTableRow({idx, position, orderState, selected, onSelect, onDelete}
     </TableCell>
 
     <TableCell align="right">
-      {isEditable && <IconButton size="small"
-                                 color="primary"
-                                 disabled={selected}
-                                 onClick={() => onSelect(position)}>
-        <EditIcon fontSize="inherit"/>
-      </IconButton>}
-      {isDeletable && <IconButton size="small"
-                                  color="secondary"
-                                  disabled={selected}
-                                  onClick={() => onDelete(position)}>
-        <DeleteIcon fontSize="inherit"/>
-      </IconButton>}
+      {isEditable && !selected &&
+        <IconButton size="small"
+                    color="primary"
+                    disabled={selected}
+                    onClick={() => onSelect(position)}>
+          <EditIcon fontSize="inherit"/>
+        </IconButton>
+      }
+      {isEditable && selected &&
+        <IconButton size="small"
+                    color="warning"
+                    disabled={!selected}
+                    onClick={() => onDeselect()}>
+          <UndoIcon fontSize="inherit"/>
+        </IconButton>
+      }
+
+      {isDeletable &&
+        <IconButton size="small"
+                    color="error"
+                    disabled={selected}
+                    onClick={() => onDelete(position)}>
+          <DeleteIcon fontSize="inherit"/>
+        </IconButton>
+      }
     </TableCell>
   </TableRow>
 }

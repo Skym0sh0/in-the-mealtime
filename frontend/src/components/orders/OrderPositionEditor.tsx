@@ -1,10 +1,10 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {IconButton, InputAdornment, Paper, Stack, TextField, useTheme} from "@mui/material";
+import {IconButton, InputAdornment, Paper, Stack, TextField, Typography, useTheme} from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done";
 import UndoIcon from "@mui/icons-material/Undo";
 import CloseIcon from '@mui/icons-material/Close';
-import PlusOneIcon from '@mui/icons-material/PlusOne';
 import EditIcon from "@mui/icons-material/Edit";
+import AddIcon from '@mui/icons-material/Add';
 import {OrderPosition, OrderPositionPatch, OrderStateType} from "../../../build/generated-ts/api";
 
 type OrderPositionEditorProps = {
@@ -130,13 +130,26 @@ export default function OrderPositionEditor({
   }}>
     <Stack direction="row"
            spacing={2}
-           justifyContent="space-around"
+           justifyContent="center"
            alignItems="start">
 
-      {isNew
-        ? <PlusOneIcon sx={{fontSize: '40px'}} color="success"/>
-        : <EditIcon sx={{fontSize: '40px'}} color="info"/>
-      }
+      <Stack sx={{height: '40px'}} spacing={1}
+             direction="row" justifyContent="center" alignItems="center">
+        {isNew
+          ? <>
+            <AddIcon fontSize="large" color="primary"/>
+            <Typography>
+              Neue Bestellung
+            </Typography>
+          </>
+          : <>
+            <EditIcon fontSize="medium" color="info"/>
+            <Typography>
+              Bestellung ändern
+            </Typography>
+          </>
+        }
+      </Stack>
 
       <TextField size="small"
                  label="Name"
