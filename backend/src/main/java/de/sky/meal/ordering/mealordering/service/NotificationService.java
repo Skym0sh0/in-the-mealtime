@@ -2,10 +2,16 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.NotificationConfiguration;
 import generated.sky.meal.ordering.rest.model.Order;
+import generated.sky.meal.ordering.rest.model.OrderPosition;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Comparator;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -63,9 +69,52 @@ public class NotificationService {
     public void onOrderIsOrdered(Order order) {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
+        var table = order.getOrderPositions()
+                .stream()
+                .sorted(Comparator.comparing(OrderPosition::getMeal))
+                .map(p -> "%16s | %-32s | %6.2f€ | %4s".formatted(
+                        p.getName(),
+                        p.getMeal(),
+                        p.getPrice(),
+                        Optional.ofNullable(p.getPaid()).orElse(0.0f) > 0 ? "Ja" : "Nein"
+                ))
+                .collect(Collectors.joining(
+                        "\n",
+                        "%16s | %32s | %7s | %4s\n".formatted("Name", "Gericht", "Preis", "Bezahlt"),
+                        "\n"
+                ));
+
+        var sumPrice = order.getOrderPositions()
+                .stream()
+                .map(OrderPosition::getPrice)
+                .filter(Objects::nonNull)
+                .mapToDouble(Float::doubleValue)
+                .sum();
+        var sumPaid = order.getOrderPositions()
+                .stream()
+                .map(OrderPosition::getPaid)
+                .filter(Objects::nonNull)
+                .mapToDouble(Float::doubleValue)
+                .sum();
+        var sumTip = order.getOrderPositions()
+                .stream()
+                .map(OrderPosition::getTip)
+                .filter(Objects::nonNull)
+                .mapToDouble(Float::doubleValue)
+                .sum();
+
         chatService.sendMessage("""
                 [Bestellung](%s) beim Restaurant [%s](%s) ist jetzt bestellt. Keine Bestellungen mehr möglich.
-                """.formatted(getUrl(order), restaurant.getName(), getUrl(restaurant))
+                Folgendes wurde bestellt:
+                ```
+                %s
+                ```
+                ```
+                Gesamtsumme: %6.2f €
+                Bezahlt:     %6.2f €
+                Trinkgeld:   %6.2f €
+                ```
+                """.formatted(getUrl(order), restaurant.getName(), getUrl(restaurant), table, sumPrice, sumPaid, sumTip)
         );
     }
 
