@@ -1,5 +1,6 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
+import de.sky.meal.ordering.mealordering.service.NotificationService;
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
 import generated.sky.meal.ordering.rest.api.OrderApi;
 import generated.sky.meal.ordering.rest.model.Order;
@@ -18,6 +19,7 @@ import java.util.UUID;
 public class OrderController implements OrderApi {
 
     private final OrderRepository orderRepository;
+    private final NotificationService notifier;
 
     @Override
     public ResponseEntity<List<UUID>> fetchOrderableRestaurants() {
@@ -26,7 +28,11 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> createOrder(UUID restaurantId) {
-        return ResponseEntity.ok(orderRepository.createNewEmptyOrder(LocalDate.now(), restaurantId));
+        var order = orderRepository.createNewEmptyOrder(LocalDate.now(), restaurantId);
+
+        notifier.onNewOrder(order);
+
+        return ResponseEntity.ok(order);
     }
 
     @Override
@@ -69,31 +75,54 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> lockOrder(UUID id) {
-        return ResponseEntity.ok(orderRepository.lockOrder(id));
-    }
+        var order = orderRepository.lockOrder(id);
 
-    @Override
-    public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
-        return ResponseEntity.ok(orderRepository.setOrderToDelivered(id));
+        notifier.onLockOrder(order);
+
+        return ResponseEntity.ok(order);
     }
 
     @Override
     public ResponseEntity<Order> orderIsNowOrdered(UUID id) {
-        return ResponseEntity.ok(orderRepository.setOrderToIsOrdered(id));
+        var order = orderRepository.setOrderToIsOrdered(id);
+
+        notifier.onOrderIsOrdered(order);
+
+        return ResponseEntity.ok(order);
+    }
+    @Override
+    public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
+        var order = orderRepository.setOrderToDelivered(id);
+
+        notifier.onOrderDelivered(order);
+
+        return ResponseEntity.ok(order);
     }
 
     @Override
     public ResponseEntity<Order> reopenOrder(UUID id) {
-        return ResponseEntity.ok(orderRepository.reopenOrder(id));
+        var order = orderRepository.reopenOrder(id);
+
+        notifier.onOrderIsReopened(order);
+
+        return ResponseEntity.ok(order);
     }
 
     @Override
     public ResponseEntity<Order> revokeOrder(UUID id) {
-        return ResponseEntity.ok(orderRepository.revokeOrder(id));
+        var order = orderRepository.revokeOrder(id);
+
+        notifier.onOrderIsRevoked(order);
+
+        return ResponseEntity.ok(order);
     }
 
     @Override
     public ResponseEntity<Order> archiveOrder(UUID id) {
-        return ResponseEntity.ok(orderRepository.archiveOrder(id));
+        var order = orderRepository.archiveOrder(id);
+
+        notifier.onOrderIsArchived(order);
+
+        return ResponseEntity.ok(order);
     }
 }
