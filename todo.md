@@ -18,7 +18,9 @@
 * Reports & Statistiken
 * Responsiveness
 * Helptexts
+  * Hinweise, was zu tun ist
 * Deployment Pipeline
 * Prod Umgebung
 * produktiv Nutzen
 * Kommunikation über Websockets
+* Browser Push Notifications
