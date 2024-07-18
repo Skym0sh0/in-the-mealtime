@@ -8,11 +8,9 @@ import org.testcontainers.utility.DockerImageName;
 
 @TestConfiguration(proxyBeanMethods = false)
 class TestcontainersConfiguration {
-
     @Bean
     @ServiceConnection
     PostgreSQLContainer<?> postgresContainer() {
-        return new PostgreSQLContainer<>(DockerImageName.parse("postgres").withTag("16.3@sha256:0aafd2ae7e6c391f39fb6b7621632d79f54068faebc726caf469e87bd1d301c0"));
+        return new PostgreSQLContainer<>(DockerImageName.parse("postgres@sha256:d13ef786196545cd69aff1945929fc868712196e195bc66581fb1bfe81649eaf"));
     }
-
 }

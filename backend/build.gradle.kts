@@ -125,8 +125,7 @@ tasks.register("jooqCodegen") {
 
     doLast {
         PostgreSQLContainer<Nothing>(
-            DockerImageName.parse("postgres")
-                .withTag("16.1@sha256:ee5dc0b649c9322656a1ee2c5dce7ce17fa9b15d838e992ca43a8e0b108b098e")
+            DockerImageName.parse("postgres@sha256:d13ef786196545cd69aff1945929fc868712196e195bc66581fb1bfe81649eaf")
         ).use {
             it.start()
 
