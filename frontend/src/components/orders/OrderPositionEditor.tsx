@@ -3,6 +3,8 @@ import {IconButton, InputAdornment, Paper, Stack, TextField, useTheme} from "@mu
 import DoneIcon from "@mui/icons-material/Done";
 import UndoIcon from "@mui/icons-material/Undo";
 import CloseIcon from '@mui/icons-material/Close';
+import PlusOneIcon from '@mui/icons-material/PlusOne';
+import EditIcon from "@mui/icons-material/Edit";
 import {OrderPosition, OrderPositionPatch, OrderStateType} from "../../../build/generated-ts/api";
 
 type OrderPositionEditorProps = {
@@ -128,8 +130,14 @@ export default function OrderPositionEditor({
   }}>
     <Stack direction="row"
            spacing={2}
-           justifyContent="space-between"
-           alignItems="baseline">
+           justifyContent="space-around"
+           alignItems="start">
+
+      {isNew
+        ? <PlusOneIcon sx={{fontSize: '40px'}} color="success"/>
+        : <EditIcon sx={{fontSize: '40px'}} color="info"/>
+      }
+
       <TextField size="small"
                  label="Name"
                  disabled={!canFullyEdit}
@@ -207,18 +215,17 @@ export default function OrderPositionEditor({
       />
 
       <Stack direction="row">
-        <IconButton size="small"
-                    color="success"
+        <IconButton color="success"
                     disabled={isInvalid}
                     onClick={onClickSave}>
           <DoneIcon fontSize="inherit"/>
         </IconButton>
 
-        {isNew && <IconButton size="small" color="secondary" onClick={reset} disabled={!touched}>
+        {isNew && <IconButton color="secondary" onClick={reset} disabled={!touched}>
           <UndoIcon fontSize="inherit"/>
         </IconButton>}
 
-        {!isNew && <IconButton size="small" color="error" onClick={onAbort}>
+        {!isNew && <IconButton color="error" onClick={onAbort}>
           <CloseIcon fontSize="inherit"/>
         </IconButton>}
       </Stack>

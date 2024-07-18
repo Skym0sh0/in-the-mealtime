@@ -72,7 +72,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                   color="success"
                   disabled={!order.infos.orderer || !order.infos.fetcher || !order.infos.moneyCollector}
                   onClick={handleOrdering}>
-            Bestellen
+            Bestellung aufgeben
           </Button>
         </>
 

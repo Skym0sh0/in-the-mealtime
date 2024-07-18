@@ -53,7 +53,7 @@ function App() {
           <Box sx={{display: 'flex', width: '100%', height: '100%'}}>
             <CssBaseline/>
 
-            <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}} color="secondary">
+            <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}} color="info">
               <SStack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
                 <NamedLogo/>
 
