@@ -60,13 +60,14 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       setCollectorType(OrderMoneyCollectionType.PayPal)
   }, [collector]);
 
-  return <Stack direction="column" spacing={2} justifyContent="flex-start" alignItems="center" sx={{height: '100%'}}>
+  return <Stack direction="column" spacing={2} justifyContent="flex-start" alignItems="center">
     <Typography variant="h6">
       Infos {touched && '*'}
     </Typography>
 
     <Stack spacing={2} alignItems="center">
-      <TimeField size="small"
+      <TimeField id="order-info-closing-time"
+                 size="small"
                  ampm={false}
                  label="Bestellschluss"
                  value={orderClosingTime}
@@ -80,7 +81,8 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                    onChange();
                  }}/>
 
-      <TextField size="small"
+      <TextField id="order-info-orderer"
+                 size="small"
                  label="Wer bestellt?"
                  value={orderer}
                  onChange={e => {
@@ -89,7 +91,8 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  }}
                  error={!orderer}
       />
-      <TextField size="small"
+      <TextField id="order-info-fetcher"
+                 size="small"
                  label="Wer holt ab?"
                  value={fetcher}
                  onChange={e => {
@@ -99,7 +102,8 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  error={!fetcher}
       />
 
-      <TextField size="small"
+      <TextField id="order-info-money-collector"
+                 size="small"
                  label="Geld wohin?"
                  value={collector}
                  onChange={e => {
@@ -117,14 +121,17 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  }
                  error={!collector}/>
 
-      <ToggleButtonGroup size="small"
+      <ToggleButtonGroup id="order-info-money-collection-type"
+                         size="small"
                          exclusive={true}
                          value={collectorType}
                          onChange={(_, val) => val !== null && setCollectorType(val)}>
         {
           Object.keys(OrderMoneyCollectionType)
             .map(key => {
-              return <ToggleButton key={key} value={key}>
+              return <ToggleButton key={key}
+                                   value={key}
+                                   id={`order-info-money-collection-type-${key}`}>
                 {key}
               </ToggleButton>
             })

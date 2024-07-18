@@ -19,6 +19,7 @@ export default function useOrderPositionSummary(order: Order) {
 
       countMissing: order.orderPositions.filter(pos => !pos.paid).length,
       paidMissing: add(pos => pos.price, pos => !pos.paid),
+      changeMoney: add(pos => pos.paid ? pos.paid - pos.price - (pos.tip ?? 0) : 0),
     };
   }, [order.orderPositions])
 }

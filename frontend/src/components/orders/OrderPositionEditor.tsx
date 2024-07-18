@@ -151,7 +151,8 @@ export default function OrderPositionEditor({
         }
       </Stack>
 
-      <TextField size="small"
+      <TextField id="order-position-editor-name"
+                 size="small"
                  label="Name"
                  disabled={!canFullyEdit}
                  placeholder="Dein Name"
@@ -163,7 +164,8 @@ export default function OrderPositionEditor({
                  error={!!nameError.trim()}
                  helperText={nameError}
       />
-      <TextField size="small"
+      <TextField id="order-position-editor-meal"
+                 size="small"
                  label="Gericht"
                  placeholder="64 mit Tofu"
                  disabled={!canFullyEdit}
@@ -175,7 +177,8 @@ export default function OrderPositionEditor({
                  error={!!mealError.trim()}
                  helperText={mealError}
       />
-      <TextField size="small"
+      <TextField id="order-position-editor-price"
+                 size="small"
                  type="number"
                  label="Preis"
                  placeholder="Preis"
@@ -192,7 +195,8 @@ export default function OrderPositionEditor({
                    startAdornment: <InputAdornment position="start">€</InputAdornment>
                  }}
       />
-      <TextField size="small"
+      <TextField id="order-position-editor-paid"
+                 size="small"
                  type="number"
                  label="Bezahlt"
                  placeholder="Bezahlt"
@@ -209,7 +213,8 @@ export default function OrderPositionEditor({
                    startAdornment: <InputAdornment position="start">€</InputAdornment>
                  }}
       />
-      <TextField size="small"
+      <TextField id="order-position-editor-tip"
+                 size="small"
                  type="number"
                  label="Trinkgeld"
                  placeholder="Trinkgeld"
@@ -228,17 +233,23 @@ export default function OrderPositionEditor({
       />
 
       <Stack direction="row">
-        <IconButton color="success"
+        <IconButton id="order-position-editor-save"
+                    color="success"
                     disabled={isInvalid}
                     onClick={onClickSave}>
           <DoneIcon fontSize="inherit"/>
         </IconButton>
 
-        {isNew && <IconButton color="secondary" onClick={reset} disabled={!touched}>
+        {isNew && <IconButton id="order-position-editor-reset"
+                              color="secondary"
+                              onClick={reset}
+                              disabled={!touched}>
           <UndoIcon fontSize="inherit"/>
         </IconButton>}
 
-        {!isNew && <IconButton color="error" onClick={onAbort}>
+        {!isNew && <IconButton id="order-position-editor-close"
+                               color="error"
+                               onClick={onAbort}>
           <CloseIcon fontSize="inherit"/>
         </IconButton>}
       </Stack>

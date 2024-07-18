@@ -1,5 +1,5 @@
 import {Order, OrderPosition, OrderPositionPatch, Restaurant} from "../../../build/generated-ts/api";
-import {Box, Paper, Stack, Typography} from "@mui/material";
+import {Box, Divider, Paper, Stack, Typography} from "@mui/material";
 import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
@@ -86,13 +86,21 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
         <Stack direction="column" spacing={2} sx={{height: '100%'}}>
           <Stack direction="row" spacing={1} style={{flexGrow: '1'}}>
             <Paper elevation={4} sx={{minWidth: '5em', width: '15%'}}>
-              <OrderInfosView order={order} onUpdateInfos={onChange}/>
+              <Stack justifyContent="space-between" sx={{height: '100%'}}>
+                <div style={{flexGrow: 1, padding: '1em'}}>
+                  <OrderInfosView order={order} onUpdateInfos={onChange}/>
+                </div>
+
+                <Divider orientation="horizontal"/>
+
+                <div style={{flexGrow: 1, padding: '1em'}}>
+                  <OrderSummary order={order}/>
+                </div>
+              </Stack>
             </Paper>
 
             <Box sx={{minWidth: '15em', width: '70%', flexGrow: '1'}}>
               <Stack direction="column" spacing={1} style={{height: '100%'}}>
-                <OrderSummary order={order}/>
-
                 <div style={{flexGrow: '1', height: '100%'}}
                      ref={tableParentElement}>
                   <OrderPositionsTable height={tableHeight}
