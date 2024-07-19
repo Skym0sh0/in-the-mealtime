@@ -119,12 +119,7 @@ tasks.named("processResources") {
     dependsOn("copyWebApp")
 }
 
-tasks.register("jooqCodegen") {
-    group = "build"
-
-    inputs.files(layout.projectDirectory.dir("/src/main/resources/db/migration"))
-    outputs.dir(file(layout.buildDirectory.dir("generated/sources/jooq")))
-
+tasks.register("checkCodeGen") {
     doFirst {
         println(">>>>>>>>>>>>>>>>>>>>>>> Debug")
         println("Layout:  " + layout.projectDirectory.asFile.path)
@@ -138,6 +133,13 @@ tasks.register("jooqCodegen") {
             .forEach { f -> println("\t" + f) }
         println("<<<<<<<<<<<<<<<<<<<<<<< Debug")
     }
+}
+
+tasks.register("jooqCodegen") {
+    group = "build"
+
+    inputs.files(layout.projectDirectory.dir("/src/main/resources/db/migration"))
+    outputs.dir(file(layout.buildDirectory.dir("generated/sources/jooq")))
 
     doLast {
         PostgreSQLContainer<Nothing>(
