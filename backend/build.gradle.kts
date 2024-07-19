@@ -124,7 +124,7 @@ tasks.register("checkCodeGen") {
         println(">>>>>>>>>>>>>>>>>>>>>>> Debug")
         println("Layout:  " + layout.projectDirectory.asFile.path)
         println("Project: " + project.layout.projectDirectory.asFile.path)
-        println("${Location.FILESYSTEM_PREFIX}${layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path}")
+        println("${Location.FILESYSTEM_PREFIX}${project.layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path}")
 
         Files.walk(
             Paths.get(layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path),
