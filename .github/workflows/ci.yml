@@ -44,6 +44,9 @@ jobs:
     - name: Debugging 2
       run: ls -R
 
+    - name: Code Generation
+      run: ./gradlew jooqCodegen --info --stacktrace
+
 #    - name: Build with Gradle Wrapper
 #      run: ./gradlew build --info --stacktrace
 

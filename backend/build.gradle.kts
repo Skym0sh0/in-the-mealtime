@@ -124,10 +124,10 @@ tasks.register("checkCodeGen") {
         println(">>>>>>>>>>>>>>>>>>>>>>> Debug")
         println("Layout:  " + layout.projectDirectory.asFile.path)
         println("Project: " + project.layout.projectDirectory.asFile.path)
-        println("${Location.FILESYSTEM_PREFIX}${project.layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path}")
+        println("${Location.FILESYSTEM_PREFIX}${project.layout.projectDirectory.dir("src/main/resources/db/migration").asFile.path}")
 
         Files.walk(
-            Paths.get(layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path),
+            Paths.get(layout.projectDirectory.dir("src/main/resources/db/migration").asFile.path),
             1
         )
             .forEach { f -> println("\t" + f) }
@@ -138,7 +138,7 @@ tasks.register("checkCodeGen") {
 tasks.register("jooqCodegen") {
     group = "build"
 
-    inputs.files(layout.projectDirectory.dir("/src/main/resources/db/migration"))
+    inputs.files(layout.projectDirectory.dir("src/main/resources/db/migration"))
     outputs.dir(file(layout.buildDirectory.dir("generated/sources/jooq")))
 
     doLast {
@@ -149,7 +149,7 @@ tasks.register("jooqCodegen") {
 
             Flyway.configure()
                 .dataSource(it.jdbcUrl, it.username, it.password)
-                .locations("${Location.FILESYSTEM_PREFIX}${layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path}")
+                .locations("${Location.FILESYSTEM_PREFIX}${layout.projectDirectory.dir("src/main/resources/db/migration").asFile.path}")
                 .load()
                 .migrate()
 
