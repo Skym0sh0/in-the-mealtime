@@ -6,6 +6,8 @@ import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.time.LocalTime
 
 buildscript {
@@ -122,6 +124,18 @@ tasks.register("jooqCodegen") {
 
     inputs.files(layout.projectDirectory.dir("/src/main/resources/db/migration"))
     outputs.dir(file(layout.buildDirectory.dir("generated/sources/jooq")))
+
+    doFirst{
+        println(">>>>>>>>>>>>>>>>>>>>>>> Debug")
+        println("${Location.FILESYSTEM_PREFIX}${layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path}")
+
+        Files.walk(
+            Paths.get(layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path),
+            1
+        )
+            .forEach { f -> println("\t" + f) }
+        println("<<<<<<<<<<<<<<<<<<<<<<< Debug")
+    }
 
     doLast {
         PostgreSQLContainer<Nothing>(

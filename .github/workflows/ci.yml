@@ -39,10 +39,11 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
+    - name: Debugging 1
+      run: ls -R
     - name: Code Generation
-      run: ./gradlew jooqCodegen openApiGenerate --info --stacktrace
-
-    - name: Debugging
+      run: ./gradlew jooqCodegen --info --stacktrace
+    - name: Debugging 2
       run: ls -R
 
     - name: Build with Gradle Wrapper
