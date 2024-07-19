@@ -3,7 +3,7 @@ plugins {
 
 allprojects {
     group = "de.sky.meal.ordering"
-    version = "0.0.1-SNAPSHOT"
+    version = System.getenv("RELEASE_VERSION") ?: "latest"
 
     repositories {
         mavenCentral()

@@ -6,8 +6,6 @@ import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.time.LocalTime
 
 buildscript {
@@ -235,10 +233,10 @@ jib {
     }
     to {
         image = (System.getenv("DOCKER_REPOSITORY") ?: "default-docker-repository") + "/in-the-mealtime"
-        tags = setOf("latest")
+        tags = setOf(System.getenv("RELEASE_VERSION") ?: "latest")
         auth {
-            username = System.getenv("DOCKER_USERNAME") ?: "default-username"
-            password = System.getenv("DOCKER_PASSWORD") ?: "default-password"
+            username = System.getenv("DOCKER_HUB_USERNAME") ?: "default-username"
+            password = System.getenv("DOCKER_HUB_PASSWORD") ?: "default-password"
         }
     }
     container {
