@@ -125,8 +125,7 @@ tasks.register("jooqCodegen") {
 
     doLast {
         PostgreSQLContainer<Nothing>(
-            DockerImageName.parse("postgres")
-                .withTag("16.1@sha256:ee5dc0b649c9322656a1ee2c5dce7ce17fa9b15d838e992ca43a8e0b108b098e")
+            DockerImageName.parse("postgres@sha256:d13ef786196545cd69aff1945929fc868712196e195bc66581fb1bfe81649eaf")
         ).use {
             it.start()
 
@@ -233,8 +232,12 @@ jib {
             "registry://eclipse-temurin:22.0.1_8-jre@sha256:7294e7c43aba19e457c7476e8fefffa2f89ed8167417935bcd576bd2cbd90de8"
     }
     to {
-        image = "in-the-mealtime"
+        image = (System.getenv("DOCKER_REPOSITORY") ?: "default-docker-repository") + "/in-the-mealtime"
         tags = setOf("latest")
+        auth {
+            username = System.getenv("DOCKER_USERNAME") ?: "default-username"
+            password = System.getenv("DOCKER_PASSWORD") ?: "default-password"
+        }
     }
     container {
         creationTime.set(project.provider { project.extra["git.commit.time"] as String })
