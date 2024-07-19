@@ -125,8 +125,10 @@ tasks.register("jooqCodegen") {
     inputs.files(layout.projectDirectory.dir("/src/main/resources/db/migration"))
     outputs.dir(file(layout.buildDirectory.dir("generated/sources/jooq")))
 
-    doFirst{
+    doFirst {
         println(">>>>>>>>>>>>>>>>>>>>>>> Debug")
+        println("Layout:  " + layout.projectDirectory.asFile.path)
+        println("Project: " + project.layout.projectDirectory.asFile.path)
         println("${Location.FILESYSTEM_PREFIX}${layout.projectDirectory.dir("/src/main/resources/db/migration").asFile.path}")
 
         Files.walk(

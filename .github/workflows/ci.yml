@@ -40,7 +40,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Debugging 1
-      run: ls -R
+      run: pwd && ls -R
     - name: Code Generation
       run: ./gradlew jooqCodegen --info --stacktrace
     - name: Debugging 2
