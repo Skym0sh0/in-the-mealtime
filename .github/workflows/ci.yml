@@ -39,9 +39,9 @@ jobs:
 
     - name: Build
       run: ./gradlew build --info --stacktrace
-      
+
     - name: Build & Push Image
-      run: ./gradlew build --info --stacktrace
+      run: ./gradlew jib --info --stacktrace
 
   dependency-submission:
     runs-on: ubuntu-latest
