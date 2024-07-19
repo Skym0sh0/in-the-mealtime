@@ -37,7 +37,10 @@ jobs:
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    - name: Build with Gradle Wrapper
+    - name: Build
+      run: ./gradlew build --info --stacktrace
+      
+    - name: Build & Push Image
       run: ./gradlew build --info --stacktrace
 
   dependency-submission:
