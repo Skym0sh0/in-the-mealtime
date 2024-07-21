@@ -45,7 +45,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build
-        run: ./gradlew build info --stacktrace
+        run: ./gradlew build --info --stacktrace
 
       - name: Build & Push Image
         run: |
