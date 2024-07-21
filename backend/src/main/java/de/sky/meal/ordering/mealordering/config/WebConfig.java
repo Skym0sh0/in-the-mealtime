@@ -58,12 +58,12 @@ public class WebConfig implements WebMvcConfigurer {
             try (var mdc = MDC.putCloseable(CORRELATION_ID, correlationId)) {
                 var sw = Stopwatch.createStarted();
 
-                log.info(">>> [{}] Request {} \"{}\" starts ...", correlationId, request.getMethod(), request.getServletPath());
+                log.debug(">>> [{}] Request {} \"{}\" starts ...", correlationId, request.getMethod(), request.getServletPath());
 
                 try {
                     filterChain.doFilter(request, response);
                 } finally {
-                    log.info("<<< [{}] Request {} \"{}\" finished with Status {} in {}", correlationId, request.getMethod(), request.getServletPath(), response.getStatus(), sw.stop());
+                    log.debug("<<< [{}] Request {} \"{}\" finished with Status {} in {}", correlationId, request.getMethod(), request.getServletPath(), response.getStatus(), sw.stop());
                 }
             }
         }

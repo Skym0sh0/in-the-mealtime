@@ -1,10 +1,12 @@
 @startuml
 [*] --> NeueBestellung : Erzeuge
 
-NeueBestellung -->[*]: Löschen
+NeueBestellung -->[*]: Manuell Löschen
+NeueBestellung --> [*]: nach Zeit Ablauf
 
 NeueBestellung --> OffeneBestellung : OrderPosition hinzufügen
 OffeneBestellung --> OffeneBestellung : OrderPosition hinzufügen oder bearbeiten
+OffeneBestellung --> [*]: nach Zeit Ablauf
 
 OffeneBestellung --> NeueBestellung: Letzte OrderPosition löschen
 
@@ -18,10 +20,9 @@ GesperrteBestellung --> ZurückgezogeneBestellung : Zurückziehen
 ZurückgezogeneBestellung --> [*] : nach Zeit Ablauf
 
 BestellteBestellung --> EingetroffeneBestellung : Manuelle Benachrichtigung
+BestellteBestellung --> EingetroffeneBestellung: nach Zeit Ablauf
 
 BestellteBestellung --> ZurückgezogeneBestellung : Manuelles Zurückziehen
-
-BestellteBestellung --> ArchivierteBestellung: nach Zeit Ablauf
 EingetroffeneBestellung --> ArchivierteBestellung: nach Zeit Ablauf
 
 ArchivierteBestellung --> [*] : nach Zeit Ablauf

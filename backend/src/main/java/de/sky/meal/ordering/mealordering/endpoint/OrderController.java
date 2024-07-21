@@ -1,6 +1,6 @@
 package de.sky.meal.ordering.mealordering.endpoint;
 
-import de.sky.meal.ordering.mealordering.service.NotificationService;
+import de.sky.meal.ordering.mealordering.observers.OrderChangeAggregator;
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
 import generated.sky.meal.ordering.rest.api.OrderApi;
 import generated.sky.meal.ordering.rest.model.Order;
@@ -19,7 +19,7 @@ import java.util.UUID;
 public class OrderController implements OrderApi {
 
     private final OrderRepository orderRepository;
-    private final NotificationService notifier;
+    private final OrderChangeAggregator observer;
 
     @Override
     public ResponseEntity<List<UUID>> fetchOrderableRestaurants() {
@@ -30,7 +30,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> createOrder(UUID restaurantId) {
         var order = orderRepository.createNewEmptyOrder(LocalDate.now(), restaurantId);
 
-        notifier.onNewOrder(order);
+        observer.onNewOrder(order);
 
         return ResponseEntity.ok(order);
     }
@@ -52,6 +52,8 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Void> deleteOrder(UUID id) {
+        observer.onBeforeOrderDelete(id);
+
         orderRepository.deleteOrder(id);
 
         return ResponseEntity.ok()
@@ -77,7 +79,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> lockOrder(UUID id) {
         var order = orderRepository.lockOrder(id);
 
-        notifier.onLockOrder(order);
+        observer.onLockOrder(order);
 
         return ResponseEntity.ok(order);
     }
@@ -86,7 +88,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> orderIsNowOrdered(UUID id) {
         var order = orderRepository.setOrderToIsOrdered(id);
 
-        notifier.onOrderIsOrdered(order);
+        observer.onOrderIsOrdered(order);
 
         return ResponseEntity.ok(order);
     }
@@ -95,7 +97,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
         var order = orderRepository.setOrderToDelivered(id);
 
-        notifier.onOrderDelivered(order);
+        observer.onOrderDelivered(order);
 
         return ResponseEntity.ok(order);
     }
@@ -104,7 +106,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> reopenOrder(UUID id) {
         var order = orderRepository.reopenOrder(id);
 
-        notifier.onOrderIsReopened(order);
+        observer.onOrderIsReopened(order);
 
         return ResponseEntity.ok(order);
     }
@@ -113,13 +115,15 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> revokeOrder(UUID id) {
         var order = orderRepository.revokeOrder(id);
 
-        notifier.onOrderIsRevoked(order);
+        observer.onOrderIsRevoked(order);
 
         return ResponseEntity.ok(order);
     }
 
     @Override
     public ResponseEntity<Order> archiveOrder(UUID id) {
+        observer.onBeforeOrderArchive(id);
+
         return ResponseEntity.ok(orderRepository.archiveOrder(id));
     }
 }

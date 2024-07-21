@@ -1,6 +1,8 @@
-package de.sky.meal.ordering.mealordering.service;
+package de.sky.meal.ordering.mealordering.observers;
 
 import de.sky.meal.ordering.mealordering.config.NotificationConfiguration;
+import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
+import de.sky.meal.ordering.mealordering.service.RocketChatService;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderPosition;
 import generated.sky.meal.ordering.rest.model.Restaurant;
@@ -8,15 +10,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class NotificationService {
+public class NotificationService implements OnOrderChange {
 
     private final NotificationConfiguration config;
 
@@ -24,22 +29,11 @@ public class NotificationService {
 
     private final RocketChatService chatService;
 
-    private String getUrl(Order order) {
-        var baseUrl = !config.webBaseUrl().endsWith("/")
-                ? config.webBaseUrl()
-                : config.webBaseUrl().substring(0, config.webBaseUrl().length() - 1);
 
-        return baseUrl + "/order/" + order.getId();
-    }
-
-    private String getUrl(Restaurant restaurant) {
-        var baseUrl = !config.webBaseUrl().endsWith("/")
-                ? config.webBaseUrl()
-                : config.webBaseUrl().substring(0, config.webBaseUrl().length() - 1);
-        return baseUrl + "/restaurant/" + restaurant.getId();
-    }
-
+    @Override
     public void onNewOrder(Order order) {
+        log.info("Notification: New order {}", order.getId());
+
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
@@ -48,7 +42,10 @@ public class NotificationService {
         );
     }
 
+    @Override
     public void onLockOrder(Order order) {
+        log.info("Notification: Lock order {}", order.getId());
+
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
@@ -57,7 +54,10 @@ public class NotificationService {
         );
     }
 
+    @Override
     public void onOrderIsReopened(Order order) {
+        log.info("Notification: Reopen order {}", order.getId());
+
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
@@ -66,7 +66,10 @@ public class NotificationService {
         );
     }
 
+    @Override
     public void onOrderIsOrdered(Order order) {
+        log.info("Notification: Order order {}", order.getId());
+
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         var table = order.getOrderPositions()
@@ -84,24 +87,9 @@ public class NotificationService {
                         "\n"
                 ));
 
-        var sumPrice = order.getOrderPositions()
-                .stream()
-                .map(OrderPosition::getPrice)
-                .filter(Objects::nonNull)
-                .mapToDouble(Float::doubleValue)
-                .sum();
-        var sumPaid = order.getOrderPositions()
-                .stream()
-                .map(OrderPosition::getPaid)
-                .filter(Objects::nonNull)
-                .mapToDouble(Float::doubleValue)
-                .sum();
-        var sumTip = order.getOrderPositions()
-                .stream()
-                .map(OrderPosition::getTip)
-                .filter(Objects::nonNull)
-                .mapToDouble(Float::doubleValue)
-                .sum();
+        var sumPrice = sumPositions(order.getOrderPositions(), OrderPosition::getPrice);
+        var sumPaid = sumPositions(order.getOrderPositions(), OrderPosition::getPaid);
+        var sumTip = sumPositions(order.getOrderPositions(), OrderPosition::getTip);
 
         chatService.sendMessage("""
                 [Bestellung](%s) beim Restaurant [%s](%s) ist jetzt bestellt. Keine Bestellungen mehr möglich.
@@ -118,7 +106,11 @@ public class NotificationService {
         );
     }
 
+
+    @Override
     public void onOrderDelivered(Order order) {
+        log.info("Notification: Deliver order {}", order.getId());
+
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
@@ -127,12 +119,46 @@ public class NotificationService {
         );
     }
 
+    @Override
     public void onOrderIsRevoked(Order order) {
+        log.info("Notification: Revoke order {}", order.getId());
+
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
                 [Bestellung](%s) beim Restaurant [%s](%s) ist geschlossen worden. Vielleicht ist der Laden geschlossen oder es gibt andere Probleme...
                 """.formatted(restaurant.getName(), getUrl(restaurant), getUrl(order))
         );
+    }
+
+    @Override
+    public void onBeforeOrderArchive(UUID id) {
+    }
+
+    @Override
+    public void onBeforeOrderDelete(UUID id) {
+    }
+
+    private static double sumPositions(Collection<OrderPosition> positions, Function<OrderPosition, Float> ex) {
+        return positions.stream()
+                .map(ex)
+                .filter(Objects::nonNull)
+                .mapToDouble(Float::doubleValue)
+                .sum();
+    }
+
+    private String getUrl(Order order) {
+        return getBaseUrl() + "/order/" + order.getId();
+    }
+
+    private String getUrl(Restaurant restaurant) {
+        return getBaseUrl() + "/restaurant/" + restaurant.getId();
+    }
+
+    private String getBaseUrl() {
+        if (!config.webBaseUrl().endsWith("/"))
+            return config.webBaseUrl();
+
+        return config.webBaseUrl().substring(0, config.webBaseUrl().length() - 1);
     }
 }

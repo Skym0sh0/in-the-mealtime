@@ -34,6 +34,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -124,6 +125,19 @@ public class OrderRepository {
     }
 
     public void deleteOrder(UUID id) {
+        deleteOrder(id, rec -> {
+            var requiredStates = Set.of(OrderState.NEW, OrderState.ARCHIVED, OrderState.REVOKED);
+            if (!requiredStates.contains(rec.getState()))
+                throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
+        });
+    }
+
+    public void deleteOrderWithoutCondition(UUID id) {
+        deleteOrder(id, rec -> {
+        });
+    }
+
+    private void deleteOrder(UUID id, Consumer<MealOrderRecord> checker) {
         transactionTemplate.executeWithoutResult(status -> {
             var rec = ctx.selectFrom(Tables.MEAL_ORDER)
                     .where(Tables.MEAL_ORDER.ID.eq(id))
@@ -131,9 +145,11 @@ public class OrderRepository {
                     .fetchOptional()
                     .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
 
-            var requiredStates = Set.of(OrderState.NEW, OrderState.ARCHIVED, OrderState.REVOKED);
-            if (!requiredStates.contains(rec.getState()))
-                throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
+            checker.accept(rec);
+
+            ctx.deleteFrom(Tables.ORDER_POSITION)
+                    .where(Tables.ORDER_POSITION.ORDER_ID.eq(id))
+                    .execute();
 
             rec.delete();
         });
