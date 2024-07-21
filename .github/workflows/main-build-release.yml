@@ -45,13 +45,13 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build
-        run: ./gradlew build --stacktrace
+        run: ./gradlew build info --stacktrace
 
       - name: Build & Push Image
         run: |
           new_version=$RELEASE_VERSION
           echo "Releasing Version $new_version"
-          ./gradlew jibBuildTar jib --stacktrace
+          ./gradlew jibBuildTar jib --info --stacktrace
           gh release create "v$new_version" -t "$new_version" -n "Release v$new_version"
           gh release upload "v$new_version" "backend/build/jib-image.tar"
           gh release upload "v$new_version" "backend/build/jib-image.json"
