@@ -7,7 +7,7 @@ on:
   workflow_dispatch:  # Allow manual triggering from the GitHub Actions tab
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
 
     steps:
