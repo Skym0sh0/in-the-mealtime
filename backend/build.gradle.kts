@@ -14,17 +14,17 @@ buildscript {
     }
     dependencies {
         classpath("org.postgresql:postgresql:42.7.3")
-        classpath("org.testcontainers:postgresql:1.19.8")
+        classpath("org.testcontainers:postgresql:1.20.0")
         classpath("org.jooq:jooq-codegen:3.19.10")
-        classpath("org.flywaydb:flyway-core:10.10.0")
+        classpath("org.flywaydb:flyway-core:10.16.0")
         classpath("org.flywaydb:flyway-database-postgresql:10.10.0")
     }
 }
 
 plugins {
     java
-    id("org.springframework.boot") version "3.3.1"
-    id("io.spring.dependency-management") version "1.1.5"
+    id("org.springframework.boot") version "3.3.2"
+    id("io.spring.dependency-management") version "1.1.6"
     id("org.openapi.generator") version "7.7.0"
     id("com.google.cloud.tools.jib") version "3.4.2"
     id("com.gorylenko.gradle-git-properties") version "2.4.2"
@@ -54,7 +54,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-models:2.2.22")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
 
-    implementation("org.apache.commons:commons-lang3:3.14.0")
+    implementation("org.apache.commons:commons-lang3:3.15.0")
     implementation("com.google.guava:guava:33.2.1-jre")
 
     compileOnly("org.projectlombok:lombok")
