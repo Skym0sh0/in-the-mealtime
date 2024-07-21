@@ -671,6 +671,7 @@ components:
         - infos
         - orderPositions
         - orderState
+        - stateManagement
       properties:
         id:
           $ref: "#/components/schemas/ID"
@@ -683,10 +684,30 @@ components:
         date:
           type: string
           format: date
+        stateManagement:
+          $ref: "#/components/schemas/OrderStateManagement"
         orderPositions:
           type: array
           items:
             $ref: "#/components/schemas/OrderPosition"
+    OrderStateManagement:
+      type: object
+      properties:
+        locked_at:
+          type: string
+          format: date-time
+        ordered_at:
+          type: string
+          format: date-time
+        delivered_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+        archived_at:
+          type: string
+          format: date-time
     OrderInfosPatch:
       type: object
       properties:

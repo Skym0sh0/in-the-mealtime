@@ -1,6 +1,7 @@
 package de.sky.meal.ordering.mealordering.observers;
 
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Comparators;
 import de.sky.meal.ordering.mealordering.config.OrderConfiguration;
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
 import generated.sky.meal.ordering.rest.model.Order;
@@ -25,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static generated.sky.meal.ordering.schema.Tables.MEAL_ORDER;
@@ -35,6 +37,8 @@ import static org.jooq.impl.DSL.or;
 @Service
 @RequiredArgsConstructor
 public class OrderHousekeepingService implements OnOrderChange {
+    private final Supplier<OffsetDateTime> clock = OffsetDateTime::now;
+
     private final OrderConfiguration config;
 
     private final TaskScheduler scheduler;
@@ -47,9 +51,9 @@ public class OrderHousekeepingService implements OnOrderChange {
     public void init() {
         log.info("Scheduled initial startup housekeeping ...");
 
-        scheduler.schedule(this::doHousekeeping, in(OffsetDateTime.now(),Duration.ofMinutes(1)));
+        scheduler.schedule(this::doHousekeeping, in(OffsetDateTime.now(), Duration.ofMinutes(1)));
 
-        log.info("Do re-schedulings of open orders");
+        log.info("Do re-schedulings of orders");
         doReschedulings();
     }
 
@@ -59,45 +63,40 @@ public class OrderHousekeepingService implements OnOrderChange {
     }
 
     public void doHousekeeping() {
-        var ts = OffsetDateTime.now();
-
-        log.info("Start global housekeeping at {}...", ts);
+        log.info("Start global housekeeping ...");
 
         var sw = Stopwatch.createStarted();
 
-        doDeletions(ts);
-        doReopens(ts);
-        doDeliveries(ts);
-        doArchives(ts);
+        doDeletions();
+        doReopens();
+        doDeliveries();
+        doArchives();
 
         log.info("Finished global housekeeping in {}", sw.stop());
     }
 
     @Override
     public void onLockOrder(Order order) {
-        // die waiting times machen kein sinn, weil da ist der bezug falsch.
-        // wieso soll ich 5 min warten, wenn vor 4 min der lock erstellt wurde
-
         log.info("Scheduled lock check in {}", config.stateTimeouts().lockedBeforeReopened());
-        scheduler.schedule(() -> doReopens(OffsetDateTime.now()), in(OffsetDateTime.now(), config.stateTimeouts().lockedBeforeReopened()));
+        scheduler.schedule(this::doReopens, in(order.getStateManagement().getLockedAt(), config.stateTimeouts().lockedBeforeReopened()));
     }
 
     @Override
     public void onOrderIsOrdered(Order order) {
         log.info("Scheduled ordered check in {}", config.stateTimeouts().orderedBeforeDelivered());
-        scheduler.schedule(() -> doDeliveries(OffsetDateTime.now()), in(OffsetDateTime.now(),config.stateTimeouts().orderedBeforeDelivered()));
+        scheduler.schedule(this::doDeliveries, in(order.getStateManagement().getOrderedAt(), config.stateTimeouts().orderedBeforeDelivered()));
     }
 
     @Override
     public void onOrderDelivered(Order order) {
         log.info("Scheduled delivery check in {}", config.stateTimeouts().deliveryBeforeArchive());
-        scheduler.schedule(() -> doArchives(OffsetDateTime.now()), in(OffsetDateTime.now(),config.stateTimeouts().deliveryBeforeArchive()));
+        scheduler.schedule(this::doArchives, in(order.getStateManagement().getDeliveredAt(), config.stateTimeouts().deliveryBeforeArchive()));
     }
 
     @Override
     public void onOrderIsRevoked(Order order) {
         log.info("Scheduled revoke check in {}", config.stateTimeouts().revokedBeforeDeleted());
-        scheduler.schedule(() -> doDeletions(OffsetDateTime.now()), in(OffsetDateTime.now(),config.stateTimeouts().revokedBeforeDeleted()));
+        scheduler.schedule(this::doDeletions, in(order.getStateManagement().getRevokedAt(), config.stateTimeouts().revokedBeforeDeleted()));
     }
 
     private void doReschedulings() {
@@ -133,7 +132,12 @@ public class OrderHousekeepingService implements OnOrderChange {
     }
 
     private static Trigger in(OffsetDateTime reference, Duration diff) {
-        var ts = OffsetDateTime.now().plus(diff);
+        var ts = Comparators.max(
+                OffsetDateTime.now(),
+                Optional.ofNullable(reference)
+                        .orElseGet(OffsetDateTime::now)
+                        .plus(diff)
+        );
 
         return new Trigger() {
             @Override
@@ -146,7 +150,9 @@ public class OrderHousekeepingService implements OnOrderChange {
         };
     }
 
-    private void doDeletions(OffsetDateTime ts) {
+    private void doDeletions() {
+        var ts = clock.get();
+
         var ids = doTransactionalWork("Deletions", ctx ->
                 ctx.select(MEAL_ORDER.ID)
                         .from(MEAL_ORDER)
@@ -172,7 +178,9 @@ public class OrderHousekeepingService implements OnOrderChange {
         ids.forEach(orderRepository::deleteOrderWithoutCondition);
     }
 
-    private void doReopens(OffsetDateTime ts) {
+    private void doReopens() {
+        var ts = clock.get();
+
         var ids = doTransactionalWork("Re-Openings", ctx ->
                 ctx.select(MEAL_ORDER.ID)
                         .from(MEAL_ORDER)
@@ -186,7 +194,9 @@ public class OrderHousekeepingService implements OnOrderChange {
         ids.forEach(orderRepository::reopenOrder);
     }
 
-    private void doDeliveries(OffsetDateTime ts) {
+    private void doDeliveries() {
+        var ts = clock.get();
+
         var ids = doTransactionalWork("Deliverings", ctx ->
                 ctx.select(MEAL_ORDER.ID)
                         .from(MEAL_ORDER)
@@ -200,7 +210,9 @@ public class OrderHousekeepingService implements OnOrderChange {
         ids.forEach(orderRepository::setOrderToDelivered);
     }
 
-    private void doArchives(OffsetDateTime ts) {
+    private void doArchives() {
+        var ts = clock.get();
+
         var ids = doTransactionalWork("Archivings", ctx ->
                 ctx.select(MEAL_ORDER.ID)
                         .from(MEAL_ORDER)

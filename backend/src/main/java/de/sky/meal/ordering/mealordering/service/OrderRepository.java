@@ -8,6 +8,7 @@ import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
 import generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType;
 import generated.sky.meal.ordering.rest.model.OrderPosition;
 import generated.sky.meal.ordering.rest.model.OrderPositionPatch;
+import generated.sky.meal.ordering.rest.model.OrderStateManagement;
 import generated.sky.meal.ordering.rest.model.OrderStateType;
 import generated.sky.meal.ordering.schema.Tables;
 import generated.sky.meal.ordering.schema.enums.MoneyCollectionType;
@@ -371,6 +372,15 @@ public class OrderRepository {
                                     .moneyCollectionType(map(rec.getMoneyCollectorType()))
                                     .moneyCollector(rec.getMoneyCollector())
                                     .orderClosingTime(rec.getOrderClosingTime())
+                                    .build()
+                    )
+                    .stateManagement(
+                            OrderStateManagement.builder()
+                                    .lockedAt(rec.getLockedAt())
+                                    .orderedAt(rec.getOrderedAt())
+                                    .deliveredAt(rec.getDeliveredAt())
+                                    .archivedAt(rec.getArchivedAt())
+                                    .revokedAt(rec.getRevokedAt())
                                     .build()
                     )
                     .date(rec.getTargetDate())
