@@ -112,16 +112,28 @@ public class OrderRepository {
     }
 
     public Order updateOrderInfos(UUID id, OrderInfosPatch infos) {
+        int maximumMeals = Optional.ofNullable(infos.getMaximumMealCount())
+                .orElse(Integer.MAX_VALUE);
+
+        if (maximumMeals <= 0) {
+            throw new BadRequestException("Maximum meal count must be strongly positive");
+        }
+
         return changeOrderRecord(id, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
 
+            if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(id)) > maximumMeals)
+                throw new BadRequestException("There are too many meals to impose a limit");
+
             rec.setOrderer(infos.getOrderer())
                     .setFetcher(infos.getFetcher())
                     .setMoneyCollectorType(Mapper.map(infos.getMoneyCollectionType()))
                     .setMoneyCollector(infos.getMoneyCollector())
-                    .setOrderClosingTime(infos.getOrderClosingTime());
+                    .setOrderClosingTime(infos.getOrderClosingTime())
+                    .setOrderText(infos.getOrderText())
+                    .setMaximumCountMeals(infos.getMaximumMealCount());
         });
     }
 
@@ -161,6 +173,9 @@ public class OrderRepository {
             var requiredStates = Set.of(OrderState.NEW, OrderState.OPEN, OrderState.REVOKED);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
+
+            if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(orderId)) + 1 >= Optional.ofNullable(rec.getMaximumCountMeals()).orElse(Integer.MAX_VALUE))
+                throw new BadRequestException("Meal Limit exceeded for this order");
 
             rec.setState(OrderState.OPEN);
 
@@ -372,6 +387,8 @@ public class OrderRepository {
                                     .moneyCollectionType(map(rec.getMoneyCollectorType()))
                                     .moneyCollector(rec.getMoneyCollector())
                                     .orderClosingTime(rec.getOrderClosingTime())
+                                    .orderText(rec.getOrderText())
+                                    .maximumMealCount(rec.getMaximumCountMeals())
                                     .build()
                     )
                     .stateManagement(

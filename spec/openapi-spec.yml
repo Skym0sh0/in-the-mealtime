@@ -722,6 +722,12 @@ components:
         orderClosingTime:
           type: string
           format: time
+        orderText:
+          type: string
+        maximumMealCount:
+          type: integer
+          format: int32
+          minimum: 1
     OrderInfos:
       allOf:
         - $ref: "#/components/schemas/OrderInfosPatch"
