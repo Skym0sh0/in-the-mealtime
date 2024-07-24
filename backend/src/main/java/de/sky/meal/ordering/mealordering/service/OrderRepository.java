@@ -174,7 +174,7 @@ public class OrderRepository {
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
 
-            if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(orderId)) + 1 >= Optional.ofNullable(rec.getMaximumCountMeals()).orElse(Integer.MAX_VALUE))
+            if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(orderId)) + 1 > Optional.ofNullable(rec.getMaximumCountMeals()).orElse(Integer.MAX_VALUE))
                 throw new BadRequestException("Meal Limit exceeded for this order");
 
             rec.setState(OrderState.OPEN);

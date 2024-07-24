@@ -9,6 +9,7 @@ import {OrderPosition, OrderPositionPatch, OrderStateType} from "../../../build/
 
 type OrderPositionEditorProps = {
   orderState: OrderStateType,
+  canAddNew: boolean,
   onSave: (pos: OrderPositionPatch) => Promise<void>;
   onUpdate: (id: string, pos: OrderPositionPatch) => Promise<void>;
   onAbort: () => void;
@@ -19,6 +20,7 @@ const NO_ERROR = ' ';
 
 export default function OrderPositionEditor({
                                               orderState,
+                                              canAddNew,
                                               onSave,
                                               onUpdate,
                                               onAbort,
@@ -107,12 +109,15 @@ export default function OrderPositionEditor({
       tip: Number.parseFloat(tip) || undefined,
     } as OrderPositionPatch;
 
-    if (isNew)
-      onSave(newPosition)
-        .then(() => reset())
-    else
+    if (isNew) {
+      if (canAddNew) {
+        onSave(newPosition)
+          .then(() => reset())
+      }
+    } else {
       onUpdate(inputPosition.id, newPosition)
         .then()
+    }
   };
 
   const canFullyEdit = orderState === OrderStateType.New || orderState === OrderStateType.Open;
@@ -137,8 +142,8 @@ export default function OrderPositionEditor({
              direction="row" justifyContent="center" alignItems="center">
         {isNew
           ? <>
-            <AddIcon fontSize="large" color="primary"/>
-            <Typography>
+            <AddIcon fontSize="large" color={canAddNew ? "primary" : "disabled"}/>
+            <Typography color={canAddNew ? "text.primary" : "text.disabled"}>
               Neue Bestellung
             </Typography>
           </>

@@ -113,6 +113,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
                 </div>
 
                 <OrderPositionEditor orderState={order.orderState}
+                                     canAddNew={order.orderPositions.length < (order.infos.maximumMealCount ?? 32768)}
                                      onSave={onCreatePosition}
                                      onUpdate={onUpdatePosition}
                                      onAbort={onDeselect}
