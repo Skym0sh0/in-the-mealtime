@@ -120,8 +120,9 @@ export default function OrderPositionEditor({
     }
   };
 
-  const canFullyEdit = orderState === OrderStateType.New || orderState === OrderStateType.Open;
+  const canFullyEdit = (orderState === OrderStateType.New || orderState === OrderStateType.Open) && ((canAddNew && isNew) || !isNew);
   const canOnlyPartlyEdit = canFullyEdit || (inputPosition && (orderState === OrderStateType.Locked || orderState === OrderStateType.Ordered));
+  const canSave = !isInvalid;
 
   const theme = useTheme();
   const color = (isNew
@@ -240,7 +241,7 @@ export default function OrderPositionEditor({
       <Stack direction="row">
         <IconButton id="order-position-editor-save"
                     color="success"
-                    disabled={isInvalid}
+                    disabled={!canSave}
                     onClick={onClickSave}>
           <DoneIcon fontSize="inherit"/>
         </IconButton>
