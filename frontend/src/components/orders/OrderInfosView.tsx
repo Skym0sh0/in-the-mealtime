@@ -169,6 +169,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <TextField id="order-info-additional-text"
                  size="small"
+                 sx={{width: '100%'}}
                  label="Zusatztext"
                  multiline={true}
                  maxRows={3}
