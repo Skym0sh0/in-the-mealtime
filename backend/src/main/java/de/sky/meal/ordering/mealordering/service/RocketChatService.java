@@ -47,7 +47,7 @@ public class RocketChatService {
                     .body(new RocketChatMessage(conf.targetChannel(), "`Mealtime:` " + message))
                     .retrieve();
 
-            log.info("RocketCHat message successfully sent: {}", response.toEntity(String.class));
+            log.info("RocketChat message successfully sent: {}", response.toEntity(String.class));
         } catch (Exception e) {
             log.error("Message to RocketChat could not be sent", e);
         }
@@ -57,7 +57,7 @@ public class RocketChatService {
 
     }
 
-    private record RocketChatMessage(String channel, String text) {
+    private record RocketChatMessage(String roomId, String text) {
 
     }
 
