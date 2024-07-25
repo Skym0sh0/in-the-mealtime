@@ -16,13 +16,29 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   const [collector, setCollector] = useState('');
   const [orderClosingTime, setOrderClosingTime] = useState<DateTime | null>(DateTime.fromISO('11:30'));
 
+  const [orderText, setOrderText] = useState('');
+  const [maximumMeals, setMaximumMeals] = useState('');
+
   useEffect(() => {
     setOrderer(order.infos.orderer ?? '')
     setFetcher(order.infos.fetcher ?? '')
     setCollectorType(order.infos.moneyCollectionType ?? OrderMoneyCollectionType.Bar)
     setCollector(order.infos.moneyCollector ?? '')
     setOrderClosingTime(order.infos.orderClosingTime ? DateTime.fromISO(order.infos.orderClosingTime) : DateTime.fromISO('11:30'))
-  }, [order.infos.orderer, order.infos.fetcher, order.infos.moneyCollectionType, order.infos.moneyCollector, order.infos.orderClosingTime]);
+    setOrderText(order.infos.orderText ?? '')
+    setMaximumMeals(order.infos.maximumMealCount?.toString() ?? '')
+  }, [order.infos.orderer, order.infos.fetcher, order.infos.moneyCollectionType, order.infos.moneyCollector, order.infos.orderClosingTime, order.infos.orderText, order.infos.maximumMealCount]);
+
+  const isValid = useMemo(() => {
+    if (!maximumMeals)
+      return true;
+
+    const parsed = Number.parseInt(maximumMeals)
+    if (Number.isNaN(parsed))
+      return false
+
+    return 0 < parsed && order.orderPositions.length <= parsed;
+  }, [maximumMeals, order.orderPositions]);
 
   const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
     api.orders.setOrderInfo(order.id, infos)
@@ -31,7 +47,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   }, 2000), [order.id, onUpdateInfos])
 
   useEffect(() => {
-    if (!touched)
+    if (!touched || !isValid)
       return
 
     onUpdate({
@@ -39,9 +55,11 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       fetcher: fetcher,
       moneyCollectionType: collectorType,
       moneyCollector: collector,
-      orderClosingTime: orderClosingTime?.toLocaleString(DateTime.TIME_24_WITH_SECONDS)
+      orderClosingTime: orderClosingTime?.toLocaleString(DateTime.TIME_24_WITH_SECONDS),
+      orderText: orderText,
+      maximumMealCount: Number.parseInt(maximumMeals),
     } as OrderInfosPatch)
-  }, [touched, orderer, fetcher, collector, orderClosingTime]);
+  }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate]);
 
   const onChange = () => setTouched(true);
 
@@ -66,21 +84,6 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     </Typography>
 
     <Stack spacing={2} alignItems="center">
-      <TimeField id="order-info-closing-time"
-                 size="small"
-                 ampm={false}
-                 label="Bestellschluss"
-                 value={orderClosingTime}
-                 slotProps={{
-                   textField: {
-                     error: !orderClosingTime || !orderClosingTime.isValid
-                   }
-                 }}
-                 onChange={e => {
-                   setOrderClosingTime(e)
-                   onChange();
-                 }}/>
-
       <TextField id="order-info-orderer"
                  size="small"
                  label="Wer bestellt?"
@@ -137,6 +140,44 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
             })
         }
       </ToggleButtonGroup>
+
+      <TimeField id="order-info-closing-time"
+                 size="small"
+                 ampm={false}
+                 label="Bestellschluss"
+                 value={orderClosingTime}
+                 slotProps={{
+                   textField: {
+                     error: !orderClosingTime || !orderClosingTime.isValid
+                   }
+                 }}
+                 onChange={e => {
+                   setOrderClosingTime(e)
+                   onChange();
+                 }}/>
+
+      <TextField id="order-info-maximum-meals"
+                 size="small"
+                 type="number"
+                 label="Limitierung Gerichte"
+                 value={maximumMeals}
+                 onChange={e => {
+                   setMaximumMeals(e.target.value)
+                   onChange();
+                 }}
+                 error={!isValid}/>
+
+      <TextField id="order-info-additional-text"
+                 size="small"
+                 sx={{width: '100%'}}
+                 label="Zusatztext"
+                 multiline={true}
+                 maxRows={3}
+                 value={orderText}
+                 onChange={e => {
+                   setOrderText(e.target.value)
+                   onChange();
+                 }}/>
     </Stack>
   </Stack>;
 }

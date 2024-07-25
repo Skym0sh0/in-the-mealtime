@@ -17,7 +17,7 @@ buildscript {
         classpath("org.testcontainers:postgresql:1.20.0")
         classpath("org.jooq:jooq-codegen:3.19.10")
         classpath("org.flywaydb:flyway-core:10.16.0")
-        classpath("org.flywaydb:flyway-database-postgresql:10.10.0")
+        classpath("org.flywaydb:flyway-database-postgresql:10.16.0")
     }
 }
 
@@ -26,7 +26,7 @@ plugins {
     id("org.springframework.boot") version "3.3.2"
     id("io.spring.dependency-management") version "1.1.6"
     id("org.openapi.generator") version "7.7.0"
-    id("com.google.cloud.tools.jib") version "3.4.2"
+    id("com.google.cloud.tools.jib") version "3.4.3"
     id("com.gorylenko.gradle-git-properties") version "2.4.2"
 }
 
