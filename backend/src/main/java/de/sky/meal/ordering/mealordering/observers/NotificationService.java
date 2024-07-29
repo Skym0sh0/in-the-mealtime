@@ -37,8 +37,8 @@ public class NotificationService implements OnOrderChange {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
-                Neue [Bestellung](%s) beim Restaurant [%s](%s) aufgemacht.
-                """.formatted(getUrl(order), restaurant.getName(), getUrl(restaurant))
+                Neue [Bestellung](%s) beim Restaurant %s aufgemacht.
+                """.formatted(getUrl(order), restaurant.getName())
         );
     }
 
@@ -49,8 +49,8 @@ public class NotificationService implements OnOrderChange {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
-                [Bestellung](%s) beim Restaurant [%s](%s) ist jetzt gesperrt, um die Bestellung aufzugeben. Keine neuen Bestellungen möglich.
-                """.formatted(getUrl(order), restaurant.getName(), getUrl(restaurant))
+                [Bestellung](%s) beim Restaurant %s ist jetzt gesperrt, um die Bestellung aufzugeben. Keine neuen Bestellungen möglich.
+                """.formatted(getUrl(order), restaurant.getName())
         );
     }
 
@@ -61,8 +61,8 @@ public class NotificationService implements OnOrderChange {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
-                [Bestellung](%s) beim Restaurant [%s](%s) ist wieder entsperrt. Bestellungen wieder möglich.
-                """.formatted(getUrl(order), restaurant.getName(), getUrl(restaurant))
+                [Bestellung](%s) beim Restaurant %s ist wieder entsperrt. Bestellungen wieder möglich.
+                """.formatted(getUrl(order), restaurant.getName())
         );
     }
 
@@ -92,7 +92,7 @@ public class NotificationService implements OnOrderChange {
         var sumTip = sumPositions(order.getOrderPositions(), OrderPosition::getTip);
 
         chatService.sendMessage("""
-                [Bestellung](%s) beim Restaurant [%s](%s) ist jetzt bestellt. Keine Bestellungen mehr möglich.
+                [Bestellung](%s) beim Restaurant %s ist jetzt bestellt. Keine Bestellungen mehr möglich.
                 Folgendes wurde bestellt:
                 ```
                 %s
@@ -102,7 +102,7 @@ public class NotificationService implements OnOrderChange {
                 Bezahlt:     %6.2f €
                 Trinkgeld:   %6.2f €
                 ```
-                """.formatted(getUrl(order), restaurant.getName(), getUrl(restaurant), table, sumPrice, sumPaid, sumTip)
+                """.formatted(getUrl(order), restaurant.getName(), table, sumPrice, sumPaid, sumTip)
         );
     }
 
@@ -114,8 +114,8 @@ public class NotificationService implements OnOrderChange {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
-                @all Essen von der [%s](%s) [Bestellung](%s) ist da!
-                """.formatted(restaurant.getName(), getUrl(restaurant), getUrl(order))
+                @here Essen von der %s Bestellung](%s) ist da!
+                """.formatted(restaurant.getName(), getUrl(order))
         );
     }
 
@@ -126,8 +126,8 @@ public class NotificationService implements OnOrderChange {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
-                [Bestellung](%s) beim Restaurant [%s](%s) ist geschlossen worden. Vielleicht ist der Laden geschlossen oder es gibt andere Probleme...
-                """.formatted(restaurant.getName(), getUrl(restaurant), getUrl(order))
+                [Bestellung](%s) beim Restaurant %s ist geschlossen worden. Vielleicht ist der Laden geschlossen oder es gibt andere Probleme...
+                """.formatted(restaurant.getName(), getUrl(order))
         );
     }
 
@@ -149,10 +149,6 @@ public class NotificationService implements OnOrderChange {
 
     private String getUrl(Order order) {
         return getBaseUrl() + "/order/" + order.getId();
-    }
-
-    private String getUrl(Restaurant restaurant) {
-        return getBaseUrl() + "/restaurant/" + restaurant.getId();
     }
 
     private String getBaseUrl() {
