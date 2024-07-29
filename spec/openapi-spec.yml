@@ -708,6 +708,12 @@ components:
         archived_at:
           type: string
           format: date-time
+        next_transition_duration:
+          type: string
+          format: duration
+        next_transition_timestamp:
+          type: string
+          format: date-time
     OrderInfosPatch:
       type: object
       properties:

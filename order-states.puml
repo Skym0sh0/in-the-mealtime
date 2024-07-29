@@ -2,28 +2,28 @@
 [*] --> NeueBestellung : Erzeuge
 
 NeueBestellung -->[*]: Manuell Löschen
-NeueBestellung --> [*]: nach Zeit Ablauf
+NeueBestellung --> [*]: nach Zeit Ablauf "maxOpenTime"
 
 NeueBestellung --> OffeneBestellung : OrderPosition hinzufügen
 OffeneBestellung --> OffeneBestellung : OrderPosition hinzufügen oder bearbeiten
-OffeneBestellung --> [*]: nach Zeit Ablauf
+OffeneBestellung --> [*]: nach Zeit Ablauf "maxOpenTime"
 
 OffeneBestellung --> NeueBestellung: Letzte OrderPosition löschen
 
 OffeneBestellung --> GesperrteBestellung : Versuchen zu bestellen
-GesperrteBestellung --> OffeneBestellung : Zeitlimit vergangen
+GesperrteBestellung --> OffeneBestellung : Zeitlimit vergangen "lockedBeforeReopened""
 GesperrteBestellung --> OffeneBestellung : Manuell wieder eröffnet
 GesperrteBestellung --> BestellteBestellung: Bestellung erfolgreich
 
 OffeneBestellung --> ZurückgezogeneBestellung : Zurückziehen
 GesperrteBestellung --> ZurückgezogeneBestellung : Zurückziehen
-ZurückgezogeneBestellung --> [*] : nach Zeit Ablauf
+ZurückgezogeneBestellung --> [*] : nach Zeit Ablauf "revokedBeforeDeleted"
 
 BestellteBestellung --> EingetroffeneBestellung : Manuelle Benachrichtigung
-BestellteBestellung --> EingetroffeneBestellung: nach Zeit Ablauf
+BestellteBestellung --> EingetroffeneBestellung: nach Zeit Ablauf "orderedBeforeDelivered"
 
 BestellteBestellung --> ZurückgezogeneBestellung : Manuelles Zurückziehen
-EingetroffeneBestellung --> ArchivierteBestellung: nach Zeit Ablauf
+EingetroffeneBestellung --> ArchivierteBestellung: nach Zeit Ablauf "deliveryBeforeArchive"
 
 ArchivierteBestellung --> [*] : nach Zeit Ablauf
 

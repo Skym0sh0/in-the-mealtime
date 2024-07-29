@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -49,11 +51,11 @@ public class OrderRepository {
     private final DSLContext ctx;
 
     public Order readOrder(UUID id) {
-        return transactionTemplate.execute(status -> fetchOrder(id));
+        return transactionTemplate.execute(_ -> fetchOrder(id));
     }
 
     public List<Order> readOrders() {
-        return transactionTemplate.execute(status -> fetchOrders(
+        return transactionTemplate.execute(_ -> fetchOrders(
                 DSL.or(
                         Tables.MEAL_ORDER.STATE.notIn(OrderState.ARCHIVED, OrderState.REVOKED),
                         Tables.MEAL_ORDER.REVOKED_AT.ge(OffsetDateTime.now().minus(config.closedOrderLingering())),
@@ -63,7 +65,7 @@ public class OrderRepository {
     }
 
     public List<UUID> readOrderableRestaurantIds(LocalDate date) {
-        return transactionTemplate.execute(status ->
+        return transactionTemplate.execute(_ ->
                 ctx.selectDistinct(Tables.RESTAURANT.ID)
                         .from(Tables.RESTAURANT)
                         .where(Tables.RESTAURANT.ID.notIn(
@@ -77,7 +79,7 @@ public class OrderRepository {
     }
 
     public Order createNewEmptyOrder(LocalDate date, UUID restaurantId) {
-        return transactionTemplate.execute(status -> {
+        return transactionTemplate.execute(_ -> {
             ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
                     .orElseThrow(() -> new NotFoundException("No Restaurant found with id " + restaurantId));
 
@@ -119,7 +121,7 @@ public class OrderRepository {
             throw new BadRequestException("Maximum meal count must be strongly positive");
         }
 
-        return changeOrderRecord(id, (updater, rec) -> {
+        return changeOrderRecord(id, (_, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
@@ -146,12 +148,12 @@ public class OrderRepository {
     }
 
     public void deleteOrderWithoutCondition(UUID id) {
-        deleteOrder(id, rec -> {
+        deleteOrder(id, _ -> {
         });
     }
 
     private void deleteOrder(UUID id, Consumer<MealOrderRecord> checker) {
-        transactionTemplate.executeWithoutResult(status -> {
+        transactionTemplate.executeWithoutResult(_ -> {
             var rec = ctx.selectFrom(Tables.MEAL_ORDER)
                     .where(Tables.MEAL_ORDER.ID.eq(id))
                     .forUpdate()
@@ -230,7 +232,7 @@ public class OrderRepository {
     }
 
     public Order removeOrderPosition(UUID orderId, UUID positionId) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+        return changeOrderRecord(orderId, (_, rec) -> {
             if (rec.getState() != OrderState.OPEN)
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
 
@@ -269,6 +271,7 @@ public class OrderRepository {
 
             rec.setState(OrderState.OPEN);
             rec.setLockedAt(updater.timestamp());
+            rec.setLockedAt(null);
         });
     }
 
@@ -317,7 +320,7 @@ public class OrderRepository {
     private Order changeOrderRecord(UUID orderId, BiConsumer<Updater, MealOrderRecord> callback) {
         var updater = new Updater();
 
-        return transactionTemplate.execute(status -> {
+        return transactionTemplate.execute(_ -> {
             var rec = ctx.selectFrom(Tables.MEAL_ORDER)
                     .where(Tables.MEAL_ORDER.ID.eq(orderId))
                     .forUpdate()
@@ -336,10 +339,6 @@ public class OrderRepository {
         });
     }
 
-    private List<Order> fetchOrders() {
-        return fetchOrders(DSL.trueCondition());
-    }
-
     private List<Order> fetchOrders(Condition cond) {
         var positionsByOrderId = ctx.selectFrom(Tables.ORDER_POSITION)
                 .orderBy(Tables.ORDER_POSITION.CREATED_AT.asc())
@@ -350,7 +349,7 @@ public class OrderRepository {
                 .where(cond)
                 .orderBy(Tables.MEAL_ORDER.CREATED_AT.desc())
                 .fetch()
-                .map(rec -> Mapper.map(rec, positionsByOrderId.get(rec.getId())));
+                .map(rec -> Mapper.map(config.stateTimeouts(), rec, positionsByOrderId.get(rec.getId())));
     }
 
     private Order fetchOrder(UUID id) {
@@ -360,7 +359,7 @@ public class OrderRepository {
                 .fetch();
 
         return ctx.fetchOptional(Tables.MEAL_ORDER, Tables.MEAL_ORDER.ID.eq(id))
-                .map(rec -> Mapper.map(rec, positions))
+                .map(rec -> Mapper.map(config.stateTimeouts(), rec, positions))
                 .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
     }
 
@@ -372,9 +371,10 @@ public class OrderRepository {
     }
 
     private static class Mapper {
-
-        private static Order map(MealOrderRecord rec, List<OrderPositionRecord> rawPositions) {
+        private static Order map(OrderConfiguration.OrderStateTimeouts timeouts, MealOrderRecord rec, List<OrderPositionRecord> rawPositions) {
             var positions = rawPositions == null ? List.<OrderPositionRecord>of() : rawPositions;
+
+            var durationDecision = DurationDecider.fromState(timeouts, rec.getState());
 
             return Order.builder()
                     .id(rec.getId())
@@ -398,6 +398,8 @@ public class OrderRepository {
                                     .deliveredAt(rec.getDeliveredAt())
                                     .archivedAt(rec.getArchivedAt())
                                     .revokedAt(rec.getRevokedAt())
+                                    .nextTransitionDuration(durationDecision.duration())
+                                    .nextTransitionTimestamp(durationDecision.nextTimestamp(rec))
                                     .build()
                     )
                     .date(rec.getTargetDate())
@@ -420,6 +422,35 @@ public class OrderRepository {
                                     .toList()
                     )
                     .build();
+        }
+
+        private record DurationDecider(Duration duration, Function<MealOrderRecord, OffsetDateTime> extractor) {
+            public static DurationDecider fromState(OrderConfiguration.OrderStateTimeouts timeouts, OrderState state) {
+                return switch (state) {
+                    case NEW, OPEN -> new DurationDecider(timeouts.maxOpenTime(), MealOrderRecord::getUpdatedAt);
+
+                    case LOCKED -> new DurationDecider(timeouts.lockedBeforeReopened(), MealOrderRecord::getLockedAt);
+
+                    case ORDERED ->
+                            new DurationDecider(timeouts.orderedBeforeDelivered(), MealOrderRecord::getOrderedAt);
+
+                    case DELIVERED ->
+                            new DurationDecider(timeouts.deliveryBeforeArchive(), MealOrderRecord::getDeliveredAt);
+
+                    case REVOKED -> new DurationDecider(timeouts.revokedBeforeDeleted(), MealOrderRecord::getRevokedAt);
+
+                    case null, default -> new DurationDecider(null, null);
+                };
+            }
+
+            public OffsetDateTime nextTimestamp(MealOrderRecord rec) {
+                if (extractor() == null || duration() == null)
+                    return null;
+
+                return extractor()
+                        .apply(rec)
+                        .plus(duration());
+            }
         }
 
         private static OrderMoneyCollectionType map(MoneyCollectionType type) {
