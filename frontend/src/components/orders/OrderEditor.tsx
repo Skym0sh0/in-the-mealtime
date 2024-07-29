@@ -10,6 +10,7 @@ import RestaurantInfos from "./RestaurantInfos.tsx";
 import OrderButtons from "./OrderButtons.tsx";
 import {DateTime} from "luxon";
 import useWindowSizing from "../../utils/useWindowSizing.ts";
+import OrderState from "./OrderState.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -77,9 +78,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
           <OrderButtons order={order} onRefresh={onChange}/>
         </div>
 
-        <Typography variant="caption">
-          {order.orderState}
-        </Typography>
+        <OrderState order={order}/>
       </Stack>
 
       <Paper sx={{height: '100%', flexGrow: '1'}}>
