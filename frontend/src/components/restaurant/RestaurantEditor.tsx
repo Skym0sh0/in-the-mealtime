@@ -116,7 +116,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
           </SStack>
 
           <SStack spacing={2} justifyContent="space-between">
-            <STextField size="small" label="Phone" value={phone} onChange={e => {
+            <STextField size="small" label="Telefon" value={phone} onChange={e => {
               setPhone(e.target.value);
               setTouched(true)
             }}/>
@@ -135,11 +135,11 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
         <Stack spacing={2} justifyContent="space-between">
           <SStack direction="row" spacing={2} justifyContent="space-between">
-            <STextField size="small" label="Street" value={street} onChange={e => {
+            <STextField size="small" label="Straße" value={street} onChange={e => {
               setStreet(e.target.value);
               setTouched(true)
             }}/>
-            <TextField size="small" label="Housenumber" value={housenumber}
+            <TextField size="small" label="Hausnummer" value={housenumber}
                        onChange={e => {
                          setHousenumber(e.target.value);
                          setTouched(true)
@@ -147,11 +147,11 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
           </SStack>
 
           <SStack direction="row" spacing={2} justifyContent="space-between">
-            <TextField size="small" label="Postal" value={postal} onChange={e => {
+            <TextField size="small" label="Postleitzahl" value={postal} onChange={e => {
               setPostal(e.target.value);
               setTouched(true)
             }}/>
-            <STextField size="small" label="City" value={city} onChange={e => {
+            <STextField size="small" label="Stadt" value={city} onChange={e => {
               setCity(e.target.value);
               setTouched(true)
             }}/>
@@ -162,14 +162,14 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
         <SStack spacing={2}>
           <TextField size="small"
-                     label="Short Description"
+                     label="Kurzbeschreibung"
                      value={shortDescription}
                      onChange={e => {
                        setShortDescription(e.target.value);
                        setTouched(true)
                      }}/>
           <TextField size="small"
-                     label="Description"
+                     label="Beschreibung/Kommentar"
                      value={description}
                      onChange={e => {
                        setDescription(e.target.value);
