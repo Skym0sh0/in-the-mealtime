@@ -1,8 +1,8 @@
 import {ReactNode, useCallback, useEffect, useState} from "react";
 import {Box, Card, CardMedia, Modal, Pagination, Stack, Typography} from "@mui/material";
-import {api} from "../../api/api.ts";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {MenuPage, Restaurant} from "../../../build/generated-ts/api";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 
 type MenuPageImageProps = {
   page: MenuPage,
@@ -13,6 +13,8 @@ type MenuPageImageProps = {
 };
 
 function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPageImageProps) {
+  const {restaurantApi} = useApiAccess();
+
   const [loading, setLoading] = useState(false)
   const [thumbnail, setThumbnail] = useState<string>('')
   const [fullsize, setFullsize] = useState<string>('')
@@ -21,10 +23,10 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
     setLoading(true)
 
     Promise.all([
-      api.restaurants.fetchRestaurantsMenuPage(restaurant.id, page.id, true, {responseType: 'blob'})
+      restaurantApi.fetchRestaurantsMenuPage(restaurant.id, page.id, true, {responseType: 'blob'})
         .then(res => URL.createObjectURL(new Blob([res.data])))
         .then(img => setThumbnail(img)),
-      api.restaurants.fetchRestaurantsMenuPage(restaurant.id, page.id, false, {responseType: 'blob'})
+      restaurantApi.fetchRestaurantsMenuPage(restaurant.id, page.id, false, {responseType: 'blob'})
         .then(res => URL.createObjectURL(new Blob([res.data])))
         .then(img => setFullsize(img))
     ])

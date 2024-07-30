@@ -4,13 +4,13 @@ import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
 import OrderSummary from "./OrderSummary.tsx";
-import {api} from "../../api/api.ts";
 import OrderInfosView from "./OrderInfosView.tsx";
 import RestaurantInfos from "./RestaurantInfos.tsx";
 import OrderButtons from "./OrderButtons.tsx";
 import {DateTime} from "luxon";
 import useWindowSizing from "../../utils/useWindowSizing.ts";
 import OrderState from "./OrderState.tsx";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -19,29 +19,31 @@ type OrderEditorProps = {
 }
 
 export default function OrderEditor({restaurant, order, onChange}: OrderEditorProps) {
+  const {orderApi} = useApiAccess();
+
   const [selectedPosition, setSelectedPosition] = useState<OrderPosition | null>(null);
 
   const onCreatePosition: (position: OrderPositionPatch) => Promise<void> = useCallback((position: OrderPositionPatch) => {
-    return api.orders.createOrderPosition(order.id, position)
+    return orderApi.createOrderPosition(order.id, position)
       .then(() => {
         onChange()
       })
-  }, [order.id, onChange]);
+  }, [order.id, onChange, orderApi]);
 
   const onUpdatePosition: (positionId: string, position: OrderPositionPatch) => Promise<void> = useCallback((positionId: string, position: OrderPositionPatch) => {
-    return api.orders.updateOrderPosition(order.id, positionId, position)
+    return orderApi.updateOrderPosition(order.id, positionId, position)
       .then(() => {
         setSelectedPosition(null)
         onChange()
       })
-  }, [onChange, order.id]);
+  }, [onChange, order.id, orderApi]);
 
   const onDeletePosition = useCallback((position: OrderPosition) => {
-    api.orders.deleteOrderPosition(order.id, position.id)
+    orderApi.deleteOrderPosition(order.id, position.id)
       .then(() => {
         onChange()
       })
-  }, [onChange, order.id]);
+  }, [onChange, order.id, orderApi]);
 
   const onSelectToEditPosition = useCallback((position: OrderPosition) => {
     setSelectedPosition(position)

@@ -1,11 +1,11 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {api} from "../../api/api.ts";
 import {List, ListItem, Stack} from "@mui/material";
 import {Order, Restaurant} from "../../../build/generated-ts/api";
 import OrderCard from "./OrderCard.tsx";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import NewOrderButton from "./NewOrderButton.tsx";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 
 type RestaurantsById = {
   [key: string]: Restaurant;
@@ -18,6 +18,8 @@ type OrdersCardsListProps = {
 };
 
 export default function OrdersCardsList({restaurants, orderableRestaurantIds, onRefresh}: OrdersCardsListProps) {
+  const {orderApi} = useApiAccess();
+
   const navigate = useNavigate();
   const params = useParams<{ orderId: string }>();
 
@@ -64,11 +66,11 @@ export default function OrdersCardsList({restaurants, orderableRestaurantIds, on
   const refresh = useCallback(() => {
     onRefresh();
 
-    api.orders.fetchOrders()
+    orderApi.fetchOrders()
       .then(res => {
         setOrders(res.data);
       })
-  }, [onRefresh]);
+  }, [onRefresh, orderApi]);
 
   // periodically (re-)load orders
   useEffect(() => {

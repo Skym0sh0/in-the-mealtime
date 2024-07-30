@@ -4,10 +4,13 @@ import {debounce} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {DateTime} from "luxon";
 import {TimeField} from "@mui/x-date-pickers";
-import {api} from "../../api/api.ts";
 import {OrderMoneyCollectionType} from "../../../build/generated-ts/api/api.ts";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {assertNever} from "../../utils/utils.ts";
 
 export default function OrderInfosView({order, onUpdateInfos}: { order: Order, onUpdateInfos: () => void, }) {
+  const {orderApi} = useApiAccess();
+
   const [touched, setTouched] = useState(false);
 
   const [orderer, setOrderer] = useState('');
@@ -41,10 +44,10 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   }, [maximumMeals, order.orderPositions.length]);
 
   const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
-    api.orders.setOrderInfo(order.id, infos)
+    orderApi.setOrderInfo(order.id, infos)
       .then(() => onUpdateInfos())
       .then(() => setTouched(false))
-  }, 2000), [order.id, onUpdateInfos])
+  }, 2000), [order.id, onUpdateInfos, orderApi])
 
   useEffect(() => {
     if (!touched || !isValid)
@@ -64,14 +67,24 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   const onChange = () => setTouched(true);
 
   const paypalLink = useMemo(() => {
-    if (collectorType === OrderMoneyCollectionType.PayPal && !!collector) {
-      if (collector.toLowerCase().startsWith("http"))
-        return collector;
-      else
-        return "http://" + collector;
+    switch (collectorType) {
+      case OrderMoneyCollectionType.Bar:
+        return null;
+
+      case OrderMoneyCollectionType.PayPal: {
+        if (!collector)
+          return null;
+
+        if (collector.toLowerCase().startsWith("http"))
+          return collector;
+        else
+          return "http://" + collector;
+      }
+
+      default:
+        throw assertNever(collectorType);
     }
-    return null
-  }, [collectorType, collector]);
+  }, [collector, collectorType]);
 
   useEffect(() => {
     if (collector.toLowerCase().includes("paypal"))

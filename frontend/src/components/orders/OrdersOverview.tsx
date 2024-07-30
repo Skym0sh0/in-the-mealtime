@@ -3,25 +3,26 @@ import styled from "styled-components";
 import {useCallback, useEffect, useState} from "react";
 import {Restaurant} from "../../../build/generated-ts/api";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
-import {api} from "../../api/api.ts";
 import OrdersCardsList from "./OrdersCardsList.tsx";
 import {DRAWER_WIDTH} from "../../utils/utils.ts";
 import {Outlet} from "react-router-dom";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 
-export default function OrdersOverview() {
+export default function OrdersOverview() {const {orderApi, restaurantApi} = useApiAccess();
+
   const [restaurants, setRestaurants] = useState<Restaurant[] | null>(null);
   const [orderableRestaurantIds, setOrderableRestaurantIds] = useState<string[]>([]);
 
   const refreshRestaurants = useCallback(() => {
     Promise.all([
-      api.restaurants.fetchRestaurants(),
-      api.orders.fetchOrderableRestaurants()
+      restaurantApi.fetchRestaurants(),
+      orderApi.fetchOrderableRestaurants()
     ])
       .then(([rests, ids]) => {
         setRestaurants(rests.data)
         setOrderableRestaurantIds(ids.data)
       });
-  }, []);
+  }, [restaurantApi, orderApi]);
 
   useEffect(() => {
     refreshRestaurants();
