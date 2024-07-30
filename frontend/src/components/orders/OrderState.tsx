@@ -1,4 +1,4 @@
-import {LinearProgress, Tooltip, Typography} from "@mui/material";
+import {Box, LinearProgress, Tooltip, Typography} from "@mui/material";
 import {Order} from "../../../build/generated-ts/api";
 import React, {useCallback, useEffect, useState} from "react";
 import {DateTime, Duration} from "luxon";
@@ -61,9 +61,11 @@ export default function ({order}: { order: Order }) {
   const [timeLeft, setTimeLeft] = useState<Duration | null>(null)
   const [progress, setProgress] = useState<number | null>(null);
 
-  const refresh = useCallback((now: DateTime<true>) => {
+  const refresh = useCallback(() => {
     if (!order.stateManagement.next_transition_duration || !order.stateManagement.next_transition_timestamp)
       return;
+
+    const now = DateTime.now();
 
     const duration = Duration.fromISO(order.stateManagement.next_transition_duration);
     const targetTime = DateTime.fromISO(order.stateManagement.next_transition_timestamp);
@@ -75,10 +77,10 @@ export default function ({order}: { order: Order }) {
   }, [order.stateManagement.next_transition_duration, order.stateManagement.next_transition_timestamp]);
 
   useEffect(() => {
-    refresh(DateTime.now());
+    refresh();
 
     const interval = setInterval(() => {
-      refresh(DateTime.now());
+      refresh();
     }, 500)
 
     return () => clearInterval(interval)
@@ -91,7 +93,7 @@ export default function ({order}: { order: Order }) {
       }
     </React.Fragment>
   }>
-    <div>
+    <Box>
       <Typography variant="caption">
         {translateState(order.orderState)}
       </Typography>
@@ -99,6 +101,6 @@ export default function ({order}: { order: Order }) {
       {progress &&
         <LinearProgress variant="determinate" value={progress}/>
       }
-    </div>
+    </Box>
   </Tooltip>
 }
