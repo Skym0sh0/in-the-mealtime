@@ -22,17 +22,8 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
   const handleRevoke = useCallback(async () => {
     if (await confirmDialog({
       title: 'Möchtest du die Bestellung wirklich widerrufen?',
-      content: <div style={{display: 'flex', flexDirection: 'column', gap: '1em'}}>
-        <Typography>
-          Die Bestellung wird hiermit widerrufen und in kurzer Zeit entfernt. Keiner kann seine Bestellung ändern oder
-          etwas hinzufügen!
-        </Typography>
-
-        <Typography variant="caption">
-          Das ist z.B. wenn man beim Bestellen merkt, dass das Restaurant geschlossen hat oder andere unerwartete
-          Probleme aufkommen.
-        </Typography>
-      </div>
+      caption: "Die Bestellung wird hiermit widerrufen und in kurzer Zeit entfernt. Keiner kann seine Bestellung ändern oder etwas hinzufügen!",
+      tip: "Das ist z.B. wenn man beim Bestellen merkt, dass das Restaurant geschlossen hat oder andere unerwartete Probleme aufkommen.",
     })) {
       api.orders.revokeOrder(order.id)
         .then(() => onRefresh())
@@ -54,17 +45,8 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
   const handleOrdering = useCallback(async () => {
     if (await confirmDialog({
       title: 'Möchtest du die Bestellung wirklich sperren?',
-      content:
-        <div style={{display: 'flex', flexDirection: 'column', gap: '1em'}}>
-          <Typography>
-            Die Bestellung wird hiermit gesperrt und keiner kann seine Bestellung ändern oder etwas hinzufügen!
-          </Typography>
-
-          <Typography variant="caption">
-            In der Zeit sollst du die Bestellung beim Restaurant aufgeben und danach hier bestätigen.
-            Machst du das nicht, wird die Bestellung in wenigen Minuten automatisch wieder entsperrt.
-          </Typography>
-        </div>
+      caption: "Die Bestellung wird hiermit gesperrt und keiner kann seine Bestellung ändern oder etwas hinzufügen!",
+      tip: "In der Zeit sollst du die Bestellung beim Restaurant aufgeben und danach hier bestätigen. Machst du das nicht, wird die Bestellung in wenigen Minuten automatisch wieder entsperrt."
     })) {
       api.orders.lockOrder(order.id)
         .then(() => onRefresh())
@@ -73,17 +55,9 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
 
   const handleOrderIsOrdered = useCallback(async () => {
     if (await confirmDialog({
-      title: 'ist die Bestellung erfolgreich bestellt worden?',
-      content:
-        <div style={{display: 'flex', flexDirection: 'column', gap: '1em'}}>
-          <Typography variant="caption">
-            Die Bestellung wurde erfolgreich bestellt. Änderungen ausser dem Bezahlen sind nicht mehr möglich.
-          </Typography>
-
-          <Typography color="error">
-            Vergiss nicht, das Eintreffen der Bestellung hier abzuhaken und dafür zu sorgen, dass alle bezahlt haben.
-          </Typography>
-        </div>
+      title: 'Ist die Bestellung erfolgreich bestellt worden?',
+      caption: "Die Bestellung wurde erfolgreich bestellt. Änderungen ausser dem Bezahlen sind nicht mehr möglich.",
+      importantCaption: "Vergiss nicht, das Eintreffen der Bestellung hier abzuhaken und dafür zu sorgen, dass alle bezahlt haben.",
     })) {
       api.orders.orderIsNowOrdered(order.id)
         .then(() => onRefresh())
@@ -93,17 +67,8 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
   const handleReopen = useCallback(async () => {
     if (await confirmDialog({
       title: 'Möchtest du die Bestellung wieder entsperren?',
-      content:
-        <div style={{display: 'flex', flexDirection: 'column', gap: '1em'}}>
-          <Typography>
-            Die Bestellung wird wieder entsperrt und jeder kann seine Bestellung ändern oder etwas hinzufügen!
-          </Typography>
-
-          <Typography variant="caption">
-            Das soll benutzt werden, wenn z.B. das Restaurant noch nicht offen hat oder das Telefon besetzt ist und
-            später nochmal versucht werden muss zu bestellen.
-          </Typography>
-        </div>
+      caption: "Die Bestellung wird wieder entsperrt und jeder kann seine Bestellung ändern oder etwas hinzufügen!",
+      tip: "Das soll benutzt werden, wenn z.B. das Restaurant noch nicht offen hat oder das Telefon besetzt ist und später nochmal versucht werden muss zu bestellen.",
     })) {
       api.orders.reopenOrder(order.id)
         .then(() => onRefresh())
