@@ -11,9 +11,11 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
 import CakeIcon from '@mui/icons-material/Cake';
-import confirmDialog from "../../utils/confirmationDialog.tsx";
+import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
 
 export default function OrderButtons({order, onRefresh}: { order: Order, onRefresh: () => void, }) {
+  const {confirmDialog} = useConfirmationDialog();
+
   const summary = useOrderPositionSummary(order);
   const navigate = useNavigate();
 
@@ -35,14 +37,14 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       api.orders.revokeOrder(order.id)
         .then(() => onRefresh())
     }
-  }, [order.id, onRefresh]);
+  }, [order.id, onRefresh, confirmDialog]);
 
   const handleDelete = useCallback(async () => {
     if (await confirmDialog({title: 'Möchtest du die Bestellung wirklich löschen?'})) {
       api.orders.deleteOrder(order.id)
         .then(() => navigate({pathname: `/order`}, {replace: true}))
     }
-  }, [order.id, navigate]);
+  }, [order.id, navigate, confirmDialog]);
 
   const handleArchive = useCallback(() => {
     api.orders.archiveOrder(order.id)
@@ -67,7 +69,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       api.orders.lockOrder(order.id)
         .then(() => onRefresh())
     }
-  }, [order.id, onRefresh]);
+  }, [order.id, onRefresh, confirmDialog]);
 
   const handleOrderIsOrdered = useCallback(async () => {
     if (await confirmDialog({
@@ -86,7 +88,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       api.orders.orderIsNowOrdered(order.id)
         .then(() => onRefresh())
     }
-  }, [order.id, onRefresh]);
+  }, [order.id, onRefresh, confirmDialog]);
 
   const handleReopen = useCallback(async () => {
     if (await confirmDialog({
@@ -106,7 +108,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       api.orders.reopenOrder(order.id)
         .then(() => onRefresh())
     }
-  }, [order.id, onRefresh]);
+  }, [order.id, onRefresh, confirmDialog]);
 
   const handleDelivery = useCallback(() => {
     api.orders.orderIsNowDelivered(order.id)
