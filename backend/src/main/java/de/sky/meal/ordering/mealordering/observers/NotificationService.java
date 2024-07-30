@@ -5,7 +5,6 @@ import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import de.sky.meal.ordering.mealordering.service.RocketChatService;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderPosition;
-import generated.sky.meal.ordering.rest.model.Restaurant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,6 @@ public class NotificationService implements OnOrderChange {
     private final RestaurantRepository restaurantRepository;
 
     private final RocketChatService chatService;
-
 
     @Override
     public void onNewOrder(Order order) {
@@ -127,7 +125,7 @@ public class NotificationService implements OnOrderChange {
 
         chatService.sendMessage("""
                 [Bestellung](%s) beim Restaurant %s ist geschlossen worden. Vielleicht ist der Laden geschlossen oder es gibt andere Probleme...
-                """.formatted(restaurant.getName(), getUrl(order))
+                """.formatted(getUrl(order), restaurant.getName())
         );
     }
 
