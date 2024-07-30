@@ -32,7 +32,7 @@ function StateTimeTooltip({state, timeleft}: { state: OrderStateType, timeleft: 
   switch (state) {
     case OrderStateType.New:
     case OrderStateType.Open:
-      return <p>Offene Bestellung wird {timeString} automatisch geschlossen.</p>;
+      return <p>Offene Bestellung wird in {timeString} automatisch geschlossen.</p>;
 
     case OrderStateType.Locked:
       return <p>Aktuell wird bestellt. In {timeString} wird die Bestellung wieder automatisch entsperrt, weil davon
