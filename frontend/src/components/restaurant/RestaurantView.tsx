@@ -1,4 +1,3 @@
-import {api} from "../../api/api.ts";
 import {useParams} from "react-router-dom";
 import {Restaurant} from "../../../build/generated-ts/api/index.ts";
 import {Paper} from "@mui/material";
@@ -7,8 +6,11 @@ import styled from "styled-components";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {validate as uuidValidate} from 'uuid';
 import RestaurantEditor from "./RestaurantEditor.tsx";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 
 export default function RestaurantView() {
+  const {restaurantApi} = useApiAccess();
+
   const params = useParams<{ restaurantId: string }>();
 
   const [isNew, setIsNew] = useState<boolean>(true);
@@ -18,9 +20,9 @@ export default function RestaurantView() {
     if (!params.restaurantId)
       return;
 
-    api.restaurants.fetchRestaurant(params.restaurantId)
+    restaurantApi.fetchRestaurant(params.restaurantId)
       .then(res => setRestaurant(res.data))
-  }, [params.restaurantId]);
+  }, [params.restaurantId, restaurantApi]);
 
   useEffect(() => {
     if (!params.restaurantId)

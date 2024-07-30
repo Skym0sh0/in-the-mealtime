@@ -1,12 +1,12 @@
 import {useCallback, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {api} from "../../api/api.ts";
 import styled from "styled-components";
 import {Restaurant, RestaurantPatch} from "../../../build/generated-ts/api/index.ts";
 import {Button, Divider, Stack, TextField, Typography} from "@mui/material";
 import MenuPageEditor from "./MenuPageEditor.tsx";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
@@ -15,6 +15,8 @@ type RestaurantEditorProps = {
 };
 
 export default function RestaurantEditor({restaurant, isNew, onRefresh}: RestaurantEditorProps) {
+  const {restaurantApi} = useApiAccess();
+
   const {confirmDialog} = useConfirmationDialog();
 
   const [isWorking, setIsWorking] = useState(false);
@@ -44,10 +46,10 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       return;
 
     if (await confirmDialog({title: 'Möchtest du das Restaurant wirklich entfernen?'})) {
-      api.restaurants.deleteRestaurant(restaurant.id)
+      restaurantApi.deleteRestaurant(restaurant.id)
         .then(() => navigate('/restaurant'))
     }
-  }, [navigate, restaurant.id, confirmDialog]);
+  }, [navigate, restaurant.id, confirmDialog, restaurantApi]);
 
   const onBack = useCallback(() => {
     navigate(-1);
@@ -77,8 +79,8 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
     setIsWorking(true);
 
     (isNew
-        ? () => api.restaurants.createRestaurant(newRestaurant)
-        : () => api.restaurants.updateRestaurant(restaurant.id, newRestaurant)
+        ? () => restaurantApi.createRestaurant(newRestaurant)
+        : () => restaurantApi.updateRestaurant(restaurant.id, newRestaurant)
     )()
       .then(res => res.data)
       .then(rest => menuPagesOnSave?.(rest)?.then(() => rest) ?? rest)
@@ -88,7 +90,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       })
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
       .finally(() => setIsWorking(false))
-  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant?.id, onRefresh]);
+  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant.id, onRefresh, restaurantApi]);
 
   const nameIsValid = !!name && !!name.trim();
   const isValid = nameIsValid;

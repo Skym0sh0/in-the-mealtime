@@ -1,16 +1,18 @@
 import {Restaurant} from "../../../build/generated-ts/api/api.ts";
 import {Box, Stack} from "@mui/material";
 import styled from "styled-components";
-import {api} from "../../api/api.ts";
 import {useEffect, useState} from "react";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import RestaurantCard from "./RestaurantCard.tsx";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 
 export default function RestaurantsOverview() {
+  const {restaurantApi} = useApiAccess();
+
   const [restaurants, setRestaurants] = useState<Restaurant[] | null>(null);
 
   useEffect(() => {
-    api.restaurants.fetchRestaurants()
+    restaurantApi.fetchRestaurants()
       .then(res => setRestaurants(res.data))
   }, []);
 
