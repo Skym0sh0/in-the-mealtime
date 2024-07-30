@@ -6,6 +6,7 @@ import {Restaurant, RestaurantPatch} from "../../../build/generated-ts/api/index
 import {Button, Divider, Stack, TextField, Typography} from "@mui/material";
 import MenuPageEditor from "./MenuPageEditor.tsx";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
+import confirmDialog from "../../utils/confirmationDialog.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
@@ -36,12 +37,14 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
   }, []);
 
   const navigate = useNavigate();
-  const onDelete = useCallback(() => {
+  const onDelete = useCallback(async () => {
     if (!restaurant.id)
       return;
 
-    api.restaurants.deleteRestaurant(restaurant.id)
-      .then(() => navigate('/restaurant'))
+    if (await confirmDialog({title: 'Möchtest du das Restaurant wirklich entfernen?'})) {
+      api.restaurants.deleteRestaurant(restaurant.id)
+        .then(() => navigate('/restaurant'))
+    }
   }, [navigate, restaurant.id]);
 
   const onBack = useCallback(() => {
