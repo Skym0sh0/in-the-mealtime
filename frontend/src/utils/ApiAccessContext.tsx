@@ -8,7 +8,9 @@ const restConfig = new Configuration({
 });
 
 axios.interceptors.request.use((config) => {
-  config.headers['X-Correlation-ID'] = uuidv4();
+  if (!config.headers.has('X-Correlation-ID'))
+    config.headers['X-Correlation-ID'] = uuidv4();
+
   return config;
 });
 
