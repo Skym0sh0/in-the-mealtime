@@ -7,8 +7,10 @@ import generated.sky.meal.ordering.rest.model.MenuPage;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 import generated.sky.meal.ordering.schema.Tables;
+import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MenuPageRecord;
 import generated.sky.meal.ordering.schema.tables.records.RestaurantRecord;
+import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -21,6 +23,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
+
+import static org.jooq.impl.DSL.select;
 
 @Service
 @RequiredArgsConstructor
@@ -108,7 +112,22 @@ public class RestaurantRepository {
     }
 
     public void deleteRestaurant(UUID id) {
-        transactionTemplate.executeWithoutResult(status -> {
+        transactionTemplate.executeWithoutResult(_ -> {
+            if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.STATE.notIn(OrderState.NEW, OrderState.REVOKED, OrderState.ARCHIVED)))
+                throw new BadRequestException("Can not delete restaurant with open orders");
+
+            ctx.deleteFrom(Tables.ORDER_POSITION)
+                    .where(Tables.ORDER_POSITION.ORDER_ID.in(
+                            select(Tables.MEAL_ORDER.ID)
+                                    .from(Tables.MEAL_ORDER)
+                                    .where(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id))
+                    ))
+                    .execute();
+
+            ctx.deleteFrom(Tables.MEAL_ORDER)
+                    .where(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id))
+                    .execute();
+
             ctx.deleteFrom(Tables.MENU_PAGE)
                     .where(Tables.MENU_PAGE.RESTAURANT_ID.eq(id))
                     .execute();
