@@ -6,6 +6,7 @@ import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import NewOrderButton from "./NewOrderButton.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 type RestaurantsById = {
   [key: string]: Restaurant;
@@ -19,12 +20,14 @@ type OrdersCardsListProps = {
 
 export default function OrdersCardsList({restaurants, orderableRestaurantIds, onRefresh}: OrdersCardsListProps) {
   const {orderApi} = useApiAccess();
+  const {notifyError} = useNotification();
 
   const navigate = useNavigate();
   const params = useParams<{ orderId: string }>();
 
   const [autoReload, _] = useState(true);
 
+  const [hasError, setHasError] = useState(false)
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
@@ -68,9 +71,15 @@ export default function OrdersCardsList({restaurants, orderableRestaurantIds, on
 
     orderApi.fetchOrders()
       .then(res => {
+        setHasError(false)
         setOrders(res.data);
       })
-  }, [onRefresh, orderApi]);
+      .catch(e => {
+        setHasError(true)
+        setOrders([])
+        notifyError("KKonnte Orders nicht laden", e);
+      })
+  }, [onRefresh, orderApi, notifyError]);
 
   // periodically (re-)load orders
   useEffect(() => {
@@ -106,16 +115,18 @@ export default function OrdersCardsList({restaurants, orderableRestaurantIds, on
                     onChange={refresh}/>
 
     <LoadingIndicator isLoading={orders === null}>
-      <List>
-        {orders && orders.map((order) => {
-          return <ListItem key={order.id}>
-            <OrderCard onSelect={() => select(order.id)}
-                       selected={order.id === selectedOrderId}
-                       order={order}
-                       restaurant={restaurantsById[order.restaurantId]}/>
-          </ListItem>
-        })}
-      </List>
+      {!hasError &&
+        <List>
+          {orders && orders.map((order) => {
+            return <ListItem key={order.id}>
+              <OrderCard onSelect={() => select(order.id)}
+                         selected={order.id === selectedOrderId}
+                         order={order}
+                         restaurant={restaurantsById[order.restaurantId]}/>
+            </ListItem>
+          })}
+        </List>
+      }
     </LoadingIndicator>
   </Stack>;
 }

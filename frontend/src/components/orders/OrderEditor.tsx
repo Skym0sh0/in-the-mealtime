@@ -11,6 +11,7 @@ import {DateTime} from "luxon";
 import useWindowSizing from "../../utils/useWindowSizing.ts";
 import OrderState from "./OrderState.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -20,6 +21,7 @@ type OrderEditorProps = {
 
 export default function OrderEditor({restaurant, order, onChange}: OrderEditorProps) {
   const {orderApi} = useApiAccess();
+  const {notifyError} = useNotification();
 
   const [selectedPosition, setSelectedPosition] = useState<OrderPosition | null>(null);
 
@@ -28,7 +30,8 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
       .then(() => {
         onChange()
       })
-  }, [order.id, onChange, orderApi]);
+      .catch(e => notifyError("Order Position konnte nicht erstellt werden", e))
+  }, [order.id, onChange, orderApi, notifyError]);
 
   const onUpdatePosition: (positionId: string, position: OrderPositionPatch) => Promise<void> = useCallback((positionId: string, position: OrderPositionPatch) => {
     return orderApi.updateOrderPosition(order.id, positionId, position)
@@ -36,14 +39,16 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
         setSelectedPosition(null)
         onChange()
       })
-  }, [onChange, order.id, orderApi]);
+      .catch(e => notifyError("Order Position konnte nicht geändert werden", e))
+  }, [onChange, order.id, orderApi, notifyError]);
 
   const onDeletePosition = useCallback((position: OrderPosition) => {
     orderApi.deleteOrderPosition(order.id, position.id)
       .then(() => {
         onChange()
       })
-  }, [onChange, order.id, orderApi]);
+      .catch(e => notifyError("Order Position konnte nicht gelöscht werden", e))
+  }, [onChange, order.id, orderApi, notifyError]);
 
   const onSelectToEditPosition = useCallback((position: OrderPosition) => {
     setSelectedPosition(position)
@@ -61,7 +66,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
   const tableParentElement = useRef<HTMLDivElement | null>(null);
   const [tableHeight, setTableHeight] = useState(10);
-  const [, windowheight] = useWindowSizing();
+  const [_, windowheight] = useWindowSizing();
 
   useEffect(() => {
     if (tableParentElement.current) {
@@ -119,7 +124,6 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
                                      onUpdate={onUpdatePosition}
                                      onAbort={onDeselect}
                                      inputPosition={selectedPosition}/>
-
               </Stack>
             </Box>
 

@@ -7,9 +7,11 @@ import {TimeField} from "@mui/x-date-pickers";
 import {OrderMoneyCollectionType} from "../../../build/generated-ts/api/api.ts";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 import {assertNever} from "../../utils/utils.ts";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 export default function OrderInfosView({order, onUpdateInfos}: { order: Order, onUpdateInfos: () => void, }) {
   const {orderApi} = useApiAccess();
+  const {notifyError} = useNotification();
 
   const [touched, setTouched] = useState(false);
 
@@ -47,7 +49,8 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     orderApi.setOrderInfo(order.id, infos)
       .then(() => onUpdateInfos())
       .then(() => setTouched(false))
-  }, 2000), [order.id, onUpdateInfos, orderApi])
+      .catch(e => notifyError("Infos konnten nicht gespeichert werden", e))
+  }, 2000), [order.id, onUpdateInfos, orderApi, notifyError])
 
   useEffect(() => {
     if (!touched || !isValid)

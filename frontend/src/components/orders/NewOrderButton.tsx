@@ -4,6 +4,7 @@ import React, {useCallback, useState} from "react";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {useNavigate} from "react-router-dom";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 type NewOrderButtonProps = {
   restaurants: Restaurant[],
@@ -13,6 +14,7 @@ type NewOrderButtonProps = {
 
 export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, onChange}: NewOrderButtonProps) {
   const {orderApi} = useApiAccess();
+  const {notifyError} = useNotification();
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -35,11 +37,11 @@ export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, o
       .then(res => res.data)
       .then(newOrder => {
         onChange()
-
         navigate({pathname: `/order/${newOrder.id}`});
       })
+      .catch(e => notifyError("Konnte keine neue Order erstellen", e))
       .finally(() => setIsLoading(false))
-  }, [navigate, onChange, orderApi]);
+  }, [navigate, onChange, orderApi, notifyError]);
 
   return <>
     <Button disabled={isLoading}

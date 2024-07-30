@@ -12,9 +12,11 @@ import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
 import CakeIcon from '@mui/icons-material/Cake';
 import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 export default function OrderButtons({order, onRefresh}: { order: Order, onRefresh: () => void, }) {
   const {orderApi} = useApiAccess();
+  const {notifyError} = useNotification();
 
   const {confirmDialog} = useConfirmationDialog();
 
@@ -29,15 +31,17 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
     })) {
       orderApi.revokeOrder(order.id)
         .then(() => onRefresh())
+        .catch(e => notifyError("Bestellung konnte nicht zurückgezogen werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError]);
 
   const handleDelete = useCallback(async () => {
     if (await confirmDialog({title: 'Möchtest du die Bestellung wirklich löschen?'})) {
       orderApi.deleteOrder(order.id)
         .then(() => navigate({pathname: `/order`}, {replace: true}))
+        .catch(e => notifyError("Bestellung konnte nicht gelöscht werden", e))
     }
-  }, [order.id, navigate, confirmDialog, orderApi]);
+  }, [order.id, navigate, confirmDialog, orderApi, notifyError]);
 
   const handleArchive = useCallback(() => {
     orderApi.archiveOrder(order.id)
@@ -52,8 +56,9 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
     })) {
       orderApi.lockOrder(order.id)
         .then(() => onRefresh())
+        .catch(e => notifyError("Bestellung konnte nicht gewsperrt werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError]);
 
   const handleOrderIsOrdered = useCallback(async () => {
     if (await confirmDialog({
@@ -63,8 +68,9 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
     })) {
       orderApi.orderIsNowOrdered(order.id)
         .then(() => onRefresh())
+        .catch(e => notifyError("Bestellung konnte nicht als bestellt markiert werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError]);
 
   const handleReopen = useCallback(async () => {
     if (await confirmDialog({
@@ -74,13 +80,15 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
     })) {
       orderApi.reopenOrder(order.id)
         .then(() => onRefresh())
+        .catch(e => notifyError("Bestellung konnte nicht wiedereröffnet werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError]);
 
   const handleDelivery = useCallback(() => {
     orderApi.orderIsNowDelivered(order.id)
       .then(() => onRefresh())
-  }, [order.id, onRefresh, orderApi]);
+      .catch(e => notifyError("Bestellung konnte nicht als geliefert markiert werden", e))
+  }, [order.id, onRefresh, orderApi, notifyError]);
 
   const revokeButton = <Button id="btn-order-state-revoke"
                                variant="contained"

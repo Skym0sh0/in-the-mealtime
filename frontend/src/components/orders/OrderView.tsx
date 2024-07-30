@@ -1,15 +1,18 @@
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {useCallback, useEffect, useState} from "react";
 import {Order, Restaurant} from "../../../build/generated-ts/api/index.ts";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {Box} from "@mui/material";
 import OrderEditor from "./OrderEditor.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 export default function OrderView() {
   const {orderApi, restaurantApi} = useApiAccess();
+  const {notifyError} = useNotification();
+  const navigate = useNavigate();
 
-  const [autoReload,] = useState<boolean>(true);
+  const [autoReload, _] = useState<boolean>(true);
 
   const params = useParams<{ orderId: string }>();
 
@@ -27,7 +30,11 @@ export default function OrderView() {
         return restaurantApi.fetchRestaurant(order.restaurantId)
       })
       .then(res => setRestaurant(res.data))
-  }, [params.orderId, orderApi, restaurantApi]);
+      .catch(e => {
+        notifyError("Order konnte nicht geladen werden", e);
+        navigate("/order")
+      })
+  }, [params.orderId, orderApi, restaurantApi, notifyError, navigate]);
 
   useEffect(() => {
     refresh()
