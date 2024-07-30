@@ -41,7 +41,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       return;
 
     api.restaurants.deleteRestaurant(restaurant.id)
-      .then(() => navigate(-1))
+      .then(() => navigate('/restaurant'))
   }, [navigate, restaurant.id]);
 
   const onBack = useCallback(() => {
