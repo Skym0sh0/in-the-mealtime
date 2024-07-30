@@ -37,8 +37,8 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     if (Number.isNaN(parsed))
       return false
 
-    return 0 < parsed && order.orderPositions.length <= parsed;
-  }, [maximumMeals, order.orderPositions]);
+    return 1 < parsed && order.orderPositions.length <= parsed;
+  }, [maximumMeals, order.orderPositions.length]);
 
   const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
     api.orders.setOrderInfo(order.id, infos)
