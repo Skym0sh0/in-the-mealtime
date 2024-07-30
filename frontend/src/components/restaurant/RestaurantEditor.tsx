@@ -7,6 +7,7 @@ import MenuPageEditor from "./MenuPageEditor.tsx";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
@@ -16,6 +17,7 @@ type RestaurantEditorProps = {
 
 export default function RestaurantEditor({restaurant, isNew, onRefresh}: RestaurantEditorProps) {
   const {restaurantApi} = useApiAccess();
+  const {notifyError} = useNotification();
 
   const {confirmDialog} = useConfirmationDialog();
 
@@ -48,8 +50,9 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
     if (await confirmDialog({title: 'Möchtest du das Restaurant wirklich entfernen?'})) {
       restaurantApi.deleteRestaurant(restaurant.id)
         .then(() => navigate('/restaurant'))
+        .catch(e => notifyError("Restaurant konnte nicht gelöscht werden", e))
     }
-  }, [navigate, restaurant.id, confirmDialog, restaurantApi]);
+  }, [navigate, restaurant.id, confirmDialog, restaurantApi, notifyError]);
 
   const onBack = useCallback(() => {
     navigate(-1);
@@ -89,8 +92,9 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
         navigate({pathname: `/restaurant/${rest.id}`}, {replace: true});
       })
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
+      .catch(e => notifyError("Restaurant konnte nicht gespeichert werden", e))
       .finally(() => setIsWorking(false))
-  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant.id, onRefresh, restaurantApi]);
+  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant.id, onRefresh, restaurantApi, notifyError]);
 
   const nameIsValid = !!name && !!name.trim();
   const isValid = nameIsValid;

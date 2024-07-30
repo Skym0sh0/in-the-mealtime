@@ -1,4 +1,4 @@
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import {Restaurant} from "../../../build/generated-ts/api/index.ts";
 import {Paper} from "@mui/material";
 import {useCallback, useEffect, useState} from "react";
@@ -7,9 +7,13 @@ import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {validate as uuidValidate} from 'uuid';
 import RestaurantEditor from "./RestaurantEditor.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 export default function RestaurantView() {
   const {restaurantApi} = useApiAccess();
+  const {notifyError} = useNotification();
+
+  const navigate = useNavigate()
 
   const params = useParams<{ restaurantId: string }>();
 
@@ -22,7 +26,11 @@ export default function RestaurantView() {
 
     restaurantApi.fetchRestaurant(params.restaurantId)
       .then(res => setRestaurant(res.data))
-  }, [params.restaurantId, restaurantApi]);
+      .catch(e => {
+        notifyError("Restaurant konnte nicht geladen werden", e);
+        navigate(-1);
+      })
+  }, [params.restaurantId, restaurantApi, notifyError, navigate]);
 
   useEffect(() => {
     if (!params.restaurantId)
