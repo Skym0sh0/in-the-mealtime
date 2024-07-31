@@ -568,11 +568,6 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ID"
-        - in: header
-          name: If-Match
-          required: true
-          schema:
-            $ref: "#/components/schemas/Version"
       requestBody:
         content:
           multipart/form-data:
@@ -596,8 +591,6 @@ paths:
         200:
           $ref: "#/components/responses/SuccessRestaurantResponse"
         400:
-          $ref: "#/components/responses/ClientErrorResponse"
-        412:
           $ref: "#/components/responses/ClientErrorResponse"
         500:
           $ref: "#/components/responses/ServerErrorResponse"
@@ -660,11 +653,6 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ID"
-        - in: header
-          name: If-Match
-          required: true
-          schema:
-            $ref: "#/components/schemas/Version"
         - in: path
           name: pageId
           required: true
@@ -674,8 +662,6 @@ paths:
         200:
           $ref: "#/components/responses/SuccessRestaurantResponse"
         400:
-          $ref: "#/components/responses/ClientErrorResponse"
-        412:
           $ref: "#/components/responses/ClientErrorResponse"
         500:
           $ref: "#/components/responses/ServerErrorResponse"

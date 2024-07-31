@@ -60,7 +60,7 @@ public class RestaurantController implements RestaurantApi {
     }
 
     @Override
-    public ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, UUID etag, MultipartFile file) {
+    public ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, MultipartFile file) {
         if (file.getSize() > FILE_SIZE_LIMIT)
             throw new BadRequestException("File was bigger than " + FILE_SIZE_LIMIT);
 
@@ -90,7 +90,7 @@ public class RestaurantController implements RestaurantApi {
     }
 
     @Override
-    public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID etag, UUID pageId) {
+    public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
         var result = restaurantRepository.deleteMenuPageForRestaurant(restaurantId, pageId);
 
         return toResponse(result);
@@ -98,7 +98,7 @@ public class RestaurantController implements RestaurantApi {
 
     private static ResponseEntity<Restaurant> toResponse(Restaurant restaurant) {
         return ResponseEntity.ok()
-                .header(org.springframework.http.HttpHeaders.ETAG, restaurant.getVersion().toString())
+                .header(HttpHeaders.ETAG, restaurant.getVersion().toString())
                 .body(restaurant);
     }
 }
