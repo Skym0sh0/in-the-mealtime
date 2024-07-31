@@ -7,6 +7,7 @@ import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
 import generated.sky.meal.ordering.rest.model.OrderPositionPatch;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -32,12 +33,12 @@ public class OrderController implements OrderApi {
 
         observer.onNewOrder(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
     public ResponseEntity<Order> fetchOrder(UUID id) {
-        return ResponseEntity.ok(orderRepository.readOrder(id));
+        return toResponse(orderRepository.readOrder(id));
     }
 
     @Override
@@ -46,12 +47,12 @@ public class OrderController implements OrderApi {
     }
 
     @Override
-    public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfosPatch orderInfos) {
-        return ResponseEntity.ok(orderRepository.updateOrderInfos(orderId, orderInfos));
+    public ResponseEntity<Order> setOrderInfo(UUID orderId, UUID etag, OrderInfosPatch orderInfos) {
+        return toResponse(orderRepository.updateOrderInfos(orderId, orderInfos));
     }
 
     @Override
-    public ResponseEntity<Void> deleteOrder(UUID id) {
+    public ResponseEntity<Void> deleteOrder(UUID id, UUID etag) {
         observer.onBeforeOrderDelete(id);
 
         orderRepository.deleteOrder(id);
@@ -62,68 +63,74 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> createOrderPosition(UUID orderId, OrderPositionPatch orderPosition) {
-        return ResponseEntity.ok(orderRepository.addOrderPosition(orderId, orderPosition));
+        return toResponse(orderRepository.addOrderPosition(orderId, orderPosition));
     }
 
     @Override
     public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, OrderPositionPatch orderPosition) {
-        return ResponseEntity.ok(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
+        return toResponse(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
     }
 
     @Override
     public ResponseEntity<Order> deleteOrderPosition(UUID orderId, UUID orderPositionId) {
-        return ResponseEntity.ok(orderRepository.removeOrderPosition(orderId, orderPositionId));
+        return toResponse(orderRepository.removeOrderPosition(orderId, orderPositionId));
     }
 
     @Override
-    public ResponseEntity<Order> lockOrder(UUID id) {
+    public ResponseEntity<Order> lockOrder(UUID id, UUID etag) {
         var order = orderRepository.lockOrder(id);
 
         observer.onLockOrder(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> orderIsNowOrdered(UUID id) {
+    public ResponseEntity<Order> orderIsNowOrdered(UUID id, UUID etag) {
         var order = orderRepository.setOrderToIsOrdered(id);
 
         observer.onOrderIsOrdered(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
+    public ResponseEntity<Order> orderIsNowDelivered(UUID id, UUID etag) {
         var order = orderRepository.setOrderToDelivered(id);
 
         observer.onOrderDelivered(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> reopenOrder(UUID id) {
+    public ResponseEntity<Order> reopenOrder(UUID id, UUID etag) {
         var order = orderRepository.reopenOrder(id);
 
         observer.onOrderIsReopened(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> revokeOrder(UUID id) {
+    public ResponseEntity<Order> revokeOrder(UUID id, UUID etag) {
         var order = orderRepository.revokeOrder(id);
 
         observer.onOrderIsRevoked(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> archiveOrder(UUID id) {
+    public ResponseEntity<Order> archiveOrder(UUID id, UUID etag) {
         observer.onBeforeOrderArchive(id);
 
-        return ResponseEntity.ok(orderRepository.archiveOrder(id));
+        return toResponse(orderRepository.archiveOrder(id));
+    }
+
+    private static ResponseEntity<Order> toResponse(Order order) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, order.getVersion().toString())
+                .body(order);
     }
 }

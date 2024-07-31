@@ -32,20 +32,19 @@ public class RestaurantController implements RestaurantApi {
     @Override
     public ResponseEntity<Restaurant> createRestaurant(RestaurantPatch restaurant) {
         var result = restaurantRepository.createRestaurant(restaurant);
-        return ResponseEntity.ok(result);
+        return toResponse(result);
     }
 
     @Override
-    public ResponseEntity<Void> deleteRestaurant(UUID id) {
+    public ResponseEntity<Void> deleteRestaurant(UUID id, UUID etag) {
         restaurantRepository.deleteRestaurant(id);
 
-        return ResponseEntity.ok()
-                .build();
+        return ResponseEntity.ok().build();
     }
 
     @Override
     public ResponseEntity<Restaurant> fetchRestaurant(UUID id) {
-        return ResponseEntity.ok(restaurantRepository.readRestaurant(id));
+        return toResponse(restaurantRepository.readRestaurant(id));
     }
 
     @Override
@@ -54,14 +53,14 @@ public class RestaurantController implements RestaurantApi {
     }
 
     @Override
-    public ResponseEntity<Restaurant> updateRestaurant(UUID id, RestaurantPatch restaurant) {
+    public ResponseEntity<Restaurant> updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
         var result = restaurantRepository.updateRestaurant(id, restaurant);
 
-        return ResponseEntity.ok(result);
+        return toResponse(result);
     }
 
     @Override
-    public ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, MultipartFile file) {
+    public ResponseEntity<Restaurant> addRestaurantsMenuPage(UUID restaurantId, UUID etag, MultipartFile file) {
         if (file.getSize() > FILE_SIZE_LIMIT)
             throw new BadRequestException("File was bigger than " + FILE_SIZE_LIMIT);
 
@@ -74,7 +73,7 @@ public class RestaurantController implements RestaurantApi {
                     new DatabaseFile(file.getOriginalFilename(), file.getContentType(), file.getBytes())
             );
 
-            return ResponseEntity.ok(result);
+            return toResponse(result);
         } catch (IOException e) {
             throw new BadRequestException("File could not be read: " + file.getName());
         }
@@ -91,9 +90,15 @@ public class RestaurantController implements RestaurantApi {
     }
 
     @Override
-    public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
+    public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID etag, UUID pageId) {
         var result = restaurantRepository.deleteMenuPageForRestaurant(restaurantId, pageId);
 
-        return ResponseEntity.ok(result);
+        return toResponse(result);
+    }
+
+    private static ResponseEntity<Restaurant> toResponse(Restaurant restaurant) {
+        return ResponseEntity.ok()
+                .header(org.springframework.http.HttpHeaders.ETAG, restaurant.getVersion().toString())
+                .body(restaurant);
     }
 }
