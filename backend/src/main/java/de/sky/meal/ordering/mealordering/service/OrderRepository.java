@@ -378,6 +378,11 @@ public class OrderRepository {
 
             return Order.builder()
                     .id(rec.getId())
+                    .createdAt(rec.getCreatedAt())
+                    .createdBy(rec.getCreatedBy())
+                    .updatedAt(rec.getUpdatedAt())
+                    .updatedBy(rec.getUpdatedBy())
+                    .version(rec.getVersion())
                     .restaurantId(rec.getRestaurantId())
                     .orderState(map(rec.getState()))
                     .infos(

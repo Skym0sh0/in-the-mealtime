@@ -241,6 +241,11 @@ public class RestaurantRepository {
     private static Restaurant map(RestaurantRecord rec, List<MenuPageRecord> pages) {
         return Restaurant.builder()
                 .id(rec.getId())
+                .createdAt(rec.getCreatedAt())
+                .createdBy(rec.getCreatedBy())
+                .updatedAt(rec.getUpdatedAt())
+                .updatedBy(rec.getUpdatedBy())
+                .version(rec.getVersion())
                 .name(rec.getName())
                 .style(rec.getStyle())
                 .kind(rec.getKind())
