@@ -2,11 +2,12 @@ import {createContext, ReactNode, useCallback, useContext, useState} from "react
 import {Alert, Snackbar} from "@mui/material";
 import {AlertColor} from "@mui/material/Alert/Alert";
 import {v4 as uuidv4} from "uuid";
+import {RequestResponseError} from "./ApiAccessContext.tsx";
 
 export interface NotificationContext {
   notifyInfo: (message: string) => void;
   notifySuccess: (message: string) => void;
-  notifyError: (message: string, error?: Error) => void;
+  notifyError: (message: string, error: RequestResponseError) => void;
 }
 
 const NotificationContext = createContext<NotificationContext>({
@@ -47,8 +48,8 @@ export function NotificationContextProvider({children}: { children?: ReactNode }
     addNotification(message, "info");
   }, [addNotification]);
 
-  const notifyError = useCallback((message: string, error?: Error) => {
-    addNotification(`${message} (${error?.message})`, 'error')
+  const notifyError = useCallback((message: string, error: RequestResponseError) => {
+    addNotification(`${message} (${error.error?.message ?? error.message})`, 'error')
   }, [addNotification]);
 
   const handleClose = useCallback((id: string) => {
