@@ -330,7 +330,7 @@ public class OrderRepository {
                     .fetchOptional()
                     .orElseThrow(() -> new NotFoundException("No Order found with id " + orderId));
 
-            if (etag != null && rec.getVersion().equals(etag))
+            if (etag != null && !rec.getVersion().equals(etag))
                 throw new ClientErrorException("Version does not match", Response.Status.PRECONDITION_FAILED);
 
             callback.accept(updater, rec);
