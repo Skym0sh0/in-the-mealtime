@@ -12,7 +12,7 @@ export default function OrderView() {
   const {notifyError} = useNotification();
   const navigate = useNavigate();
 
-  const [autoReload, _] = useState<boolean>(true);
+  const [autoReload, _] = useState(true);
 
   const params = useParams<{ orderId: string }>();
 

@@ -63,7 +63,7 @@ public class WebConfig implements WebMvcConfigurer {
                 try {
                     filterChain.doFilter(request, response);
                 } finally {
-                    log.debug("<<< [{}] Request {} \"{}\" finished with Status {} in {}", correlationId, request.getMethod(), request.getServletPath(), response.getStatus(), sw.stop());
+                    log.info("<<< [{}] Request {} \"{}\" finished with Status {} in {}", correlationId, request.getMethod(), request.getServletPath(), response.getStatus(), sw.stop());
                 }
             }
         }
