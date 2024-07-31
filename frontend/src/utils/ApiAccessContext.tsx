@@ -34,8 +34,6 @@ axios.interceptors.response.use(
       error: error.response.data,
     };
 
-    console.log(failure)
-
     return Promise.reject<RequestResponseError>(failure);
   }
 )

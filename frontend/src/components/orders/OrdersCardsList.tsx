@@ -77,7 +77,7 @@ export default function OrdersCardsList({restaurants, orderableRestaurantIds, on
       .catch(e => {
         setHasError(true)
         setOrders([])
-        notifyError("KKonnte Orders nicht laden", e);
+        notifyError("Konnte Orders nicht laden", e);
       })
   }, [onRefresh, orderApi, notifyError]);
 
@@ -115,18 +115,18 @@ export default function OrdersCardsList({restaurants, orderableRestaurantIds, on
                     onChange={refresh}/>
 
     <LoadingIndicator isLoading={orders === null}>
-      {!hasError &&
-        <List>
-          {orders && orders.map((order) => {
+      <List>
+        {!hasError && orders &&
+          orders.map((order) => {
             return <ListItem key={order.id}>
               <OrderCard onSelect={() => select(order.id)}
                          selected={order.id === selectedOrderId}
                          order={order}
                          restaurant={restaurantsById[order.restaurantId]}/>
             </ListItem>
-          })}
-        </List>
-      }
+          })
+        }
+      </List>
     </LoadingIndicator>
   </Stack>;
 }
