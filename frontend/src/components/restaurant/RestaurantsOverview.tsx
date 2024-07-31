@@ -6,6 +6,8 @@ import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import RestaurantCard from "./RestaurantCard.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../utils/NotificationContext.tsx";
+import {v4 as uuidv4} from "uuid";
+import {DateTime} from "luxon";
 
 export default function RestaurantsOverview() {
   const {restaurantApi} = useApiAccess();
@@ -32,6 +34,9 @@ export default function RestaurantsOverview() {
             <RestaurantCard isNew={true}
                             restaurant={{
                               id: 'new-restaurant',
+                              version: uuidv4(),
+                              createdAt: DateTime.now().toISO(),
+                              createdBy: uuidv4(),
                               name: 'Neues Restaurant',
                               style: 'Neu',
                               shortDescription: 'Erstelle neues Restaurant',
