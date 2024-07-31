@@ -48,11 +48,11 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       return;
 
     if (await confirmDialog({title: 'Möchtest du das Restaurant wirklich entfernen?'})) {
-      restaurantApi.deleteRestaurant(restaurant.id)
+      restaurantApi.deleteRestaurant(restaurant.id, restaurant.version)
         .then(() => navigate('/restaurant'))
         .catch(e => notifyError("Restaurant konnte nicht gelöscht werden", e))
     }
-  }, [navigate, restaurant.id, confirmDialog, restaurantApi, notifyError]);
+  }, [navigate, restaurant.id, confirmDialog, restaurantApi, notifyError, restaurant.version]);
 
   const onBack = useCallback(() => {
     navigate(-1);
@@ -83,7 +83,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
     (isNew
         ? () => restaurantApi.createRestaurant(newRestaurant)
-        : () => restaurantApi.updateRestaurant(restaurant.id, newRestaurant)
+        : () => restaurantApi.updateRestaurant(restaurant.id, restaurant.version, newRestaurant)
     )()
       .then(res => res.data)
       .then(rest => menuPagesOnSave?.(rest)?.then(() => rest) ?? rest)
@@ -94,7 +94,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
       .catch(e => notifyError("Restaurant konnte nicht gespeichert werden", e))
       .finally(() => setIsWorking(false))
-  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant.id, onRefresh, restaurantApi, notifyError]);
+  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant.id, onRefresh, restaurantApi, notifyError, restaurant.version]);
 
   const nameIsValid = !!name && !!name.trim();
   const isValid = nameIsValid;

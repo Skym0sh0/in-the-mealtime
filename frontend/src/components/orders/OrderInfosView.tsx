@@ -46,11 +46,11 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   }, [maximumMeals, order.orderPositions.length]);
 
   const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
-    orderApi.setOrderInfo(order.id, infos)
+    orderApi.setOrderInfo(order.id, order.version, infos)
       .then(() => onUpdateInfos())
       .then(() => setTouched(false))
       .catch(e => notifyError("Infos konnten nicht gespeichert werden", e))
-  }, 2000), [order.id, onUpdateInfos, orderApi, notifyError])
+  }, 2000), [order.id, order.version, onUpdateInfos, orderApi, notifyError])
 
   useEffect(() => {
     if (!touched || !isValid)
