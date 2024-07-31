@@ -11,7 +11,9 @@ import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MenuPageRecord;
 import generated.sky.meal.ordering.schema.tables.records.RestaurantRecord;
 import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
@@ -68,13 +70,16 @@ public class RestaurantRepository {
         });
     }
 
-    public Restaurant updateRestaurant(UUID id, RestaurantPatch restaurant) {
+    public Restaurant updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
         return transactionTemplate.execute(status -> {
             var rec = ctx.selectFrom(Tables.RESTAURANT)
                     .where(Tables.RESTAURANT.ID.eq(id))
                     .forUpdate()
                     .fetchOptional()
                     .orElseThrow(() -> new NotFoundException("Restaurant not found with id: " + id));
+
+            if (!rec.getVersion().equals(etag))
+                throw new ClientErrorException("Version does not match", Response.Status.PRECONDITION_FAILED);
 
             rec.setName(restaurant.getName())
                     .setStyle(restaurant.getStyle())
@@ -111,8 +116,12 @@ public class RestaurantRepository {
         return transactionTemplate.execute(status -> fetchRestaurant(status, id));
     }
 
-    public void deleteRestaurant(UUID id) {
-        transactionTemplate.executeWithoutResult(_ -> {
+    public void deleteRestaurant(UUID id, UUID etag) {
+        transactionTemplate.executeWithoutResult(status -> {
+            var rec = fetchRestaurant(status, id);
+            if (!rec.getVersion().equals(etag))
+                throw new ClientErrorException("Version does not match", Response.Status.PRECONDITION_FAILED);
+
             if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.STATE.notIn(OrderState.NEW, OrderState.REVOKED, OrderState.ARCHIVED)))
                 throw new BadRequestException("Can not delete restaurant with open orders");
 

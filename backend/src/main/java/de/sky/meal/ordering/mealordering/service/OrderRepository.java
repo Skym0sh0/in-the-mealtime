@@ -113,7 +113,7 @@ public class OrderRepository {
         });
     }
 
-    public Order updateOrderInfos(UUID id, OrderInfosPatch infos) {
+    public Order updateOrderInfos(UUID id, UUID etag, OrderInfosPatch infos) {
         int maximumMeals = Optional.ofNullable(infos.getMaximumMealCount())
                 .orElse(Integer.MAX_VALUE);
 
@@ -121,7 +121,7 @@ public class OrderRepository {
             throw new BadRequestException("Maximum meal count must be strongly positive");
         }
 
-        return changeOrderRecord(id, (_, rec) -> {
+        return changeOrderRecord(id, etag, (_, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
@@ -139,8 +139,8 @@ public class OrderRepository {
         });
     }
 
-    public void deleteOrder(UUID id) {
-        deleteOrder(id, rec -> {
+    public void deleteOrder(UUID id, UUID etag) {
+        deleteOrder(id, etag, rec -> {
             var requiredStates = Set.of(OrderState.NEW, OrderState.ARCHIVED, OrderState.REVOKED);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
@@ -148,17 +148,20 @@ public class OrderRepository {
     }
 
     public void deleteOrderWithoutCondition(UUID id) {
-        deleteOrder(id, _ -> {
+        deleteOrder(id, null, _ -> {
         });
     }
 
-    private void deleteOrder(UUID id, Consumer<MealOrderRecord> checker) {
+    private void deleteOrder(UUID id, UUID etag, Consumer<MealOrderRecord> checker) {
         transactionTemplate.executeWithoutResult(_ -> {
             var rec = ctx.selectFrom(Tables.MEAL_ORDER)
                     .where(Tables.MEAL_ORDER.ID.eq(id))
                     .forUpdate()
                     .fetchOptional()
                     .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
+
+            if (etag != null && !rec.getVersion().equals(etag))
+                throw new ClientErrorException("Version does not match", Response.Status.PRECONDITION_FAILED);
 
             checker.accept(rec);
 
@@ -171,7 +174,7 @@ public class OrderRepository {
     }
 
     public Order addOrderPosition(UUID orderId, OrderPositionPatch position) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+        return changeOrderRecord(orderId, null, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.NEW, OrderState.OPEN, OrderState.REVOKED);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
@@ -203,7 +206,7 @@ public class OrderRepository {
     }
 
     public Order updateOrderPosition(UUID orderId, UUID positionId, OrderPositionPatch position) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+        return changeOrderRecord(orderId, null, (updater, rec) -> {
             var posRec = ctx.selectFrom(Tables.ORDER_POSITION)
                     .where(Tables.ORDER_POSITION.ID.eq(positionId))
                     .and(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
@@ -232,7 +235,7 @@ public class OrderRepository {
     }
 
     public Order removeOrderPosition(UUID orderId, UUID positionId) {
-        return changeOrderRecord(orderId, (_, rec) -> {
+        return changeOrderRecord(orderId, null, (_, rec) -> {
             if (rec.getState() != OrderState.OPEN)
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
 
@@ -251,8 +254,8 @@ public class OrderRepository {
         });
     }
 
-    public Order lockOrder(UUID orderId) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+    public Order lockOrder(UUID orderId, UUID etag) {
+        return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.OPEN)
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
 
@@ -264,8 +267,8 @@ public class OrderRepository {
         });
     }
 
-    public Order reopenOrder(UUID orderId) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+    public Order reopenOrder(UUID orderId, UUID etag) {
+        return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.LOCKED)
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.LOCKED));
 
@@ -275,8 +278,8 @@ public class OrderRepository {
         });
     }
 
-    public Order setOrderToIsOrdered(UUID orderId) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+    public Order setOrderToIsOrdered(UUID orderId, UUID etag) {
+        return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.LOCKED)
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.LOCKED));
 
@@ -285,8 +288,8 @@ public class OrderRepository {
         });
     }
 
-    public Order setOrderToDelivered(UUID orderId) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+    public Order setOrderToDelivered(UUID orderId, UUID etag) {
+        return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.ORDERED)
                 throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.ORDERED));
 
@@ -295,8 +298,8 @@ public class OrderRepository {
         });
     }
 
-    public Order revokeOrder(UUID orderId) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+    public Order revokeOrder(UUID orderId, UUID etag) {
+        return changeOrderRecord(orderId, etag, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.LOCKED, OrderState.ORDERED);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
@@ -306,8 +309,8 @@ public class OrderRepository {
         });
     }
 
-    public Order archiveOrder(UUID orderId) {
-        return changeOrderRecord(orderId, (updater, rec) -> {
+    public Order archiveOrder(UUID orderId, UUID etag) {
+        return changeOrderRecord(orderId, etag, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.DELIVERED, OrderState.ORDERED);
             if (!requiredStates.contains(rec.getState()))
                 throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
@@ -317,7 +320,7 @@ public class OrderRepository {
         });
     }
 
-    private Order changeOrderRecord(UUID orderId, BiConsumer<Updater, MealOrderRecord> callback) {
+    private Order changeOrderRecord(UUID orderId, UUID etag, BiConsumer<Updater, MealOrderRecord> callback) {
         var updater = new Updater();
 
         return transactionTemplate.execute(_ -> {
@@ -326,6 +329,9 @@ public class OrderRepository {
                     .forUpdate()
                     .fetchOptional()
                     .orElseThrow(() -> new NotFoundException("No Order found with id " + orderId));
+
+            if (etag != null && rec.getVersion().equals(etag))
+                throw new ClientErrorException("Version does not match", Response.Status.PRECONDITION_FAILED);
 
             callback.accept(updater, rec);
 

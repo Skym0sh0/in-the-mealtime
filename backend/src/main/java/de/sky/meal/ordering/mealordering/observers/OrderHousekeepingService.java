@@ -23,7 +23,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -181,56 +180,56 @@ public class OrderHousekeepingService implements OnOrderChange {
     private void doReopens() {
         var ts = clock.get();
 
-        var ids = doTransactionalWork("Re-Openings", ctx ->
-                ctx.select(MEAL_ORDER.ID)
+        var orders = doTransactionalWork("Re-Openings", ctx ->
+                ctx.select(MEAL_ORDER.ID, MEAL_ORDER.VERSION)
                         .from(MEAL_ORDER)
                         .where(and(
                                 MEAL_ORDER.STATE.in(OrderState.LOCKED),
                                 MEAL_ORDER.LOCKED_AT.lessThan(ts.minus(config.stateTimeouts().lockedBeforeReopened()))
                         ))
-                        .fetch(MEAL_ORDER.ID)
+                        .fetch()
         );
 
-        ids.forEach(orderRepository::reopenOrder);
+        orders.forEach(order -> orderRepository.reopenOrder(order.value1(), order.value2()));
     }
 
     private void doDeliveries() {
         var ts = clock.get();
 
-        var ids = doTransactionalWork("Deliverings", ctx ->
-                ctx.select(MEAL_ORDER.ID)
+        var orders = doTransactionalWork("Deliverings", ctx ->
+                ctx.select(MEAL_ORDER.ID, MEAL_ORDER.VERSION)
                         .from(MEAL_ORDER)
                         .where(and(
                                 MEAL_ORDER.STATE.in(OrderState.ORDERED),
                                 MEAL_ORDER.ORDERED_AT.lessThan(ts.minus(config.stateTimeouts().orderedBeforeDelivered()))
                         ))
-                        .fetch(MEAL_ORDER.ID)
+                        .fetch()
         );
 
-        ids.forEach(orderRepository::setOrderToDelivered);
+        orders.forEach(order -> orderRepository.setOrderToDelivered(order.value1(), order.value2()));
     }
 
     private void doArchives() {
         var ts = clock.get();
 
-        var ids = doTransactionalWork("Archivings", ctx ->
-                ctx.select(MEAL_ORDER.ID)
+        var orders = doTransactionalWork("Archivings", ctx ->
+                ctx.select(MEAL_ORDER.ID, MEAL_ORDER.VERSION)
                         .from(MEAL_ORDER)
                         .where(and(
                                 MEAL_ORDER.STATE.in(OrderState.DELIVERED),
                                 MEAL_ORDER.ORDERED_AT.lessThan(ts.minus(config.stateTimeouts().deliveryBeforeArchive()))
                         ))
-                        .fetch(MEAL_ORDER.ID)
+                        .fetch()
         );
 
-        ids.forEach(orderRepository::archiveOrder);
+        orders.forEach(order -> orderRepository.archiveOrder(order.value1(), order.value2()));
     }
 
-    private List<UUID> doTransactionalWork(String title, Function<DSLContext, List<UUID>> worker) {
+    private <T> List<T> doTransactionalWork(String title, Function<DSLContext, List<T>> worker) {
         try {
             var sw = Stopwatch.createStarted();
 
-            var touched = Optional.ofNullable(transactionTemplate.execute(status -> worker.apply(ctx)))
+            var touched = Optional.ofNullable(transactionTemplate.execute(_ -> worker.apply(ctx)))
                     .orElse(List.of());
 
             log.info("Housekeeping for {} selected {} records in {}", title, touched.size(), sw.stop());

@@ -48,14 +48,14 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> setOrderInfo(UUID orderId, UUID etag, OrderInfosPatch orderInfos) {
-        return toResponse(orderRepository.updateOrderInfos(orderId, orderInfos));
+        return toResponse(orderRepository.updateOrderInfos(orderId, etag, orderInfos));
     }
 
     @Override
     public ResponseEntity<Void> deleteOrder(UUID id, UUID etag) {
         observer.onBeforeOrderDelete(id);
 
-        orderRepository.deleteOrder(id);
+        orderRepository.deleteOrder(id, etag);
 
         return ResponseEntity.ok()
                 .build();
@@ -78,7 +78,7 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> lockOrder(UUID id, UUID etag) {
-        var order = orderRepository.lockOrder(id);
+        var order = orderRepository.lockOrder(id, etag);
 
         observer.onLockOrder(order);
 
@@ -87,7 +87,7 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> orderIsNowOrdered(UUID id, UUID etag) {
-        var order = orderRepository.setOrderToIsOrdered(id);
+        var order = orderRepository.setOrderToIsOrdered(id, etag);
 
         observer.onOrderIsOrdered(order);
 
@@ -96,7 +96,7 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> orderIsNowDelivered(UUID id, UUID etag) {
-        var order = orderRepository.setOrderToDelivered(id);
+        var order = orderRepository.setOrderToDelivered(id, etag);
 
         observer.onOrderDelivered(order);
 
@@ -105,7 +105,7 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> reopenOrder(UUID id, UUID etag) {
-        var order = orderRepository.reopenOrder(id);
+        var order = orderRepository.reopenOrder(id, etag);
 
         observer.onOrderIsReopened(order);
 
@@ -114,7 +114,7 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> revokeOrder(UUID id, UUID etag) {
-        var order = orderRepository.revokeOrder(id);
+        var order = orderRepository.revokeOrder(id, etag);
 
         observer.onOrderIsRevoked(order);
 
@@ -125,7 +125,7 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> archiveOrder(UUID id, UUID etag) {
         observer.onBeforeOrderArchive(id);
 
-        return toResponse(orderRepository.archiveOrder(id));
+        return toResponse(orderRepository.archiveOrder(id, etag));
     }
 
     private static ResponseEntity<Order> toResponse(Order order) {

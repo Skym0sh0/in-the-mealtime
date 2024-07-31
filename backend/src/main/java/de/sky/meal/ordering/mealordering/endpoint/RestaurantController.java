@@ -37,7 +37,7 @@ public class RestaurantController implements RestaurantApi {
 
     @Override
     public ResponseEntity<Void> deleteRestaurant(UUID id, UUID etag) {
-        restaurantRepository.deleteRestaurant(id);
+        restaurantRepository.deleteRestaurant(id, etag);
 
         return ResponseEntity.ok().build();
     }
@@ -54,7 +54,7 @@ public class RestaurantController implements RestaurantApi {
 
     @Override
     public ResponseEntity<Restaurant> updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
-        var result = restaurantRepository.updateRestaurant(id, restaurant);
+        var result = restaurantRepository.updateRestaurant(id, etag, restaurant);
 
         return toResponse(result);
     }

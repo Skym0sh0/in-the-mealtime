@@ -13,7 +13,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -127,14 +126,6 @@ public class NotificationService implements OnOrderChange {
                 [Bestellung](%s) beim Restaurant %s ist geschlossen worden. Vielleicht ist der Laden geschlossen oder es gibt andere Probleme...
                 """.formatted(getUrl(order), restaurant.getName())
         );
-    }
-
-    @Override
-    public void onBeforeOrderArchive(UUID id) {
-    }
-
-    @Override
-    public void onBeforeOrderDelete(UUID id) {
     }
 
     private static double sumPositions(Collection<OrderPosition> positions, Function<OrderPosition, Float> ex) {
