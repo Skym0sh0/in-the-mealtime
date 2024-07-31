@@ -6,6 +6,7 @@ import generated.sky.meal.ordering.rest.api.OrderApi;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
 import generated.sky.meal.ordering.rest.model.OrderPositionPatch;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +23,15 @@ public class OrderController implements OrderApi {
     private final OrderRepository orderRepository;
     private final OrderChangeAggregator observer;
 
+    private final MeterRegistry meterRegistry;
+
     @Override
     public ResponseEntity<List<UUID>> fetchOrderableRestaurants() {
-        return ResponseEntity.ok(orderRepository.readOrderableRestaurantIds(LocalDate.now()));
+        var ids = orderRepository.readOrderableRestaurantIds(LocalDate.now());
+
+        meterRegistry.gauge("restaurant.orderable.count", ids.size());
+
+        return ResponseEntity.ok(ids);
     }
 
     @Override
@@ -32,6 +39,8 @@ public class OrderController implements OrderApi {
         var order = orderRepository.createNewEmptyOrder(LocalDate.now(), restaurantId);
 
         observer.onNewOrder(order);
+
+        meterRegistry.counter("order.create", "entity", "order").increment();
 
         return toResponse(order);
     }
@@ -43,12 +52,20 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<List<Order>> fetchOrders() {
-        return ResponseEntity.ok(orderRepository.readOrders());
+        var orders = orderRepository.readOrders();
+
+        meterRegistry.gauge("order.count", orders.size());
+
+        return ResponseEntity.ok(orders);
     }
 
     @Override
     public ResponseEntity<Order> setOrderInfo(UUID orderId, UUID etag, OrderInfosPatch orderInfos) {
-        return toResponse(orderRepository.updateOrderInfos(orderId, etag, orderInfos));
+        var order = orderRepository.updateOrderInfos(orderId, etag, orderInfos);
+
+        meterRegistry.counter("order.info.update", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
@@ -57,28 +74,44 @@ public class OrderController implements OrderApi {
 
         orderRepository.deleteOrder(id, etag);
 
+        meterRegistry.counter("order.delete", "entity", "order").increment();
+
         return ResponseEntity.ok()
                 .build();
     }
 
     @Override
     public ResponseEntity<Order> createOrderPosition(UUID orderId, OrderPositionPatch orderPosition) {
-        return toResponse(orderRepository.addOrderPosition(orderId, orderPosition));
+        var order = orderRepository.addOrderPosition(orderId, orderPosition);
+
+        meterRegistry.counter("order.position.add", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
     public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, OrderPositionPatch orderPosition) {
-        return toResponse(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
+        var order = orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition);
+
+        meterRegistry.counter("order.position.update", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
     public ResponseEntity<Order> deleteOrderPosition(UUID orderId, UUID orderPositionId) {
-        return toResponse(orderRepository.removeOrderPosition(orderId, orderPositionId));
+        var order = orderRepository.removeOrderPosition(orderId, orderPositionId);
+
+        meterRegistry.counter("order.position.delete", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
     public ResponseEntity<Order> lockOrder(UUID id, UUID etag) {
         var order = orderRepository.lockOrder(id, etag);
+
+        meterRegistry.counter("order.state.lock", "entity", "order").increment();
 
         observer.onLockOrder(order);
 
@@ -89,6 +122,8 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> orderIsNowOrdered(UUID id, UUID etag) {
         var order = orderRepository.setOrderToIsOrdered(id, etag);
 
+        meterRegistry.counter("order.state.ordered", "entity", "order").increment();
+
         observer.onOrderIsOrdered(order);
 
         return toResponse(order);
@@ -97,6 +132,8 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Order> orderIsNowDelivered(UUID id, UUID etag) {
         var order = orderRepository.setOrderToDelivered(id, etag);
+
+        meterRegistry.counter("order.state.delivered", "entity", "order").increment();
 
         observer.onOrderDelivered(order);
 
@@ -107,6 +144,8 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> reopenOrder(UUID id, UUID etag) {
         var order = orderRepository.reopenOrder(id, etag);
 
+        meterRegistry.counter("order.state.reopen", "entity", "order").increment();
+
         observer.onOrderIsReopened(order);
 
         return toResponse(order);
@@ -115,6 +154,8 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Order> revokeOrder(UUID id, UUID etag) {
         var order = orderRepository.revokeOrder(id, etag);
+
+        meterRegistry.counter("order.state.revoke", "entity", "order").increment();
 
         observer.onOrderIsRevoked(order);
 
@@ -125,7 +166,11 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> archiveOrder(UUID id, UUID etag) {
         observer.onBeforeOrderArchive(id);
 
-        return toResponse(orderRepository.archiveOrder(id, etag));
+        var order = orderRepository.archiveOrder(id, etag);
+
+        meterRegistry.counter("order.state.archived", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     private static ResponseEntity<Order> toResponse(Order order) {

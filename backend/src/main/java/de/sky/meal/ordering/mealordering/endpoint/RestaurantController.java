@@ -5,6 +5,7 @@ import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import generated.sky.meal.ordering.rest.api.RestaurantApi;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
 import lombok.RequiredArgsConstructor;
@@ -29,15 +30,22 @@ public class RestaurantController implements RestaurantApi {
 
     private final RestaurantRepository restaurantRepository;
 
+    private final MeterRegistry meterRegistry;
+
     @Override
     public ResponseEntity<Restaurant> createRestaurant(RestaurantPatch restaurant) {
         var result = restaurantRepository.createRestaurant(restaurant);
+
+        meterRegistry.counter("restaurant.create", "entity", "restaurant").increment();
+
         return toResponse(result);
     }
 
     @Override
     public ResponseEntity<Void> deleteRestaurant(UUID id, UUID etag) {
         restaurantRepository.deleteRestaurant(id, etag);
+
+        meterRegistry.counter("restaurant.delete", "entity", "restaurant").increment();
 
         return ResponseEntity.ok().build();
     }
@@ -49,12 +57,18 @@ public class RestaurantController implements RestaurantApi {
 
     @Override
     public ResponseEntity<List<Restaurant>> fetchRestaurants() {
-        return ResponseEntity.ok(restaurantRepository.readRestaurants());
+        var restaurants = restaurantRepository.readRestaurants();
+        
+        meterRegistry.gauge("restaurant.count", restaurants.size());
+
+        return ResponseEntity.ok(restaurants);
     }
 
     @Override
     public ResponseEntity<Restaurant> updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
         var result = restaurantRepository.updateRestaurant(id, etag, restaurant);
+
+        meterRegistry.counter("restaurant.update", "entity", "restaurant").increment();
 
         return toResponse(result);
     }
@@ -72,6 +86,9 @@ public class RestaurantController implements RestaurantApi {
                     restaurantId,
                     new DatabaseFile(file.getOriginalFilename(), file.getContentType(), file.getBytes())
             );
+
+            meterRegistry.counter("restaurant.update", "entity", "restaurant").increment();
+            meterRegistry.counter("restaurant.menupage.add", "entity", "restaurant").increment();
 
             return toResponse(result);
         } catch (IOException e) {
@@ -92,6 +109,9 @@ public class RestaurantController implements RestaurantApi {
     @Override
     public ResponseEntity<Restaurant> deleteRestaurantsMenuPage(UUID restaurantId, UUID pageId) {
         var result = restaurantRepository.deleteMenuPageForRestaurant(restaurantId, pageId);
+
+        meterRegistry.counter("restaurant.update", "entity", "restaurant").increment();
+        meterRegistry.counter("restaurant.menupage.delete", "entity", "restaurant").increment();
 
         return toResponse(result);
     }
