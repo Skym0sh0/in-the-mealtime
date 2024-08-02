@@ -2,6 +2,12 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.config.OrderConfiguration;
+import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
+import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.OrderInfoIsNotCompleteException;
+import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongMealCountException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
@@ -15,10 +21,6 @@ import generated.sky.meal.ordering.schema.enums.MoneyCollectionType;
 import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
-import jakarta.ws.rs.BadRequestException;
-import jakarta.ws.rs.ClientErrorException;
-import jakarta.ws.rs.NotFoundException;
-import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
@@ -39,7 +41,6 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -81,12 +82,12 @@ public class OrderRepository {
     public Order createNewEmptyOrder(LocalDate date, UUID restaurantId) {
         return transactionTemplate.execute(_ -> {
             ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
-                    .orElseThrow(() -> new NotFoundException("No Restaurant found with id " + restaurantId));
+                    .orElseThrow(() -> new RecordNotFoundException("Restaurant", restaurantId));
 
             if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId)
                     .and(Tables.MEAL_ORDER.TARGET_DATE.eq(date))
                     .and(Tables.MEAL_ORDER.STATE.in(OrderState.NEW, OrderState.OPEN, OrderState.LOCKED)))) {
-                throw new ClientErrorException("There is already an open Order for restaurant with id " + restaurantId, Response.Status.CONFLICT);
+                throw new AlreadyExistsException("Order", "There is already an open Order for Restaurant with id " + restaurantId);
             }
 
             var id = UUID.randomUUID();
@@ -117,17 +118,16 @@ public class OrderRepository {
         int maximumMeals = Optional.ofNullable(infos.getMaximumMealCount())
                 .orElse(Integer.MAX_VALUE);
 
-        if (maximumMeals <= 0) {
-            throw new BadRequestException("Maximum meal count must be strongly positive");
-        }
+        if (maximumMeals <= 0)
+            throw new WrongMealCountException("Negative count is not allowed", maximumMeals);
 
         return changeOrderRecord(id, etag, (_, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
             if (!requiredStates.contains(rec.getState()))
-                throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
+                throw new WrongOrderStateException(id, rec.getState(), requiredStates);
 
             if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(id)) > maximumMeals)
-                throw new BadRequestException("There are too many meals to impose a limit");
+                throw new WrongMealCountException("There are already more meals than supposed to be allowed", maximumMeals);
 
             rec.setOrderer(infos.getOrderer())
                     .setFetcher(infos.getFetcher())
@@ -143,7 +143,7 @@ public class OrderRepository {
         deleteOrder(id, etag, rec -> {
             var requiredStates = Set.of(OrderState.NEW, OrderState.ARCHIVED, OrderState.REVOKED);
             if (!requiredStates.contains(rec.getState()))
-                throw new BadRequestException("Order %s is not one of States %s".formatted(id, requiredStates));
+                throw new WrongOrderStateException(id, rec.getState(), requiredStates);
         });
     }
 
@@ -158,10 +158,10 @@ public class OrderRepository {
                     .where(Tables.MEAL_ORDER.ID.eq(id))
                     .forUpdate()
                     .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
+                    .orElseThrow(() -> new RecordNotFoundException("Order", id));
 
             if (etag != null && !rec.getVersion().equals(etag))
-                throw new ClientErrorException("Version does not match", Response.Status.PRECONDITION_FAILED);
+                throw new ConcurrentUpdateException("Order", etag);
 
             checker.accept(rec);
 
@@ -177,10 +177,10 @@ public class OrderRepository {
         return changeOrderRecord(orderId, null, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.NEW, OrderState.OPEN, OrderState.REVOKED);
             if (!requiredStates.contains(rec.getState()))
-                throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
+                throw new WrongOrderStateException(orderId, rec.getState(), requiredStates);
 
             if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(orderId)) + 1 > Optional.ofNullable(rec.getMaximumCountMeals()).orElse(Integer.MAX_VALUE))
-                throw new BadRequestException("Meal Limit exceeded for this order");
+                throw new WrongMealCountException("Meal count is exceeded for this order", rec.getMaximumCountMeals());
 
             rec.setState(OrderState.OPEN);
 
@@ -212,23 +212,25 @@ public class OrderRepository {
                     .and(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
                     .forUpdate()
                     .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No OrderPosition found with id " + positionId + " for Order " + orderId));
+                    .orElseThrow(() -> new RecordNotFoundException("Order", orderId, "OrderPosition", positionId));
 
             posRec.setVersion(UUID.randomUUID())
                     .setUpdatedAt(updater.timestamp())
                     .setUpdatedBy(updater.user());
 
-            if (rec.getState() == OrderState.OPEN) {
-                posRec.setName(position.getName())
+            switch (rec.getState()) {
+                case OPEN -> posRec.setName(position.getName())
                         .setMeal(position.getMeal())
                         .setPrice(Mapper.map(position.getPrice()))
                         .setPaid(Mapper.map(position.getPaid()))
                         .setTip(Mapper.map(position.getTip()));
-            } else if (rec.getState() == OrderState.LOCKED || rec.getState() == OrderState.ORDERED || rec.getState() == OrderState.DELIVERED) {
-                posRec.setPaid(Mapper.map(position.getPaid()))
+
+                case LOCKED, ORDERED, DELIVERED -> posRec.setPaid(Mapper.map(position.getPaid()))
                         .setTip(Mapper.map(position.getTip()));
-            } else
-                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
+
+                case null, default ->
+                        throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.OPEN));
+            }
 
             posRec.update();
         });
@@ -237,7 +239,7 @@ public class OrderRepository {
     public Order removeOrderPosition(UUID orderId, UUID positionId) {
         return changeOrderRecord(orderId, null, (_, rec) -> {
             if (rec.getState() != OrderState.OPEN)
-                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
+                throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.OPEN));
 
             var deleted = ctx.deleteFrom(Tables.ORDER_POSITION)
                     .where(Tables.ORDER_POSITION.ID.eq(positionId))
@@ -245,7 +247,7 @@ public class OrderRepository {
                     .execute();
 
             if (deleted == 0)
-                throw new NotFoundException("No OrderPosition found with id " + positionId + " for Order with id " + orderId);
+                throw new RecordNotFoundException("Order", orderId, "OrderPosition", positionId);
 
             if (ctx.fetchCount(Tables.ORDER_POSITION, Tables.ORDER_POSITION.ORDER_ID.eq(orderId)) == 0)
                 rec.setState(OrderState.NEW);
@@ -257,10 +259,12 @@ public class OrderRepository {
     public Order lockOrder(UUID orderId, UUID etag) {
         return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.OPEN)
-                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.OPEN));
+                throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.OPEN));
 
-            if (Stream.of(rec.getOrderer(), rec.getFetcher(), rec.getMoneyCollector()).anyMatch(StringUtils::isBlank))
-                throw new BadRequestException("Order %s has no orderer, fetcher or money collector".formatted(orderId));
+            if (StringUtils.isBlank(rec.getOrderer())) throw new OrderInfoIsNotCompleteException("Orderer");
+            if (StringUtils.isBlank(rec.getFetcher())) throw new OrderInfoIsNotCompleteException("Fetcher");
+            if (StringUtils.isBlank(rec.getMoneyCollector()))
+                throw new OrderInfoIsNotCompleteException("MoneyCollector");
 
             rec.setState(OrderState.LOCKED);
             rec.setLockedAt(updater.timestamp());
@@ -270,7 +274,7 @@ public class OrderRepository {
     public Order reopenOrder(UUID orderId, UUID etag) {
         return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.LOCKED)
-                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.LOCKED));
+                throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.LOCKED));
 
             rec.setState(OrderState.OPEN);
             rec.setLockedAt(updater.timestamp());
@@ -281,7 +285,7 @@ public class OrderRepository {
     public Order setOrderToIsOrdered(UUID orderId, UUID etag) {
         return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.LOCKED)
-                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.LOCKED));
+                throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.LOCKED));
 
             rec.setState(OrderState.ORDERED);
             rec.setOrderedAt(updater.timestamp());
@@ -291,7 +295,7 @@ public class OrderRepository {
     public Order setOrderToDelivered(UUID orderId, UUID etag) {
         return changeOrderRecord(orderId, etag, (updater, rec) -> {
             if (rec.getState() != OrderState.ORDERED)
-                throw new BadRequestException("Order %s is not in State %s".formatted(orderId, OrderState.ORDERED));
+                throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.ORDERED));
 
             rec.setState(OrderState.DELIVERED);
             rec.setDeliveredAt(updater.timestamp());
@@ -302,7 +306,7 @@ public class OrderRepository {
         return changeOrderRecord(orderId, etag, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.LOCKED, OrderState.ORDERED);
             if (!requiredStates.contains(rec.getState()))
-                throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
+                throw new WrongOrderStateException(orderId, rec.getState(), requiredStates);
 
             rec.setState(OrderState.REVOKED);
             rec.setRevokedAt(updater.timestamp());
@@ -313,7 +317,7 @@ public class OrderRepository {
         return changeOrderRecord(orderId, etag, (updater, rec) -> {
             var requiredStates = Set.of(OrderState.DELIVERED, OrderState.ORDERED);
             if (!requiredStates.contains(rec.getState()))
-                throw new BadRequestException("Order %s is not one of States %s".formatted(orderId, requiredStates));
+                throw new WrongOrderStateException(orderId, rec.getState(), requiredStates);
 
             rec.setState(OrderState.ARCHIVED);
             rec.setArchivedAt(updater.timestamp());
@@ -328,10 +332,10 @@ public class OrderRepository {
                     .where(Tables.MEAL_ORDER.ID.eq(orderId))
                     .forUpdate()
                     .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No Order found with id " + orderId));
+                    .orElseThrow(() -> new RecordNotFoundException("Order", orderId));
 
             if (etag != null && !rec.getVersion().equals(etag))
-                throw new ClientErrorException("Version does not match", Response.Status.PRECONDITION_FAILED);
+                throw new ConcurrentUpdateException("Order", etag);
 
             callback.accept(updater, rec);
 
@@ -366,7 +370,7 @@ public class OrderRepository {
 
         return ctx.fetchOptional(Tables.MEAL_ORDER, Tables.MEAL_ORDER.ID.eq(id))
                 .map(rec -> Mapper.map(config.stateTimeouts(), rec, positions))
-                .orElseThrow(() -> new NotFoundException("No Order found with id " + id));
+                .orElseThrow(() -> new RecordNotFoundException("Order", id));
     }
 
     private record Updater(UUID user, OffsetDateTime timestamp) {
