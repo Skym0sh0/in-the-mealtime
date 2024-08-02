@@ -6,6 +6,8 @@ import de.sky.meal.ordering.mealordering.config.OrderConfiguration;
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.schema.enums.OrderState;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +48,8 @@ public class OrderHousekeepingService implements OnOrderChange {
     private final DSLContext ctx;
     private final OrderRepository orderRepository;
 
+    private final MeterRegistry meterRegistry;
+
     @PostConstruct
     public void init() {
         log.info("Scheduled initial startup housekeeping ...");
@@ -62,16 +66,20 @@ public class OrderHousekeepingService implements OnOrderChange {
     }
 
     public void doHousekeeping() {
-        log.info("Start global housekeeping ...");
+        var timer = meterRegistry.timer("order.housekeeping", Tags.of("type", "housekeeping", "entity", "order"));
 
-        var sw = Stopwatch.createStarted();
+        timer.record(() -> {
+            log.info("Start global housekeeping ...");
 
-        doDeletions();
-        doReopens();
-        doDeliveries();
-        doArchives();
+            var sw = Stopwatch.createStarted();
 
-        log.info("Finished global housekeeping in {}", sw.stop());
+            doDeletions();
+            doReopens();
+            doDeliveries();
+            doArchives();
+
+            log.info("Finished global housekeeping in {}", sw.stop());
+        });
     }
 
     @Override
@@ -107,7 +115,7 @@ public class OrderHousekeepingService implements OnOrderChange {
         );
 
         states.forEach((state, runnable) -> {
-            var ids = transactionTemplate.execute(status ->
+            var ids = transactionTemplate.execute(_ ->
                     ctx.select(MEAL_ORDER.ID)
                             .from(MEAL_ORDER)
                             .where(MEAL_ORDER.STATE.eq(state))
@@ -174,7 +182,19 @@ public class OrderHousekeepingService implements OnOrderChange {
                         .fetch(MEAL_ORDER.ID)
         );
 
-        ids.forEach(orderRepository::deleteOrderWithoutCondition);
+        var deleted = ids.stream()
+                .mapToInt(id -> {
+                    try {
+                        orderRepository.deleteOrderWithoutCondition(id);
+                        return 1;
+                    } catch (Exception e) {
+                        log.error("During Order deletion an error occurred for id {}", e, e);
+                        return 0;
+                    }
+                })
+                .sum();
+
+        meterRegistry.counter("order.housekeeping.delete", Tags.of("entity", "order")).increment(deleted);
     }
 
     private void doReopens() {
@@ -190,7 +210,19 @@ public class OrderHousekeepingService implements OnOrderChange {
                         .fetch()
         );
 
-        orders.forEach(order -> orderRepository.reopenOrder(order.value1(), order.value2()));
+        var touched = orders.stream()
+                .map(order -> {
+                    try {
+                        return Optional.of(orderRepository.reopenOrder(order.value1(), order.value2()));
+                    } catch (Exception e) {
+                        log.error("During Order reopen an error occurred for order with id {}", order, e);
+                        return Optional.empty();
+                    }
+                })
+                .filter(Optional::isPresent)
+                .count();
+
+        meterRegistry.counter("order.state.transition", Tags.of("from", "locked", "to", "open")).increment(touched);
     }
 
     private void doDeliveries() {
@@ -206,7 +238,19 @@ public class OrderHousekeepingService implements OnOrderChange {
                         .fetch()
         );
 
-        orders.forEach(order -> orderRepository.setOrderToDelivered(order.value1(), order.value2()));
+        var touched = orders.stream()
+                .map(order -> {
+                    try {
+                        return Optional.of(orderRepository.setOrderToDelivered(order.value1(), order.value2()));
+                    } catch (Exception e) {
+                        log.error("During Order deliverings an error occurred for order with id {}", order, e);
+                        return Optional.empty();
+                    }
+                })
+                .filter(Optional::isPresent)
+                .count();
+
+        meterRegistry.counter("order.state.transition", Tags.of("from", "ordered", "to", "delivered")).increment(touched);
     }
 
     private void doArchives() {
@@ -222,7 +266,19 @@ public class OrderHousekeepingService implements OnOrderChange {
                         .fetch()
         );
 
-        orders.forEach(order -> orderRepository.archiveOrder(order.value1(), order.value2()));
+        var touched = orders.stream()
+                .map(order -> {
+                    try {
+                        return Optional.of(orderRepository.archiveOrder(order.value1(), order.value2()));
+                    } catch (Exception e) {
+                        log.error("During Order archivings an error occurred for order with id {}", order, e);
+                        return Optional.empty();
+                    }
+                })
+                .filter(Optional::isPresent)
+                .count();
+
+        meterRegistry.counter("order.state.transition", Tags.of("from", "delivered", "to", "archived")).increment(touched);
     }
 
     private <T> List<T> doTransactionalWork(String title, Function<DSLContext, List<T>> worker) {
