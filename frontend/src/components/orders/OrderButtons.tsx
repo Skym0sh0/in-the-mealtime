@@ -16,7 +16,7 @@ import {useNotification} from "../../utils/NotificationContext.tsx";
 
 export default function OrderButtons({order, onRefresh}: { order: Order, onRefresh: () => void, }) {
   const {orderApi} = useApiAccess();
-  const {notifyError} = useNotification();
+  const {notifyError, notifySuccess} = useNotification();
 
   const {confirmDialog} = useConfirmationDialog();
 
@@ -30,23 +30,26 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       tip: "Das ist z.B. wenn man beim Bestellen merkt, dass das Restaurant geschlossen hat oder andere unerwartete Probleme aufkommen.",
     })) {
       orderApi.revokeOrder(order.id, order.version)
+        .then(() => notifySuccess("Bestellung zurückgezogen"))
         .then(() => onRefresh())
         .catch(e => notifyError("Bestellung konnte nicht zurückgezogen werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version, notifySuccess]);
 
   const handleDelete = useCallback(async () => {
     if (await confirmDialog({title: 'Möchtest du die Bestellung wirklich löschen?'})) {
       orderApi.deleteOrder(order.id, order.version)
+        .then(() => notifySuccess("Bestellung gelöscht"))
         .then(() => navigate({pathname: `/order`}, {replace: true}))
         .catch(e => notifyError("Bestellung konnte nicht gelöscht werden", e))
     }
-  }, [order.id, navigate, confirmDialog, orderApi, notifyError, order.version]);
+  }, [order.id, navigate, confirmDialog, orderApi, notifyError, order.version, notifySuccess]);
 
   const handleArchive = useCallback(() => {
     orderApi.archiveOrder(order.id, order.version)
+      .then(() => notifySuccess("Bestellung archiviert"))
       .then(() => onRefresh())
-  }, [order.id, onRefresh, orderApi, order.version]);
+  }, [order.id, onRefresh, orderApi, order.version, notifySuccess]);
 
   const handleOrdering = useCallback(async () => {
     if (await confirmDialog({
@@ -55,10 +58,11 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       tip: "In der Zeit sollst du die Bestellung beim Restaurant aufgeben und danach hier bestätigen. Machst du das nicht, wird die Bestellung in wenigen Minuten automatisch wieder entsperrt."
     })) {
       orderApi.lockOrder(order.id, order.version)
+        .then(() => notifySuccess("Bestellung gesperrt"))
         .then(() => onRefresh())
-        .catch(e => notifyError("Bestellung konnte nicht gewsperrt werden", e))
+        .catch(e => notifyError("Bestellung konnte nicht gesperrt werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version, notifySuccess]);
 
   const handleOrderIsOrdered = useCallback(async () => {
     if (await confirmDialog({
@@ -67,10 +71,11 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       importantCaption: "Vergiss nicht, das Eintreffen der Bestellung hier abzuhaken und dafür zu sorgen, dass alle bezahlt haben.",
     })) {
       orderApi.orderIsNowOrdered(order.id, order.version)
+        .then(() => notifySuccess("Bestellung ist bestellt"))
         .then(() => onRefresh())
         .catch(e => notifyError("Bestellung konnte nicht als bestellt markiert werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version, notifySuccess]);
 
   const handleReopen = useCallback(async () => {
     if (await confirmDialog({
@@ -79,16 +84,18 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
       tip: "Das soll benutzt werden, wenn z.B. das Restaurant noch nicht offen hat oder das Telefon besetzt ist und später nochmal versucht werden muss zu bestellen.",
     })) {
       orderApi.reopenOrder(order.id, order.version)
+        .then(() => notifySuccess("Bestellung wieder entsperrt"))
         .then(() => onRefresh())
         .catch(e => notifyError("Bestellung konnte nicht wiedereröffnet werden", e))
     }
-  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version]);
+  }, [order.id, onRefresh, confirmDialog, orderApi, notifyError, order.version, notifySuccess]);
 
   const handleDelivery = useCallback(() => {
     orderApi.orderIsNowDelivered(order.id, order.version)
+      .then(() => notifySuccess("Bestellung ist geliefert"))
       .then(() => onRefresh())
       .catch(e => notifyError("Bestellung konnte nicht als geliefert markiert werden", e))
-  }, [order.id, onRefresh, orderApi, notifyError, order.version]);
+  }, [order.id, onRefresh, orderApi, notifyError, order.version, notifySuccess]);
 
   const revokeButton = <Button id="btn-order-state-revoke"
                                variant="contained"

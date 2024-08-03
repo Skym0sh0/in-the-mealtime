@@ -14,7 +14,7 @@ type NewOrderButtonProps = {
 
 export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, onChange}: NewOrderButtonProps) {
   const {orderApi} = useApiAccess();
-  const {notifyError} = useNotification();
+  const {notifyError, notifySuccess} = useNotification();
   const navigate = useNavigate();
 
   const [isLoading, setIsLoading] = useState(false);
@@ -36,12 +36,13 @@ export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, o
     orderApi.createOrder(restaurant.id)
       .then(res => res.data)
       .then(newOrder => {
+        notifySuccess("Neue Bestellung eröffnet")
         onChange()
         navigate({pathname: `/order/${newOrder.id}`});
       })
       .catch(e => notifyError("Konnte keine neue Order erstellen", e))
       .finally(() => setIsLoading(false))
-  }, [navigate, onChange, orderApi, notifyError]);
+  }, [navigate, onChange, orderApi, notifyError, notifySuccess]);
 
   return <>
     <Button disabled={isLoading}

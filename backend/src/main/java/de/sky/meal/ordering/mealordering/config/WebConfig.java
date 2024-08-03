@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    private static final String CORRELATION_ID = "X-Correlation-ID";
+    public static final String CORRELATION_ID = "X-Correlation-ID";
 
     @Component
     @Order(Ordered.HIGHEST_PRECEDENCE)

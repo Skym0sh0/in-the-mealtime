@@ -874,6 +874,8 @@ components:
         timestamp:
           type: string
           format: date-time
+        correlationId:
+          type: string
         message:
           type: string
         detailMessage:

@@ -5,7 +5,6 @@ import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateExcept
 import de.sky.meal.ordering.mealordering.model.exceptions.MealtimeException;
 import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
 import generated.sky.meal.ordering.rest.model.ErrorObject;
-import jakarta.ws.rs.ClientErrorException;
 import jakarta.ws.rs.WebApplicationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +32,7 @@ public class ExceptionMapper {
                 .body(
                         ErrorObject.builder()
                                 .timestamp(OffsetDateTime.now())
+                                .correlationId(request.getHeader(WebConfig.CORRELATION_ID))
                                 .message(ex.getMessage())
                                 .detailMessage(
                                         Throwables.getCausalChain(ex)
@@ -53,6 +53,7 @@ public class ExceptionMapper {
                 .body(
                         ErrorObject.builder()
                                 .timestamp(OffsetDateTime.now())
+                                .correlationId(request.getHeader(WebConfig.CORRELATION_ID))
                                 .message(ex.getMessage())
                                 .detailMessage(null)
                                 .stacktrace(getStracktrace(ex))
@@ -82,6 +83,7 @@ public class ExceptionMapper {
                 .body(
                         ErrorObject.builder()
                                 .timestamp(OffsetDateTime.now())
+                                .correlationId(request.getHeader(WebConfig.CORRELATION_ID))
                                 .message(ex.getMessage())
                                 .detailMessage(ex.getDetailMessage())
                                 .stacktrace(getStracktrace(ex))

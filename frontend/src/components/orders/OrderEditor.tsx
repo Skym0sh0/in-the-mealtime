@@ -21,34 +21,37 @@ type OrderEditorProps = {
 
 export default function OrderEditor({restaurant, order, onChange}: OrderEditorProps) {
   const {orderApi} = useApiAccess();
-  const {notifyError} = useNotification();
+  const {notifyError, notifySuccess} = useNotification();
 
   const [selectedPosition, setSelectedPosition] = useState<OrderPosition | null>(null);
 
   const onCreatePosition: (position: OrderPositionPatch) => Promise<void> = useCallback((position: OrderPositionPatch) => {
     return orderApi.createOrderPosition(order.id, position)
       .then(() => {
+        notifySuccess("Bestellung hinzugefügt")
         onChange()
       })
       .catch(e => notifyError("Order Position konnte nicht erstellt werden", e))
-  }, [order.id, onChange, orderApi, notifyError]);
+  }, [order.id, onChange, orderApi, notifyError, notifySuccess]);
 
   const onUpdatePosition: (positionId: string, position: OrderPositionPatch) => Promise<void> = useCallback((positionId: string, position: OrderPositionPatch) => {
     return orderApi.updateOrderPosition(order.id, positionId, position)
       .then(() => {
+        notifySuccess("Bestellung aktualisiert")
         setSelectedPosition(null)
         onChange()
       })
       .catch(e => notifyError("Order Position konnte nicht geändert werden", e))
-  }, [onChange, order.id, orderApi, notifyError]);
+  }, [onChange, order.id, orderApi, notifyError, notifySuccess]);
 
   const onDeletePosition = useCallback((position: OrderPosition) => {
     orderApi.deleteOrderPosition(order.id, position.id)
       .then(() => {
+        notifySuccess("Bestellung entfernt")
         onChange()
       })
       .catch(e => notifyError("Order Position konnte nicht gelöscht werden", e))
-  }, [onChange, order.id, orderApi, notifyError]);
+  }, [onChange, order.id, orderApi, notifyError, notifySuccess]);
 
   const onSelectToEditPosition = useCallback((position: OrderPosition) => {
     setSelectedPosition(position)
