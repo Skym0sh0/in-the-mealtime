@@ -4,14 +4,14 @@ import {debounce} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {DateTime} from "luxon";
 import {TimeField} from "@mui/x-date-pickers";
-import {OrderMoneyCollectionType} from "../../../build/generated-ts/api/api.ts";
+import {OrderMoneyCollectionType, OrderStateType} from "../../../build/generated-ts/api/api.ts";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 import {assertNever} from "../../utils/utils.ts";
 import {useNotification} from "../../utils/NotificationContext.tsx";
 
 export default function OrderInfosView({order, onUpdateInfos}: { order: Order, onUpdateInfos: () => void, }) {
   const {orderApi} = useApiAccess();
-  const {notifyError} = useNotification();
+  const {notifyError, notifySuccess} = useNotification();
 
   const [touched, setTouched] = useState(false);
 
@@ -45,15 +45,19 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     return 1 < parsed && order.orderPositions.length <= parsed;
   }, [maximumMeals, order.orderPositions.length]);
 
+
+  const isEditable = order.orderState === OrderStateType.New || order.orderState === OrderStateType.Open;
+
   const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
     orderApi.setOrderInfo(order.id, order.version, infos)
+      .then(() => notifySuccess("Infos erfolgreich gespeichert"))
       .then(() => onUpdateInfos())
       .then(() => setTouched(false))
       .catch(e => notifyError("Infos konnten nicht gespeichert werden", e))
-  }, 2000), [order.id, order.version, onUpdateInfos, orderApi, notifyError])
+  }, 2000), [order.id, order.version, onUpdateInfos, orderApi, notifyError, notifySuccess])
 
   useEffect(() => {
-    if (!touched || !isValid)
+    if (!touched || !isValid || !isEditable)
       return
 
     onUpdate({
@@ -103,6 +107,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       <TextField id="order-info-orderer"
                  size="small"
                  label="Wer bestellt?"
+                 disabled={!isEditable}
                  value={orderer}
                  onChange={e => {
                    setOrderer(e.target.value)
@@ -113,6 +118,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       <TextField id="order-info-fetcher"
                  size="small"
                  label="Wer holt ab?"
+                 disabled={!isEditable}
                  value={fetcher}
                  onChange={e => {
                    setFetcher(e.target.value)
@@ -124,6 +130,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       <TextField id="order-info-money-collector"
                  size="small"
                  label="Geld wohin?"
+                 disabled={!isEditable}
                  value={collector}
                  onChange={e => {
                    setCollector(e.target.value)
@@ -142,6 +149,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <ToggleButtonGroup id="order-info-money-collection-type"
                          size="small"
+                         disabled={!isEditable}
                          exclusive={true}
                          value={collectorType}
                          onChange={(_, val) => val !== null && setCollectorType(val)}>
@@ -161,6 +169,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  size="small"
                  ampm={false}
                  label="Bestellschluss"
+                 disabled={!isEditable}
                  value={orderClosingTime}
                  slotProps={{
                    textField: {
@@ -176,6 +185,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  size="small"
                  type="number"
                  label="Limitierung Gerichte"
+                 disabled={!isEditable}
                  value={maximumMeals}
                  onChange={e => {
                    setMaximumMeals(e.target.value)
@@ -187,6 +197,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  size="small"
                  sx={{width: '100%'}}
                  label="Zusatztext"
+                 disabled={!isEditable}
                  multiline={true}
                  maxRows={3}
                  value={orderText}
