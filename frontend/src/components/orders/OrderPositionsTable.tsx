@@ -4,6 +4,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import UndoIcon from '@mui/icons-material/Undo';
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 import {OrderPosition, OrderStateType} from "../../../build/generated-ts/api/api.ts";
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 
 export default function OrderPositionsTable({
                                               height,
@@ -22,6 +23,8 @@ export default function OrderPositionsTable({
   onDeselect: () => void,
   onDelete: (pos: OrderPosition) => void,
 }) {
+  const useIndexColumn = false;
+
   return <TableContainer component={Paper}
                          sx={{
                            minHeight: '240px',
@@ -32,8 +35,8 @@ export default function OrderPositionsTable({
     <Table size="small" stickyHeader={true}>
       <TableHead>
         <TableRow>
-          <TableCell align="left" style={{width: '2%', fontWeight: 'bold'}}></TableCell>
-          <TableCell align="left" style={{width: '3%', fontWeight: 'bold'}}>#</TableCell>
+          {useIndexColumn && <TableCell align="left" style={{width: '2%', fontWeight: 'bold'}}></TableCell>}
+          <TableCell align="center" style={{width: '3%', fontWeight: 'bold'}}>#</TableCell>
           <TableCell align="left" style={{width: '10%', fontWeight: 'bold'}}>Name</TableCell>
           <TableCell align="left" style={{width: '35%', fontWeight: 'bold'}}>Gericht</TableCell>
           <TableCell align="right" style={{width: '10%', fontWeight: 'bold'}}>Preis</TableCell>
@@ -49,6 +52,7 @@ export default function OrderPositionsTable({
           orderPositions.map((line, idx) => {
             return <OrderTableRow key={line.id}
                                   orderState={orderState}
+                                  useIndexColumn={useIndexColumn}
                                   idx={idx}
                                   selected={line.id === selectedPosition?.id}
                                   position={line}
@@ -63,7 +67,8 @@ export default function OrderPositionsTable({
   </TableContainer>;
 }
 
-function OrderTableRow({idx, position, orderState, selected, onSelect, onDeselect, onDelete}: {
+function OrderTableRow({useIndexColumn, idx, position, orderState, selected, onSelect, onDeselect, onDelete}: {
+  useIndexColumn: boolean,
   idx: number,
   position: OrderPosition,
   orderState: OrderStateType,
@@ -84,17 +89,15 @@ function OrderTableRow({idx, position, orderState, selected, onSelect, onDeselec
 
   const isDeletable = orderState === OrderStateType.New || orderState === OrderStateType.Open;
 
-  return <TableRow selected={selected}>
-    <TableCell align="left" color="text.secondary">
-      {idx + 1}
-    </TableCell>
+  return <TableRow selected={selected} hover={true}>
+    {useIndexColumn &&
+      <TableCell align="left" color="text.secondary">
+        {idx + 1}
+      </TableCell>
+    }
 
-    <TableCell align="left" color="text.secondary">
-      {
-        selected
-          ? <EditIcon color="warning" fontSize="small"/>
-          : (position.index + 1)
-      }
+    <TableCell align="center" color="text.secondary">
+      <IndexCell position={position} selected={selected}/>
     </TableCell>
     <TableCell align="left">
       {position.name}
@@ -143,4 +146,16 @@ function OrderTableRow({idx, position, orderState, selected, onSelect, onDeselec
       }
     </TableCell>
   </TableRow>
+}
+
+function IndexCell({position, selected}: { position: OrderPosition, selected: boolean }) {
+  const isErrornous = (position.paid ?? 0) <= 0
+
+  if (selected)
+    return <EditIcon color="warning" fontSize="small"/>;
+
+  if (isErrornous)
+    return <PriorityHighIcon color="error" fontSize="small"/>;
+
+  return (position.index + 1);
 }
