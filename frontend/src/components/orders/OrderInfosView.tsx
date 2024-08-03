@@ -45,7 +45,6 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     return 1 < parsed && order.orderPositions.length <= parsed;
   }, [maximumMeals, order.orderPositions.length]);
 
-
   const isEditable = order.orderState === OrderStateType.New || order.orderState === OrderStateType.Open;
 
   const onUpdate = useCallback(debounce((infos: OrderInfosPatch) => {
@@ -71,32 +70,12 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     } as OrderInfosPatch)
   }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate]);
 
-  const onChange = () => setTouched(true);
-
-  const paypalLink = useMemo(() => {
-    switch (collectorType) {
-      case OrderMoneyCollectionType.Bar:
-        return null;
-
-      case OrderMoneyCollectionType.PayPal: {
-        if (!collector)
-          return null;
-
-        if (collector.toLowerCase().startsWith("http"))
-          return collector;
-        else
-          return "http://" + collector;
-      }
-
-      default:
-        throw assertNever(collectorType);
-    }
-  }, [collector, collectorType]);
-
   useEffect(() => {
     if (collector.toLowerCase().includes("paypal"))
       setCollectorType(OrderMoneyCollectionType.PayPal)
   }, [collector]);
+
+  const onChange = () => setTouched(true);
 
   return <Stack direction="column" spacing={2} justifyContent="flex-start" alignItems="center">
     <Typography variant="h6">
@@ -136,15 +115,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                    setCollector(e.target.value)
                    onChange();
                  }}
-                 helperText={
-                   paypalLink
-                     ? <Link target="_blank"
-                             rel="noopener noreferrer"
-                             href={paypalLink}>
-                       {collector}
-                     </Link>
-                     : undefined
-                 }
+                 helperText={<PaypalLink collector={collector} type={collectorType}/>}
                  error={!collector}/>
 
       <ToggleButtonGroup id="order-info-money-collection-type"
@@ -207,4 +178,20 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  }}/>
     </Stack>
   </Stack>;
+}
+
+function PaypalLink({type, collector}: { type: OrderMoneyCollectionType, collector: string }) {
+  if (!type || type === OrderMoneyCollectionType.Bar)
+    return null;
+
+  if (type !== OrderMoneyCollectionType.PayPal)
+    throw assertNever(type);
+
+  const link = collector.toLowerCase().startsWith("http") ? collector : `http://${collector}`
+
+  return <Link target="_blank"
+               rel="noopener noreferrer"
+               href={link}>
+    {collector}
+  </Link>
 }
