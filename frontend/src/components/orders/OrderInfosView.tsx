@@ -64,11 +64,11 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       fetcher: fetcher,
       moneyCollectionType: collectorType,
       moneyCollector: collector,
-      orderClosingTime: orderClosingTime?.toLocaleString(DateTime.TIME_24_WITH_SECONDS),
+      orderClosingTime: orderClosingTime?.toISOTime({includeOffset: false, suppressMilliseconds: true}),
       orderText: orderText,
       maximumMealCount: Number.parseInt(maximumMeals),
     } as OrderInfosPatch)
-  }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate]);
+  }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate, isEditable]);
 
   useEffect(() => {
     if (collector.toLowerCase().includes("paypal"))
