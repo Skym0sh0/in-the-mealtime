@@ -111,7 +111,7 @@ public class NotificationService implements OnOrderChange {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
-                @here Essen von der %s Bestellung](%s) ist da!
+                @here Essen von der %s [Bestellung](%s) ist da!
                 """.formatted(restaurant.getName(), getUrl(order))
         );
     }
