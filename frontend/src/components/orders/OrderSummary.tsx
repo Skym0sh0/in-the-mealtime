@@ -3,7 +3,6 @@ import {Stack, TextField, Typography} from "@mui/material";
 import {Order} from "../../../build/generated-ts/api/api.ts";
 import useOrderPositionSummary from "./useOrderPositionSummary.ts";
 
-
 export default function OrderSummary({order}: { order: Order }) {
   const overallSum = useOrderPositionSummary(order);
 

@@ -1,11 +1,13 @@
 import {useCallback, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import {api} from "../../api/api.ts";
 import styled from "styled-components";
 import {Restaurant, RestaurantPatch} from "../../../build/generated-ts/api/index.ts";
 import {Button, Divider, Stack, TextField, Typography} from "@mui/material";
 import MenuPageEditor from "./MenuPageEditor.tsx";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
+import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
@@ -14,6 +16,11 @@ type RestaurantEditorProps = {
 };
 
 export default function RestaurantEditor({restaurant, isNew, onRefresh}: RestaurantEditorProps) {
+  const {restaurantApi} = useApiAccess();
+  const {notifyError} = useNotification();
+
+  const {confirmDialog} = useConfirmationDialog();
+
   const [isWorking, setIsWorking] = useState(false);
   const [touched, setTouched] = useState(false);
 
@@ -36,13 +43,16 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
   }, []);
 
   const navigate = useNavigate();
-  const onDelete = useCallback(() => {
+  const onDelete = useCallback(async () => {
     if (!restaurant.id)
       return;
 
-    api.restaurants.deleteRestaurant(restaurant.id)
-      .then(() => navigate(-1))
-  }, [navigate, restaurant.id]);
+    if (await confirmDialog({title: 'Möchtest du das Restaurant wirklich entfernen?'})) {
+      restaurantApi.deleteRestaurant(restaurant.id, restaurant.version)
+        .then(() => navigate('/restaurant'))
+        .catch(e => notifyError("Restaurant konnte nicht gelöscht werden", e))
+    }
+  }, [navigate, restaurant.id, confirmDialog, restaurantApi, notifyError, restaurant.version]);
 
   const onBack = useCallback(() => {
     navigate(-1);
@@ -72,8 +82,8 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
     setIsWorking(true);
 
     (isNew
-        ? () => api.restaurants.createRestaurant(newRestaurant)
-        : () => api.restaurants.updateRestaurant(restaurant.id, newRestaurant)
+        ? () => restaurantApi.createRestaurant(newRestaurant)
+        : () => restaurantApi.updateRestaurant(restaurant.id, restaurant.version, newRestaurant)
     )()
       .then(res => res.data)
       .then(rest => menuPagesOnSave?.(rest)?.then(() => rest) ?? rest)
@@ -82,8 +92,9 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
         navigate({pathname: `/restaurant/${rest.id}`}, {replace: true});
       })
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
+      .catch(e => notifyError("Restaurant konnte nicht gespeichert werden", e))
       .finally(() => setIsWorking(false))
-  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant?.id, onRefresh]);
+  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant.id, onRefresh, restaurantApi, notifyError, restaurant.version]);
 
   const nameIsValid = !!name && !!name.trim();
   const isValid = nameIsValid;
@@ -116,7 +127,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
           </SStack>
 
           <SStack spacing={2} justifyContent="space-between">
-            <STextField size="small" label="Phone" value={phone} onChange={e => {
+            <STextField size="small" label="Telefon" value={phone} onChange={e => {
               setPhone(e.target.value);
               setTouched(true)
             }}/>
@@ -135,11 +146,11 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
         <Stack spacing={2} justifyContent="space-between">
           <SStack direction="row" spacing={2} justifyContent="space-between">
-            <STextField size="small" label="Street" value={street} onChange={e => {
+            <STextField size="small" label="Straße" value={street} onChange={e => {
               setStreet(e.target.value);
               setTouched(true)
             }}/>
-            <TextField size="small" label="Housenumber" value={housenumber}
+            <TextField size="small" label="Hausnummer" value={housenumber}
                        onChange={e => {
                          setHousenumber(e.target.value);
                          setTouched(true)
@@ -147,11 +158,11 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
           </SStack>
 
           <SStack direction="row" spacing={2} justifyContent="space-between">
-            <TextField size="small" label="Postal" value={postal} onChange={e => {
+            <TextField size="small" label="Postleitzahl" value={postal} onChange={e => {
               setPostal(e.target.value);
               setTouched(true)
             }}/>
-            <STextField size="small" label="City" value={city} onChange={e => {
+            <STextField size="small" label="Stadt" value={city} onChange={e => {
               setCity(e.target.value);
               setTouched(true)
             }}/>
@@ -162,14 +173,14 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
 
         <SStack spacing={2}>
           <TextField size="small"
-                     label="Short Description"
+                     label="Kurzbeschreibung"
                      value={shortDescription}
                      onChange={e => {
                        setShortDescription(e.target.value);
                        setTouched(true)
                      }}/>
           <TextField size="small"
-                     label="Description"
+                     label="Beschreibung/Kommentar"
                      value={description}
                      onChange={e => {
                        setDescription(e.target.value);

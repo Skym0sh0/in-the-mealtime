@@ -17,7 +17,7 @@ paths:
       description: Fetch all orders
       operationId: fetchOrders
       responses:
-        '200':
+        200:
           description: Successful operation
           content:
             application/json:
@@ -30,9 +30,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Order'
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{id}:
     get:
@@ -48,11 +48,11 @@ paths:
           schema:
             $ref: "#/components/schemas/ID"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
@@ -66,12 +66,19 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
         '204':
           description: Successful operation
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/restaurant:
     get:
@@ -81,7 +88,7 @@ paths:
       description: Fetch orderable restaurants
       operationId: fetchOrderableRestaurants
       responses:
-        '200':
+        200:
           description: Successful operation
           content:
             application/json:
@@ -94,16 +101,16 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ID'
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/restaurant/{restaurantId}:
     post:
       tags:
         - Order
-      summary: Create new order
-      description: Create new order
+      summary: Create new order for a certain restaurant
+      description: Create new order for a certain restaurant
       operationId: createOrder
       parameters:
         - in: path
@@ -113,11 +120,11 @@ paths:
             $ref: "#/components/schemas/ID"
           description: ID of the restaurant for that the order will be
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{orderId}/infos:
     put:
@@ -132,6 +139,11 @@ paths:
           required: true
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       requestBody:
         required: true
         content:
@@ -142,11 +154,13 @@ paths:
             schema:
               $ref: "#/components/schemas/OrderInfosPatch"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{orderId}/order-position:
     post:
@@ -171,11 +185,11 @@ paths:
             schema:
               $ref: "#/components/schemas/OrderPositionPatch"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{orderId}/order-position/{orderPositionId}:
     patch:
@@ -205,11 +219,11 @@ paths:
             schema:
               $ref: "#/components/schemas/OrderPositionPatch"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
@@ -229,7 +243,7 @@ paths:
           schema:
             $ref: "#/components/schemas/ID"
       responses:
-        '200':
+        200:
           description: Successful operation
           content:
             application/json:
@@ -238,12 +252,12 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/Order'
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{id}/lock:
-    post:
+    patch:
       tags:
         - Order
       summary: Locks Order to try ordering
@@ -255,12 +269,19 @@ paths:
           name: id
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
@@ -274,15 +295,22 @@ paths:
           name: id
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{id}/ordered:
-    post:
+    patch:
       tags:
         - Order
       summary: Set Order to be ordered and waiting for delivery
@@ -294,15 +322,22 @@ paths:
           name: id
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{id}/delivered:
-    post:
+    patch:
       tags:
         - Order
       summary: Set Order to be delivered
@@ -314,12 +349,19 @@ paths:
           name: id
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{id}/revoke:
     delete:
@@ -334,12 +376,19 @@ paths:
           name: id
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/order/{id}/archive:
     delete:
@@ -354,12 +403,19 @@ paths:
           name: id
           schema:
             $ref: "#/components/schemas/ID"
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessOrderResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
 
   /api/restaurant:
@@ -370,7 +426,7 @@ paths:
       description: Fetch all restaurants
       operationId: fetchRestaurants
       responses:
-        '200':
+        200:
           description: Successful operation
           content:
             application/json:
@@ -383,15 +439,15 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Restaurant'
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
     post:
       tags:
         - Restaurant
-      summary: Create a new restaurants
-      description: Create a new restaurants
+      summary: Create a new restaurant
+      description: Create a new restaurant
       operationId: createRestaurant
       requestBody:
         required: true
@@ -403,7 +459,7 @@ paths:
             schema:
               $ref: '#/components/schemas/RestaurantPatch'
       responses:
-        '200':
+        200:
           description: Successful operation
           content:
             application/json:
@@ -412,9 +468,9 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/Restaurant'
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/restaurant/{id}:
     get:
@@ -430,11 +486,11 @@ paths:
           schema:
             $ref: "#/components/schemas/ID"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessRestaurantResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
     put:
       tags:
@@ -449,6 +505,11 @@ paths:
           schema:
             type: string
             format: uuid
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       requestBody:
         required: true
         content:
@@ -459,11 +520,13 @@ paths:
             schema:
               $ref: '#/components/schemas/RestaurantPatch'
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessRestaurantResponse"
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        '412':
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
@@ -478,12 +541,19 @@ paths:
           schema:
             type: string
             format: uuid
+        - in: header
+          name: If-Match
+          required: true
+          schema:
+            $ref: "#/components/schemas/Version"
       responses:
-        '204':
+        204:
           description: Successful operation
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        412:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
   /api/restaurant/{restaurantId}/menu-page:
     put:
@@ -518,12 +588,12 @@ paths:
                       type: string
                       enum: [ image/png, image/jpeg, image/jpg, image/gif, image/webp ]
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessRestaurantResponse"
-        '400':
-          description: Invalid input
-        '500':
-          description: Server Problem
+        400:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
   /api/restaurant/{restaurantId}/menu-page/{pageId}:
     get:
       tags:
@@ -548,7 +618,7 @@ paths:
           schema:
             type: boolean
       responses:
-        '200':
+        200:
           description: Successful operation
           content:
             image/png:
@@ -567,9 +637,9 @@ paths:
               schema:
                 type: string
                 format: binary
-        '400':
+        400:
           $ref: "#/components/responses/ClientErrorResponse"
-        '500':
+        500:
           $ref: "#/components/responses/ServerErrorResponse"
     delete:
       tags:
@@ -589,12 +659,12 @@ paths:
           schema:
             $ref: "#/components/schemas/ID"
       responses:
-        '200':
+        200:
           $ref: "#/components/responses/SuccessRestaurantResponse"
-        '400':
-          description: Invalid input
-        '500':
-          description: Server Problem
+        400:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
 
 components:
   schemas:
@@ -628,6 +698,7 @@ components:
         - menuPages
       allOf:
         - $ref: "#/components/schemas/RestaurantPatch"
+        - $ref: "#/components/schemas/Updatable"
       properties:
         id:
           $ref: "#/components/schemas/ID"
@@ -672,6 +743,8 @@ components:
         - orderPositions
         - orderState
         - stateManagement
+      allOf:
+        - $ref: "#/components/schemas/Updatable"
       properties:
         id:
           $ref: "#/components/schemas/ID"
@@ -706,6 +779,12 @@ components:
           type: string
           format: date-time
         archived_at:
+          type: string
+          format: date-time
+        next_transition_duration:
+          type: string
+          format: duration
+        next_transition_timestamp:
           type: string
           format: date-time
     OrderInfosPatch:
@@ -786,37 +865,57 @@ components:
     ID:
       type: string
       format: uuid
+    Version:
+      type: string
+      format: uuid
     ErrorObject:
       type: object
       properties:
+        timestamp:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
         message:
           type: string
-
+        detailMessage:
+          type: string
+        stacktrace:
+          type: string
     Creatable:
       type: object
+      required:
+        - createdAt
+        - createdBy
       properties:
         createdAt:
           type: string
           format: date-time
         createdBy:
           type: string
+          format: uuid
     Updatable:
+      type: object
+      required:
+        - version
       allOf:
         - $ref: "#/components/schemas/Creatable"
-        - type: object
-          properties:
-            version:
-              type: string
-              format: uuid
-            updatedAt:
-              type: string
-              format: date-time
-            updatedBy:
-              type: string
-              format: uuid
+      properties:
+        version:
+          $ref: "#/components/schemas/Version"
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: string
+          format: uuid
   responses:
     SuccessOrderResponse:
       description: Successful operation
+      headers:
+        ETag:
+          schema:
+            $ref: "#/components/schemas/Version"
       content:
         application/json:
           schema:
@@ -826,6 +925,10 @@ components:
             $ref: '#/components/schemas/Order'
     SuccessRestaurantResponse:
       description: Successful operation
+      headers:
+        ETag:
+          schema:
+            $ref: "#/components/schemas/Version"
       content:
         application/json:
           schema:

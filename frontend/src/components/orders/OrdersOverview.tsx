@@ -3,25 +3,37 @@ import styled from "styled-components";
 import {useCallback, useEffect, useState} from "react";
 import {Restaurant} from "../../../build/generated-ts/api";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
-import {api} from "../../api/api.ts";
 import OrdersCardsList from "./OrdersCardsList.tsx";
 import {DRAWER_WIDTH} from "../../utils/utils.ts";
 import {Outlet} from "react-router-dom";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 export default function OrdersOverview() {
+  const {orderApi, restaurantApi} = useApiAccess();
+  const {notifyError} = useNotification();
+
+  const [hasError, setHasError] = useState(false);
   const [restaurants, setRestaurants] = useState<Restaurant[] | null>(null);
   const [orderableRestaurantIds, setOrderableRestaurantIds] = useState<string[]>([]);
 
   const refreshRestaurants = useCallback(() => {
     Promise.all([
-      api.restaurants.fetchRestaurants(),
-      api.orders.fetchOrderableRestaurants()
+      restaurantApi.fetchRestaurants(),
+      orderApi.fetchOrderableRestaurants()
     ])
       .then(([rests, ids]) => {
+        setHasError(false)
         setRestaurants(rests.data)
         setOrderableRestaurantIds(ids.data)
+      })
+      .catch(e => {
+        setHasError(true)
+        setRestaurants([]);
+        setOrderableRestaurantIds([]);
+        notifyError("Restaurants konnten nicht geladen werden", e)
       });
-  }, []);
+  }, [restaurantApi, orderApi, notifyError]);
 
   useEffect(() => {
     refreshRestaurants();
@@ -32,9 +44,11 @@ export default function OrdersOverview() {
       <SDrawer variant="permanent">
         <Toolbar/>
         <Paper sx={{height: '100%', maxHeight: '100%'}}>
-          {restaurants && <OrdersCardsList restaurants={restaurants}
-                                           orderableRestaurantIds={orderableRestaurantIds}
-                                           onRefresh={refreshRestaurants}/>}
+          {!hasError && restaurants &&
+            <OrdersCardsList restaurants={restaurants}
+                             orderableRestaurantIds={orderableRestaurantIds}
+                             onRefresh={refreshRestaurants}/>
+          }
         </Paper>
       </SDrawer>
 

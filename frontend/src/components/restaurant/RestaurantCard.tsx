@@ -61,7 +61,7 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
       </Typography>
 
       <Typography variant="body2" color="text.secondary">
-        {restaurant.shortDescription ?? 'bla bla'}
+        {restaurant.shortDescription ?? <>&nbsp;</>}
       </Typography>
     </CardContent>
 

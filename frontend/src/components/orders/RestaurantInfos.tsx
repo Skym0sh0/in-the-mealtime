@@ -110,7 +110,7 @@ export default function RestaurantInfos({restaurant}: { restaurant: Restaurant }
 
   return <Stack direction="column"
                 justifyContent="center" alignItems="center"
-                spacing={1} sx={{height: '100%'}}>
+                spacing={1} sx={{height: '100%', padding: '0.5em'}}>
     <Typography variant="h6">
       Restaurant
     </Typography>

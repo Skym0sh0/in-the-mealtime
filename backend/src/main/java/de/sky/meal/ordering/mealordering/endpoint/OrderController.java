@@ -6,7 +6,9 @@ import generated.sky.meal.ordering.rest.api.OrderApi;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
 import generated.sky.meal.ordering.rest.model.OrderPositionPatch;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 
@@ -21,9 +23,15 @@ public class OrderController implements OrderApi {
     private final OrderRepository orderRepository;
     private final OrderChangeAggregator observer;
 
+    private final MeterRegistry meterRegistry;
+
     @Override
     public ResponseEntity<List<UUID>> fetchOrderableRestaurants() {
-        return ResponseEntity.ok(orderRepository.readOrderableRestaurantIds(LocalDate.now()));
+        var ids = orderRepository.readOrderableRestaurantIds(LocalDate.now());
+
+        meterRegistry.gauge("restaurant.orderable.count", ids.size());
+
+        return ResponseEntity.ok(ids);
     }
 
     @Override
@@ -32,29 +40,41 @@ public class OrderController implements OrderApi {
 
         observer.onNewOrder(order);
 
-        return ResponseEntity.ok(order);
+        meterRegistry.counter("order.create", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
     public ResponseEntity<Order> fetchOrder(UUID id) {
-        return ResponseEntity.ok(orderRepository.readOrder(id));
+        return toResponse(orderRepository.readOrder(id));
     }
 
     @Override
     public ResponseEntity<List<Order>> fetchOrders() {
-        return ResponseEntity.ok(orderRepository.readOrders());
+        var orders = orderRepository.readOrders();
+
+        meterRegistry.gauge("order.count", orders.size());
+
+        return ResponseEntity.ok(orders);
     }
 
     @Override
-    public ResponseEntity<Order> setOrderInfo(UUID orderId, OrderInfosPatch orderInfos) {
-        return ResponseEntity.ok(orderRepository.updateOrderInfos(orderId, orderInfos));
+    public ResponseEntity<Order> setOrderInfo(UUID orderId, UUID etag, OrderInfosPatch orderInfos) {
+        var order = orderRepository.updateOrderInfos(orderId, etag, orderInfos);
+
+        meterRegistry.counter("order.info.update", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Void> deleteOrder(UUID id) {
+    public ResponseEntity<Void> deleteOrder(UUID id, UUID etag) {
         observer.onBeforeOrderDelete(id);
 
-        orderRepository.deleteOrder(id);
+        orderRepository.deleteOrder(id, etag);
+
+        meterRegistry.counter("order.delete", "entity", "order").increment();
 
         return ResponseEntity.ok()
                 .build();
@@ -62,68 +82,100 @@ public class OrderController implements OrderApi {
 
     @Override
     public ResponseEntity<Order> createOrderPosition(UUID orderId, OrderPositionPatch orderPosition) {
-        return ResponseEntity.ok(orderRepository.addOrderPosition(orderId, orderPosition));
+        var order = orderRepository.addOrderPosition(orderId, orderPosition);
+
+        meterRegistry.counter("order.position.add", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
     public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, OrderPositionPatch orderPosition) {
-        return ResponseEntity.ok(orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition));
+        var order = orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition);
+
+        meterRegistry.counter("order.position.update", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
     public ResponseEntity<Order> deleteOrderPosition(UUID orderId, UUID orderPositionId) {
-        return ResponseEntity.ok(orderRepository.removeOrderPosition(orderId, orderPositionId));
+        var order = orderRepository.removeOrderPosition(orderId, orderPositionId);
+
+        meterRegistry.counter("order.position.delete", "entity", "order").increment();
+
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> lockOrder(UUID id) {
-        var order = orderRepository.lockOrder(id);
+    public ResponseEntity<Order> lockOrder(UUID id, UUID etag) {
+        var order = orderRepository.lockOrder(id, etag);
+
+        meterRegistry.counter("order.state.lock", "entity", "order").increment();
 
         observer.onLockOrder(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> orderIsNowOrdered(UUID id) {
-        var order = orderRepository.setOrderToIsOrdered(id);
+    public ResponseEntity<Order> orderIsNowOrdered(UUID id, UUID etag) {
+        var order = orderRepository.setOrderToIsOrdered(id, etag);
+
+        meterRegistry.counter("order.state.ordered", "entity", "order").increment();
 
         observer.onOrderIsOrdered(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> orderIsNowDelivered(UUID id) {
-        var order = orderRepository.setOrderToDelivered(id);
+    public ResponseEntity<Order> orderIsNowDelivered(UUID id, UUID etag) {
+        var order = orderRepository.setOrderToDelivered(id, etag);
+
+        meterRegistry.counter("order.state.delivered", "entity", "order").increment();
 
         observer.onOrderDelivered(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> reopenOrder(UUID id) {
-        var order = orderRepository.reopenOrder(id);
+    public ResponseEntity<Order> reopenOrder(UUID id, UUID etag) {
+        var order = orderRepository.reopenOrder(id, etag);
+
+        meterRegistry.counter("order.state.reopen", "entity", "order").increment();
 
         observer.onOrderIsReopened(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> revokeOrder(UUID id) {
-        var order = orderRepository.revokeOrder(id);
+    public ResponseEntity<Order> revokeOrder(UUID id, UUID etag) {
+        var order = orderRepository.revokeOrder(id, etag);
+
+        meterRegistry.counter("order.state.revoke", "entity", "order").increment();
 
         observer.onOrderIsRevoked(order);
 
-        return ResponseEntity.ok(order);
+        return toResponse(order);
     }
 
     @Override
-    public ResponseEntity<Order> archiveOrder(UUID id) {
+    public ResponseEntity<Order> archiveOrder(UUID id, UUID etag) {
         observer.onBeforeOrderArchive(id);
 
-        return ResponseEntity.ok(orderRepository.archiveOrder(id));
+        var order = orderRepository.archiveOrder(id, etag);
+
+        meterRegistry.counter("order.state.archived", "entity", "order").increment();
+
+        return toResponse(order);
+    }
+
+    private static ResponseEntity<Order> toResponse(Order order) {
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, order.getVersion().toString())
+                .body(order);
     }
 }

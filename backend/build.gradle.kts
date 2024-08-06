@@ -6,6 +6,7 @@ import org.jooq.meta.jaxb.Configuration
 import org.jooq.meta.jaxb.Target
 import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
 import java.time.LocalTime
 
 buildscript {
@@ -50,6 +51,10 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
+
+    implementation("io.micrometer:micrometer-core:1.13.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.13.2")
+    implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
 
     implementation("io.swagger.core.v3:swagger-models:2.2.22")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
@@ -186,12 +191,14 @@ openApiGenerate {
     modelPackage.set("generated.sky.meal.ordering.rest.model")
     typeMappings.set(
         mapOf(
-            "time" to "LocalTime"
+            "time" to "LocalTime",
+            "duration" to "Duration",
         )
     )
     importMappings.set(
         mapOf(
-            "LocalTime" to LocalTime::class.java.getName()
+            "LocalTime" to LocalTime::class.java.getName(),
+            "Duration" to Duration::class.java.getName()
         )
     )
     configOptions.set(

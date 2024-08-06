@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
-    private static final String CORRELATION_ID = "X-Correlation-ID";
+    public static final String CORRELATION_ID = "X-Correlation-ID";
 
     @Component
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -63,7 +63,7 @@ public class WebConfig implements WebMvcConfigurer {
                 try {
                     filterChain.doFilter(request, response);
                 } finally {
-                    log.debug("<<< [{}] Request {} \"{}\" finished with Status {} in {}", correlationId, request.getMethod(), request.getServletPath(), response.getStatus(), sw.stop());
+                    log.info("<<< [{}] Request {} \"{}\" finished with Status {} in {}", correlationId, request.getMethod(), request.getServletPath(), response.getStatus(), sw.stop());
                 }
             }
         }

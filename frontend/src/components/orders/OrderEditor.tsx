@@ -4,12 +4,14 @@ import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
 import OrderSummary from "./OrderSummary.tsx";
-import {api} from "../../api/api.ts";
 import OrderInfosView from "./OrderInfosView.tsx";
 import RestaurantInfos from "./RestaurantInfos.tsx";
 import OrderButtons from "./OrderButtons.tsx";
 import {DateTime} from "luxon";
 import useWindowSizing from "../../utils/useWindowSizing.ts";
+import OrderState from "./OrderState.tsx";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -18,29 +20,38 @@ type OrderEditorProps = {
 }
 
 export default function OrderEditor({restaurant, order, onChange}: OrderEditorProps) {
+  const {orderApi} = useApiAccess();
+  const {notifyError, notifySuccess} = useNotification();
+
   const [selectedPosition, setSelectedPosition] = useState<OrderPosition | null>(null);
 
   const onCreatePosition: (position: OrderPositionPatch) => Promise<void> = useCallback((position: OrderPositionPatch) => {
-    return api.orders.createOrderPosition(order.id, position)
+    return orderApi.createOrderPosition(order.id, position)
       .then(() => {
+        notifySuccess("Bestellung hinzugefügt")
         onChange()
       })
-  }, [order.id, onChange]);
+      .catch(e => notifyError("Order Position konnte nicht erstellt werden", e))
+  }, [order.id, onChange, orderApi, notifyError, notifySuccess]);
 
   const onUpdatePosition: (positionId: string, position: OrderPositionPatch) => Promise<void> = useCallback((positionId: string, position: OrderPositionPatch) => {
-    return api.orders.updateOrderPosition(order.id, positionId, position)
+    return orderApi.updateOrderPosition(order.id, positionId, position)
       .then(() => {
+        notifySuccess("Bestellung aktualisiert")
         setSelectedPosition(null)
         onChange()
       })
-  }, [onChange, order.id]);
+      .catch(e => notifyError("Order Position konnte nicht geändert werden", e))
+  }, [onChange, order.id, orderApi, notifyError, notifySuccess]);
 
   const onDeletePosition = useCallback((position: OrderPosition) => {
-    api.orders.deleteOrderPosition(order.id, position.id)
+    orderApi.deleteOrderPosition(order.id, position.id)
       .then(() => {
+        notifySuccess("Bestellung entfernt")
         onChange()
       })
-  }, [onChange, order.id]);
+      .catch(e => notifyError("Order Position konnte nicht gelöscht werden", e))
+  }, [onChange, order.id, orderApi, notifyError, notifySuccess]);
 
   const onSelectToEditPosition = useCallback((position: OrderPosition) => {
     setSelectedPosition(position)
@@ -58,7 +69,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
   const tableParentElement = useRef<HTMLDivElement | null>(null);
   const [tableHeight, setTableHeight] = useState(10);
-  const [, windowheight] = useWindowSizing();
+  const [_, windowheight] = useWindowSizing();
 
   useEffect(() => {
     if (tableParentElement.current) {
@@ -77,9 +88,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
           <OrderButtons order={order} onRefresh={onChange}/>
         </div>
 
-        <Typography variant="caption">
-          {order.orderState}
-        </Typography>
+        <OrderState order={order}/>
       </Stack>
 
       <Paper sx={{height: '100%', flexGrow: '1'}}>
@@ -118,7 +127,6 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
                                      onUpdate={onUpdatePosition}
                                      onAbort={onDeselect}
                                      inputPosition={selectedPosition}/>
-
               </Stack>
             </Box>
 

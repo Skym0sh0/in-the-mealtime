@@ -10,7 +10,8 @@ import UndoIcon from '@mui/icons-material/Undo';
 import _ from "lodash";
 import FiberNewIcon from '@mui/icons-material/FiberNew';
 import HighlightOffIcon from '@mui/icons-material/HighlightOff';
-import {api} from "../../api/api.ts";
+import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../utils/NotificationContext.tsx";
 
 const isSortingDisabled = true; // is disabled since Sorting is not incorporated into Rest API
 
@@ -32,6 +33,9 @@ export default function MenuPageEditor({restaurant, onChange, onInit}: {
   onChange: () => void;
   onInit?: (action: (rest: Restaurant) => Promise<void>) => void,
 }) {
+  const {restaurantApi} = useApiAccess();
+  const {notifyError} = useNotification();
+
   const [newFiles, setNewFiles] = useState<FileWithId[]>([])
   const [existingPagesToDelete, setExistingPagesToDelete] = useState<string[]>([])
   const menuPages = useMemo(() => {
@@ -125,15 +129,15 @@ export default function MenuPageEditor({restaurant, onChange, onInit}: {
 
   const onSave = useCallback((restaurant: Restaurant) => {
     return Promise.all([
-        ...existingPagesToDelete.map(id => api.restaurants.deleteRestaurantsMenuPage(restaurant.id, id)),
-        ...newFiles.map(f => f.file).map(file => api.restaurants.addRestaurantsMenuPage(restaurant.id, file))
+        ...existingPagesToDelete.map(id => restaurantApi.deleteRestaurantsMenuPage(restaurant.id, id).catch(e => notifyError(`Konnte MenuPage mit id ${id} nicht entfernen`, e))),
+        ...newFiles.map(f => f.file).map(file => restaurantApi.addRestaurantsMenuPage(restaurant.id, file).catch(e => notifyError(`Konnte MenuPage ${file.name} nicht hochladen`, e)))
       ]
     )
       .then(() => {
         setExistingPagesToDelete([])
         setNewFiles([])
       })
-  }, [existingPagesToDelete, newFiles]);
+  }, [existingPagesToDelete, newFiles, restaurantApi, notifyError]);
 
   useEffect(() => {
     onInit?.(onSave)
@@ -236,15 +240,19 @@ function SinglePage({page, restaurant, moveUp, moveDown, removePage, removeFile,
 }
 
 function PageThumbnail({restaurant, page}: { restaurant: Restaurant, page: EditorMenuPage }) {
+  const {restaurantApi} = useApiAccess();
+  const {notifyError} = useNotification();
+
   const [image, setImage] = useState('https://placehold.co/48');
 
   useEffect(() => {
     if (page.file) {
       setImage(URL.createObjectURL(page.file))
     } else {
-      api.restaurants.fetchRestaurantsMenuPage(restaurant.id, page.id, true, {responseType: 'blob'})
+      restaurantApi.fetchRestaurantsMenuPage(restaurant.id, page.id, true, {responseType: 'blob'})
         .then(res => URL.createObjectURL(new Blob([res.data])))
         .then(img => setImage(img))
+        .catch(e => notifyError("Thumbnail konnte nicht geladen oder zur Anzeige gebracht werden", e))
     }
 
     return () => {

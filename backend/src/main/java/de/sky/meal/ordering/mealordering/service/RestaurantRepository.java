@@ -2,14 +2,18 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.model.DatabaseFile;
+import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
+import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
 import generated.sky.meal.ordering.rest.model.Address;
 import generated.sky.meal.ordering.rest.model.MenuPage;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 import generated.sky.meal.ordering.schema.Tables;
+import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MenuPageRecord;
 import generated.sky.meal.ordering.schema.tables.records.RestaurantRecord;
-import jakarta.ws.rs.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
 import org.springframework.stereotype.Service;
@@ -22,14 +26,19 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.IntStream;
 
+import static org.jooq.impl.DSL.select;
+
 @Service
 @RequiredArgsConstructor
 public class RestaurantRepository {
     private final DSLContext ctx;
     private final TransactionTemplate transactionTemplate;
 
+
     public Restaurant createRestaurant(RestaurantPatch restaurant) {
         return transactionTemplate.execute(status -> {
+            checkIfNameIsUnique(status, restaurant.getName());
+
             var id = UUID.randomUUID();
             var now = OffsetDateTime.now();
 
@@ -64,13 +73,18 @@ public class RestaurantRepository {
         });
     }
 
-    public Restaurant updateRestaurant(UUID id, RestaurantPatch restaurant) {
+    public Restaurant updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
         return transactionTemplate.execute(status -> {
             var rec = ctx.selectFrom(Tables.RESTAURANT)
                     .where(Tables.RESTAURANT.ID.eq(id))
                     .forUpdate()
                     .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("Restaurant not found with id: " + id));
+                    .orElseThrow(() -> new RecordNotFoundException("Restaurant", id));
+
+            checkIfNameIsUnique(status, restaurant.getName());
+
+            if (!rec.getVersion().equals(etag))
+                throw new ConcurrentUpdateException("Restaurant", etag);
 
             rec.setName(restaurant.getName())
                     .setStyle(restaurant.getStyle())
@@ -107,8 +121,27 @@ public class RestaurantRepository {
         return transactionTemplate.execute(status -> fetchRestaurant(status, id));
     }
 
-    public void deleteRestaurant(UUID id) {
+    public void deleteRestaurant(UUID id, UUID etag) {
         transactionTemplate.executeWithoutResult(status -> {
+            var rec = fetchRestaurant(status, id);
+            if (!rec.getVersion().equals(etag))
+                throw new ConcurrentUpdateException("Restaurant", etag);
+
+            if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.STATE.notIn(OrderState.NEW, OrderState.REVOKED, OrderState.ARCHIVED)))
+                throw new WrongOrderStateException("Can not delete restaurant with open orders");
+
+            ctx.deleteFrom(Tables.ORDER_POSITION)
+                    .where(Tables.ORDER_POSITION.ORDER_ID.in(
+                            select(Tables.MEAL_ORDER.ID)
+                                    .from(Tables.MEAL_ORDER)
+                                    .where(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id))
+                    ))
+                    .execute();
+
+            ctx.deleteFrom(Tables.MEAL_ORDER)
+                    .where(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id))
+                    .execute();
+
             ctx.deleteFrom(Tables.MENU_PAGE)
                     .where(Tables.MENU_PAGE.RESTAURANT_ID.eq(id))
                     .execute();
@@ -118,7 +151,7 @@ public class RestaurantRepository {
                     .execute();
 
             if (deleted == 0)
-                throw new NotFoundException("No Restaurant found with id: " + id);
+                throw new RecordNotFoundException("Restaurant", id);
         });
     }
 
@@ -131,7 +164,7 @@ public class RestaurantRepository {
                     .where(Tables.RESTAURANT.ID.eq(restaurantId))
                     .forUpdate()
                     .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No Restaurant found with id: " + restaurantId));
+                    .orElseThrow(() -> new RecordNotFoundException("Restaurant", restaurantId));
 
             var page = ctx.newRecord(Tables.MENU_PAGE);
 
@@ -165,7 +198,7 @@ public class RestaurantRepository {
                     .where(Tables.RESTAURANT.ID.eq(restaurantId))
                     .forUpdate()
                     .fetchOptional()
-                    .orElseThrow(() -> new NotFoundException("No Restaurant found with id: " + restaurantId));
+                    .orElseThrow(() -> new RecordNotFoundException("Restaurant", restaurantId));
 
             var deleted = ctx.deleteFrom(Tables.MENU_PAGE)
                     .where(Tables.MENU_PAGE.ID.eq(pageId))
@@ -173,7 +206,7 @@ public class RestaurantRepository {
                     .execute();
 
             if (deleted == 0)
-                throw new NotFoundException("No MenuPage found with id " + pageId + " for Restaurant with id " + restaurantId);
+                throw new RecordNotFoundException("Restaurant", restaurantId, "MenuPage", pageId);
 
             restaurantRec.setVersion(UUID.randomUUID())
                     .setUpdatedAt(ts)
@@ -185,9 +218,9 @@ public class RestaurantRepository {
         });
     }
 
-    public DatabaseFile readMenuPage(UUID restaurantId, UUID pageId, boolean thumbnail) {
+    public DatabaseFile readMenuPage(UUID restaurantId, UUID pageId) {
         var rec = ctx.fetchOptional(Tables.MENU_PAGE, Tables.MENU_PAGE.ID.eq(pageId).and(Tables.MENU_PAGE.RESTAURANT_ID.eq(restaurantId)))
-                .orElseThrow(() -> new NotFoundException("No MenuPage found with id " + pageId + " for Restaurant with id " + restaurantId));
+                .orElseThrow(() -> new RecordNotFoundException("Restaurant", restaurantId, "MenuPage", pageId));
 
         return new DatabaseFile(
                 rec.getName(),
@@ -216,12 +249,22 @@ public class RestaurantRepository {
 
         return ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(id))
                 .map(rec -> map(rec, pages))
-                .orElseThrow(() -> new NotFoundException("No Restaurant found with id: " + id));
+                .orElseThrow(() -> new RecordNotFoundException("Restaurant", id));
+    }
+
+    private void checkIfNameIsUnique(TransactionStatus status, String name) {
+        if (ctx.fetchExists(Tables.RESTAURANT, Tables.RESTAURANT.NAME.equalIgnoreCase(name)))
+            throw new AlreadyExistsException("Restaurant", "Name is not unique");
     }
 
     private static Restaurant map(RestaurantRecord rec, List<MenuPageRecord> pages) {
         return Restaurant.builder()
                 .id(rec.getId())
+                .createdAt(rec.getCreatedAt())
+                .createdBy(rec.getCreatedBy())
+                .updatedAt(rec.getUpdatedAt())
+                .updatedBy(rec.getUpdatedBy())
+                .version(rec.getVersion())
                 .name(rec.getName())
                 .style(rec.getStyle())
                 .kind(rec.getKind())
