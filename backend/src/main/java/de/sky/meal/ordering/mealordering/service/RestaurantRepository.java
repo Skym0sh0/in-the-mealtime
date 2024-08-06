@@ -31,13 +31,14 @@ import static org.jooq.impl.DSL.select;
 @Service
 @RequiredArgsConstructor
 public class RestaurantRepository {
+
     private final DSLContext ctx;
     private final TransactionTemplate transactionTemplate;
 
-
     public Restaurant createRestaurant(RestaurantPatch restaurant) {
         return transactionTemplate.execute(status -> {
-            checkIfNameIsUnique(status, restaurant.getName());
+            if (ctx.fetchExists(Tables.RESTAURANT, Tables.RESTAURANT.NAME.equalIgnoreCase(restaurant.getName())))
+                throw new AlreadyExistsException("Restaurant", "Name is not unique");
 
             var id = UUID.randomUUID();
             var now = OffsetDateTime.now();
@@ -81,7 +82,8 @@ public class RestaurantRepository {
                     .fetchOptional()
                     .orElseThrow(() -> new RecordNotFoundException("Restaurant", id));
 
-            checkIfNameIsUnique(status, restaurant.getName());
+            if (ctx.fetchExists(Tables.RESTAURANT, Tables.RESTAURANT.NAME.equalIgnoreCase(restaurant.getName()).and(Tables.RESTAURANT.ID.notEqual(id))))
+                throw new AlreadyExistsException("Restaurant", "Name is not unique");
 
             if (!rec.getVersion().equals(etag))
                 throw new ConcurrentUpdateException("Restaurant", etag);
@@ -250,11 +252,6 @@ public class RestaurantRepository {
         return ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(id))
                 .map(rec -> map(rec, pages))
                 .orElseThrow(() -> new RecordNotFoundException("Restaurant", id));
-    }
-
-    private void checkIfNameIsUnique(TransactionStatus status, String name) {
-        if (ctx.fetchExists(Tables.RESTAURANT, Tables.RESTAURANT.NAME.equalIgnoreCase(name)))
-            throw new AlreadyExistsException("Restaurant", "Name is not unique");
     }
 
     private static Restaurant map(RestaurantRecord rec, List<MenuPageRecord> pages) {
