@@ -75,7 +75,7 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
     </CardContent>
 
     <CardActions>
-      <Stack sx={{width: '100%'}} direction="row" justifyContent="space-between" alignItems="baseline">
+      <Stack sx={{width: '100%'}} direction="row" justifyContent="space-between" alignItems="center">
         <Stack direction="row" spacing={1}>
           {link &&
             <Link fontSize="small" href={link} target="_blank" rel="noopener noreferrer">

@@ -94,7 +94,7 @@ export default function ({order}: { order: Order }) {
     </React.Fragment>
   }>
     <Box>
-      <Typography variant="caption">
+      <Typography variant="caption" color="text.secondary">
         {translateState(order.orderState)}
       </Typography>
 

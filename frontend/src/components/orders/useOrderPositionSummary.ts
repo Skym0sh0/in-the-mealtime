@@ -2,7 +2,20 @@ import {useMemo} from "react";
 
 import {Order, OrderPosition} from "../../../build/generated-ts/api/api.ts";
 
-export default function useOrderPositionSummary(order: Order) {
+export interface OrderSummaryType {
+  participants: number;
+
+  count: number;
+  price: number;
+  paid: number;
+  tip: number;
+
+  countMissing: number;
+  paidMissing: number;
+  changeMoney: number;
+}
+
+export default function useOrderPositionSummary(order: Order): OrderSummaryType {
   return useMemo(() => {
     const add = (mapper: (pos: OrderPosition) => number, filter: (pos: OrderPosition) => boolean = () => true) => {
       return order.orderPositions.filter(filter)
