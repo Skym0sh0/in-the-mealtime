@@ -3,6 +3,7 @@ package de.sky.meal.ordering.mealordering.observers;
 import de.sky.meal.ordering.mealordering.config.NotificationConfiguration;
 import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import de.sky.meal.ordering.mealordering.service.RocketChatService;
+import de.sky.meal.ordering.mealordering.utils.TableFormatter;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderPosition;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,6 @@ import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -69,20 +69,24 @@ public class NotificationService implements OnOrderChange {
 
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
-        var table = order.getOrderPositions()
+        var formatter = new TableFormatter(" | ", "",
+                new TableFormatter.ColumnDefinition("Name", TableFormatter.Alignment.Right, 16),
+                new TableFormatter.ColumnDefinition("Gericht", TableFormatter.Alignment.Left, 32),
+                new TableFormatter.ColumnDefinition("Preis", TableFormatter.Alignment.Center, 7),
+                new TableFormatter.ColumnDefinition("Bezahlt", TableFormatter.Alignment.Center)
+        );
+
+        order.getOrderPositions()
                 .stream()
                 .sorted(Comparator.comparing(OrderPosition::getMeal))
-                .map(p -> "%16s | %-32s | %6.2f€ | %4s".formatted(
-                        p.getName(),
-                        p.getMeal(),
-                        p.getPrice(),
-                        Optional.ofNullable(p.getPaid()).orElse(0.0f) > 0 ? "Ja" : "Nein"
-                ))
-                .collect(Collectors.joining(
-                        "\n",
-                        "%16s | %32s | %7s | %4s\n".formatted("Name", "Gericht", "Preis", "Bezahlt"),
-                        "\n"
+                .forEach(pos -> formatter.addRow(
+                        pos.getName(),
+                        pos.getMeal(),
+                        "%.2f€".formatted(pos.getPrice()),
+                        Optional.ofNullable(pos.getPaid()).orElse(0.0f) > 0 ? "Ja" : "Nein"
                 ));
+
+        var table = formatter.format();
 
         var sumPrice = sumPositions(order.getOrderPositions(), OrderPosition::getPrice);
         var sumPaid = sumPositions(order.getOrderPositions(), OrderPosition::getPaid);
