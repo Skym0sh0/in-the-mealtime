@@ -1,4 +1,5 @@
 import {
+  IconButton,
   Paper,
   Stack,
   Table,
@@ -12,18 +13,26 @@ import {
 import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
 import {RestaurantReport, StatisticPerson} from "../../../build/generated-ts/api/api.ts";
 import styled from "styled-components";
+import {useMemo, useState} from "react";
+import ExpandLessIcon from '@mui/icons-material/ExpandLess';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 export default function ReportView({report}: { report: RestaurantReport }) {
   return <SPaper>
-    <Stack direction="column" spacing={1}>
+    <Stack>
       <Typography variant="h5">
         Statistiken
       </Typography>
 
       <Stack direction="row" spacing={4} justifyContent="space-between">
         <TableContainer component={Paper}>
-          <Table>
+          <Table size="small">
             <TableHead>
+              <TableRow>
+                <TableCell colSpan={2}>
+                  Übersicht
+                </TableCell>
+              </TableRow>
               <TableRow>
                 <TableCell>Was?</TableCell>
                 <TableCell>Gesamt</TableCell>
@@ -61,11 +70,19 @@ export default function ReportView({report}: { report: RestaurantReport }) {
 }
 
 function TopRanking({title, top}: { title: string, top?: StatisticPerson[], }) {
+  const [expanded, setExpanded] = useState(false);
+
+  const isExpandable = (top?.length ?? 0) > 3;
+
+  const rows = useMemo(() => {
+    return (top ?? []).filter((_, idx) => expanded ? true : idx < 3)
+  }, [expanded, top]);
+
   return <TableContainer component={Paper}>
-    <Table>
+    <Table size="small">
       <TableHead>
         <TableRow>
-          <TableCell>Top {title}</TableCell>
+          <TableCell colSpan={2}>Top {title}</TableCell>
         </TableRow>
         <TableRow>
           <TableCell>Name</TableCell>
@@ -73,12 +90,27 @@ function TopRanking({title, top}: { title: string, top?: StatisticPerson[], }) {
         </TableRow>
       </TableHead>
       <TableBody>
-        {top?.map(p => {
+        {rows.map(p => {
           return <TableRow key={p.name}>
             <TableCell>{p.name}</TableCell>
             <TableCell>{p.count}</TableCell>
           </TableRow>
         })}
+
+        {isExpandable &&
+          <TableRow>
+            <TableCell colSpan={2}>
+              <IconButton onClick={() => setExpanded(prev => !prev)}
+                          size="small"
+                          color="info">
+                {expanded
+                  ? <ExpandLessIcon fontSize="inherit"/>
+                  : <ExpandMoreIcon fontSize="inherit"/>
+                }
+              </IconButton>
+            </TableCell>
+          </TableRow>
+        }
       </TableBody>
     </Table>
   </TableContainer>

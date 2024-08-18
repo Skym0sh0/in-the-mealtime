@@ -135,6 +135,7 @@ tasks.register("jooqCodegen") {
             it.start()
 
             Flyway.configure()
+                .failOnMissingLocations(true)
                 .dataSource(it.jdbcUrl, it.username, it.password)
                 .locations("${Location.FILESYSTEM_PREFIX}${layout.projectDirectory.dir("src/main/resources/db/migration").asFile.path}")
                 .load()
@@ -155,11 +156,6 @@ tasks.register("jooqCodegen") {
                                 .withInputSchema("public")
                                 .withOutputSchema("meal_ordering")
                                 .withExcludes(".*flyway.*")
-                                .withForcedTypes(
-                                    ForcedType()
-                                        .withName("NUMERIC")
-                                        .withIncludeTypes("MONEY")
-                                )
                         )
                         .withGenerate(
                             Generate()

@@ -248,8 +248,8 @@ public class RestaurantRepository {
 
             var orderCountField = DSL.countDistinct(Tables.MEAL_ORDER.ID);
             var positionCountField = DSL.countDistinct(Tables.ORDER_POSITION.ID);
-            var priceSumField = DSL.sum(Tables.ORDER_POSITION.PRICE.cast(BigDecimal.class));
-            var tipSumField = DSL.sum(Tables.ORDER_POSITION.TIP.cast(BigDecimal.class));
+            var priceSumField = DSL.sum(Tables.ORDER_POSITION.PRICE);
+            var tipSumField = DSL.sum(Tables.ORDER_POSITION.TIP);
 
             ctx.select(orderCountField, positionCountField, priceSumField, tipSumField)
                     .from(Tables.ORDER_POSITION)
