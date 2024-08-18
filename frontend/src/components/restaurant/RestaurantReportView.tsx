@@ -51,6 +51,7 @@ export default function ReportView({report}: { report: RestaurantReport }) {
         </TableContainer>
 
         <TopRanking title="Teilnehmer" top={report.topParticipants}/>
+        <TopRanking title="Essen" top={report.topMeals}/>
         <TopRanking title="Anrufer" top={report.topOrderers}/>
         <TopRanking title="Abholer" top={report.topFetchers}/>
         <TopRanking title="Geldsammler" top={report.topMoneyCollectors}/>

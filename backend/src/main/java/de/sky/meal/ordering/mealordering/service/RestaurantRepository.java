@@ -11,6 +11,7 @@ import generated.sky.meal.ordering.rest.model.MenuPage;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 import generated.sky.meal.ordering.rest.model.RestaurantReport;
+import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import generated.sky.meal.ordering.rest.model.StatisticPerson;
 import generated.sky.meal.ordering.schema.Tables;
 import generated.sky.meal.ordering.schema.enums.OrderState;
@@ -247,12 +248,12 @@ public class RestaurantRepository {
 
             var orderCountField = DSL.countDistinct(Tables.MEAL_ORDER.ID);
             var positionCountField = DSL.countDistinct(Tables.ORDER_POSITION.ID);
-            var priceSumField = DSL.sum(Tables.ORDER_POSITION.PRICE);
-            var tipSumField = DSL.sum(Tables.ORDER_POSITION.TIP);
+            var priceSumField = DSL.sum(Tables.ORDER_POSITION.PRICE.cast(BigDecimal.class));
+            var tipSumField = DSL.sum(Tables.ORDER_POSITION.TIP.cast(BigDecimal.class));
 
             ctx.select(orderCountField, positionCountField, priceSumField, tipSumField)
                     .from(Tables.ORDER_POSITION)
-                    .join(Tables.MEAL_ORDER).on(Tables.MEAL_ORDER.ID.eq(Tables.ORDER_POSITION.ID))
+                    .join(Tables.MEAL_ORDER).on(Tables.MEAL_ORDER.ID.eq(Tables.ORDER_POSITION.ORDER_ID))
                     .where(Tables.MEAL_ORDER.STATE.in(OrderState.ARCHIVED, OrderState.DELIVERED, OrderState.ORDERED))
                     .and(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id))
                     .groupBy(Tables.MEAL_ORDER.RESTAURANT_ID)
@@ -277,6 +278,8 @@ public class RestaurantRepository {
             builder.topOrderers(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.ORDERER));
             builder.topFetchers(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.FETCHER));
             builder.topMoneyCollectors(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.MONEY_COLLECTOR));
+            builder.topParticipants(reportFetchMostOfOrderPosition(ctx, id, Tables.ORDER_POSITION.NAME));
+            builder.topMeals(reportFetchMostOfOrderPosition(ctx, id, Tables.ORDER_POSITION.MEAL));
 
             return builder.build();
         });
@@ -291,7 +294,27 @@ public class RestaurantRepository {
                 .and(Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId))
                 .groupBy(subject)
                 .orderBy(cntField.desc())
-                .limit(3)
+                .limit(20)
+                .fetch()
+                .map(rec ->
+                        StatisticPerson.builder()
+                                .name(rec.get(subject))
+                                .count(rec.get(cntField))
+                                .build()
+                );
+    }
+
+    private static List<StatisticPerson> reportFetchMostOfOrderPosition(DSLContext ctx, UUID restaurantId, TableField<OrderPositionRecord, String> subject) {
+        var cntField = DSL.count();
+
+        return ctx.select(subject, cntField)
+                .from(Tables.MEAL_ORDER)
+                .join(Tables.ORDER_POSITION).on(Tables.MEAL_ORDER.ID.eq(Tables.ORDER_POSITION.ORDER_ID))
+                .where(Tables.MEAL_ORDER.STATE.in(OrderState.ARCHIVED, OrderState.DELIVERED, OrderState.ORDERED))
+                .and(Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId))
+                .groupBy(subject)
+                .orderBy(cntField.desc())
+                .limit(20)
                 .fetch()
                 .map(rec ->
                         StatisticPerson.builder()

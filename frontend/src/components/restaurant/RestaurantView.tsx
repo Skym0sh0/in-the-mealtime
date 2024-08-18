@@ -25,16 +25,16 @@ export default function RestaurantView() {
     if (!params.restaurantId)
       return;
 
-    Promise.all([
-      restaurantApi.fetchRestaurant(params.restaurantId)
-        .then(res => setRestaurant(res.data)),
-      restaurantApi.fetchRestaurantReport(params.restaurantId)
-        .then(res => setReport(res.data))
-    ])
+    restaurantApi.fetchRestaurant(params.restaurantId)
+      .then(res => setRestaurant(res.data))
       .catch(e => {
         notifyError("Restaurant konnte nicht geladen werden", e);
         navigate(-1);
       })
+
+    restaurantApi.fetchRestaurantReport(params.restaurantId)
+      .then(res => setReport(res.data))
+      .catch(e => notifyError("Statistiken konnten nicht geladen werden", e))
   }, [params.restaurantId, restaurantApi, notifyError, navigate]);
 
   useEffect(() => {
