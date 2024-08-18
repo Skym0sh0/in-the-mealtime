@@ -1,5 +1,5 @@
 import {useNavigate, useParams} from "react-router-dom";
-import {Restaurant} from "../../../build/generated-ts/api/index.ts";
+import {Restaurant, RestaurantReport} from "../../../build/generated-ts/api/index.ts";
 import {Paper} from "@mui/material";
 import {useCallback, useEffect, useState} from "react";
 import styled from "styled-components";
@@ -19,13 +19,18 @@ export default function RestaurantView() {
 
   const [isNew, setIsNew] = useState<boolean>(true);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const [report, setReport] = useState<RestaurantReport | null>(null);
 
   const refresh = useCallback(() => {
     if (!params.restaurantId)
       return;
 
-    restaurantApi.fetchRestaurant(params.restaurantId)
-      .then(res => setRestaurant(res.data))
+    Promise.all([
+      restaurantApi.fetchRestaurant(params.restaurantId)
+        .then(res => setRestaurant(res.data)),
+      restaurantApi.fetchRestaurantReport(params.restaurantId)
+        .then(res => setReport(res.data))
+    ])
       .catch(e => {
         notifyError("Restaurant konnte nicht geladen werden", e);
         navigate(-1);
@@ -49,6 +54,7 @@ export default function RestaurantView() {
     <LoadingIndicator isLoading={!restaurant}>
       {restaurant &&
         <RestaurantEditor restaurant={restaurant}
+                          report={report}
                           isNew={isNew}
                           onRefresh={isNew ? undefined : refresh}/>
       }

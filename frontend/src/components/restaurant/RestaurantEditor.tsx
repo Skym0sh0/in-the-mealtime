@@ -1,21 +1,23 @@
 import {useCallback, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import styled from "styled-components";
-import {Restaurant, RestaurantPatch} from "../../../build/generated-ts/api/index.ts";
+import {Restaurant, RestaurantPatch, RestaurantReport} from "../../../build/generated-ts/api/index.ts";
 import {Button, Divider, Stack, TextField, Typography} from "@mui/material";
 import MenuPageEditor from "./MenuPageEditor.tsx";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
 import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../utils/NotificationContext.tsx";
+import ReportView from "./RestaurantReportView.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
+  report: RestaurantReport | null;
   isNew: boolean;
   onRefresh?: () => void;
 };
 
-export default function RestaurantEditor({restaurant, isNew, onRefresh}: RestaurantEditorProps) {
+export default function RestaurantEditor({restaurant, isNew, onRefresh, report}: RestaurantEditorProps) {
   const {restaurantApi} = useApiAccess();
   const {notifyError} = useNotification();
 
@@ -220,6 +222,10 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh}: Restaur
           </Button>
         </Stack>
       </SButtonsFloat>
+
+      {report &&
+        <ReportView report={report}/>
+      }
     </Stack>
   </LoadingIndicator>;
 }

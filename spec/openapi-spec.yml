@@ -755,6 +755,9 @@ components:
         - countOfOrderedMeals
         - overallPrice
         - overallTip
+        - topFetchers
+        - topOrderers
+        - topMoneyCollectors
       properties:
         restaurantId:
           $ref: "#/components/schemas/ID"
@@ -779,6 +782,10 @@ components:
           items:
             $ref: "#/components/schemas/StatisticPerson"
         topMoneyCollectors:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatisticPerson"
+        topParticipants:
           type: array
           items:
             $ref: "#/components/schemas/StatisticPerson"
