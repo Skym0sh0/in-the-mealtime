@@ -10,16 +10,22 @@ import generated.sky.meal.ordering.rest.model.Address;
 import generated.sky.meal.ordering.rest.model.MenuPage;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
+import generated.sky.meal.ordering.rest.model.RestaurantReport;
+import generated.sky.meal.ordering.rest.model.StatisticPerson;
 import generated.sky.meal.ordering.schema.Tables;
 import generated.sky.meal.ordering.schema.enums.OrderState;
+import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.MenuPageRecord;
 import generated.sky.meal.ordering.schema.tables.records.RestaurantRecord;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
+import org.jooq.TableField;
+import org.jooq.impl.DSL;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -229,6 +235,70 @@ public class RestaurantRepository {
                 rec.getImageDataMediaType(),
                 rec.getImageData()
         );
+    }
+
+    public RestaurantReport fetchReport(UUID id) {
+        return transactionTemplate.execute(_ -> {
+            if (!ctx.fetchExists(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(id)))
+                throw new RecordNotFoundException("Restaurant", id);
+
+            var builder = RestaurantReport.builder()
+                    .restaurantId(id);
+
+            var orderCountField = DSL.countDistinct(Tables.MEAL_ORDER.ID);
+            var positionCountField = DSL.countDistinct(Tables.ORDER_POSITION.ID);
+            var priceSumField = DSL.sum(Tables.ORDER_POSITION.PRICE);
+            var tipSumField = DSL.sum(Tables.ORDER_POSITION.TIP);
+
+            ctx.select(orderCountField, positionCountField, priceSumField, tipSumField)
+                    .from(Tables.ORDER_POSITION)
+                    .join(Tables.MEAL_ORDER).on(Tables.MEAL_ORDER.ID.eq(Tables.ORDER_POSITION.ID))
+                    .where(Tables.MEAL_ORDER.STATE.in(OrderState.ARCHIVED, OrderState.DELIVERED, OrderState.ORDERED))
+                    .and(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id))
+                    .groupBy(Tables.MEAL_ORDER.RESTAURANT_ID)
+                    .fetchOptional()
+                    .ifPresentOrElse(rec -> {
+                        var orders = rec.get(orderCountField);
+                        var positions = rec.get(positionCountField);
+                        var price = Optional.ofNullable(rec.get(priceSumField)).map(BigDecimal::floatValue).orElse(0f);
+                        var tip = Optional.ofNullable(rec.get(tipSumField)).map(BigDecimal::floatValue).orElse(0f);
+
+                        builder.countOfOrders(orders)
+                                .countOfOrderedMeals(positions)
+                                .overallPrice(price)
+                                .overallTip(tip);
+                    }, () -> {
+                        builder.countOfOrders(0)
+                                .countOfOrderedMeals(0)
+                                .overallPrice(0.0f)
+                                .overallTip(0.0f);
+                    });
+
+            builder.topOrderers(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.ORDERER));
+            builder.topFetchers(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.FETCHER));
+            builder.topMoneyCollectors(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.MONEY_COLLECTOR));
+
+            return builder.build();
+        });
+    }
+
+    private static List<StatisticPerson> reportFetchMostOfMealOrder(DSLContext ctx, UUID restaurantId, TableField<MealOrderRecord, String> subject) {
+        var cntField = DSL.count();
+
+        return ctx.select(subject, cntField)
+                .from(Tables.MEAL_ORDER)
+                .where(Tables.MEAL_ORDER.STATE.in(OrderState.ARCHIVED, OrderState.DELIVERED, OrderState.ORDERED))
+                .and(Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId))
+                .groupBy(subject)
+                .orderBy(cntField.desc())
+                .limit(3)
+                .fetch()
+                .map(rec ->
+                        StatisticPerson.builder()
+                                .name(rec.get(subject))
+                                .count(rec.get(cntField))
+                                .build()
+                );
     }
 
     private List<Restaurant> fetchRestaurants(TransactionStatus status) {
