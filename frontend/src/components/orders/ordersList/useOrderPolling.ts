@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useState} from "react";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
-import {useNotification} from "../../utils/NotificationContext.tsx";
-import {Order} from "../../../build/generated-ts/api";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../../utils/NotificationContext.tsx";
+import {Order} from "../../../../build/generated-ts/api";
 
 export type OrderPollingResultType = {
   orders: Order[] | null,

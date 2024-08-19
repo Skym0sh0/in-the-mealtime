@@ -5,7 +5,7 @@ import OrderCard from "./OrderCard.tsx";
 import LoadingIndicator from "../../../utils/LoadingIndicator.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import NewOrderButton from "./NewOrderButton.tsx";
-import useOrderPolling from "../useOrderPolling.ts";
+import useOrderPolling from "./useOrderPolling.ts";
 import {RestaurantOrderable} from "../types.ts";
 
 type OrdersCardsListProps = {
