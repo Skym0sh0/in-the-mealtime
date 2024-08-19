@@ -1,6 +1,7 @@
 import {useMemo} from "react";
-import {Avatar, Button, Card, CardActions, CardContent, Stack, Typography} from "@mui/material";
+import {Avatar, Button, Card, CardActions, CardContent, Link, Stack, Typography} from "@mui/material";
 import {Restaurant} from "../../../build/generated-ts/api/api.ts";
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 
 type RestaurantCardProps = {
   restaurant: Restaurant;
@@ -35,8 +36,16 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
   const phone = useMemo(() => {
     if (!restaurant.phone)
       return null;
-    return restaurant.phone.replace(/\D/g, '');
+    return "tel:" + restaurant.phone.replace(/\D/g, '');
   }, [restaurant.phone]);
+
+  const link = useMemo(() => {
+    if (!restaurant.website)
+      return null;
+    if (restaurant.website.toLowerCase().startsWith("http"))
+      return restaurant.website
+    return "https://" + restaurant.website;
+  }, [restaurant.website]);
 
   return <Card style={{width: 350}} elevation={8}>
     <CardContent>
@@ -61,18 +70,25 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
       </Typography>
 
       <Typography variant="body2" color="text.secondary">
-        {restaurant.shortDescription ?? <>&nbsp;</>}
+        {restaurant.shortDescription ? restaurant.shortDescription : <>&nbsp;</>}
       </Typography>
     </CardContent>
 
     <CardActions>
-      <Stack sx={{width: '100%'}} direction="row" justifyContent="space-between">
-        {restaurant.phone
-          ? <Button size="small" href={"tel:" + phone}>
-            {restaurant.phone}
-          </Button>
-          : <div/>
-        }
+      <Stack sx={{width: '100%'}} direction="row" justifyContent="space-between" alignItems="center">
+        <Stack direction="row" spacing={1}>
+          {link &&
+            <Link fontSize="small" href={link} target="_blank" rel="noopener noreferrer">
+              <OpenInNewIcon fontSize="small"/>
+            </Link>
+          }
+
+          {phone &&
+            <Link fontSize="small" href={phone} target="_top" rel="noopener noreferrer">
+              {restaurant.phone}
+            </Link>
+          }
+        </Stack>
 
         <Button size="small" href={`/restaurant/${restaurant.id}`} variant="contained">
           {isNew ? 'Neu anlegen' : 'Bearbeiten'}

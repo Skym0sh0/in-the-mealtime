@@ -6,8 +6,8 @@ import de.sky.meal.ordering.mealordering.model.exceptions.MealtimeException;
 import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
 import generated.sky.meal.ordering.rest.model.ErrorObject;
 import jakarta.ws.rs.WebApplicationException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @ControllerAdvice
+@RequiredArgsConstructor
 public class ExceptionMapper {
 
-    @Value("${app.config.dev.mode.enabled:false}")
-    private boolean isInDevMode;
+    private final AppConfig appConfig;
 
     @ExceptionHandler(Throwable.class)
     public ResponseEntity<ErrorObject> handle(Throwable ex, WebRequest request) {
@@ -92,7 +92,7 @@ public class ExceptionMapper {
     }
 
     private String getStracktrace(Throwable ex) {
-        if (isInDevMode)
+        if (appConfig.devModeEnabled())
             return Throwables.getStackTraceAsString(ex);
 
         return null;

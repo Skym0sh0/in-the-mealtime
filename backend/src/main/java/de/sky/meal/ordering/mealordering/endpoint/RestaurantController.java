@@ -7,6 +7,7 @@ import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import generated.sky.meal.ordering.rest.api.RestaurantApi;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
+import generated.sky.meal.ordering.rest.model.RestaurantReport;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.core.HttpHeaders;
@@ -57,6 +58,11 @@ public class RestaurantController implements RestaurantApi {
     @Override
     public ResponseEntity<Restaurant> fetchRestaurant(UUID id) {
         return toResponse(restaurantRepository.readRestaurant(id));
+    }
+
+    @Override
+    public ResponseEntity<RestaurantReport> fetchRestaurantReport(UUID id) {
+        return ResponseEntity.ok(restaurantRepository.fetchReport(id));
     }
 
     @Override
@@ -116,7 +122,9 @@ public class RestaurantController implements RestaurantApi {
     }
 
     private static ResponseEntity<Restaurant> toResponse(Restaurant restaurant) {
-        return ResponseEntity.ok().header(HttpHeaders.ETAG, restaurant.getVersion().toString()).body(restaurant);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.ETAG, restaurant.getVersion().toString())
+                .body(restaurant);
     }
 
     private static DatabaseFile convertFile(MultipartFile file) {

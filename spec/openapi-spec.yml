@@ -555,6 +555,34 @@ paths:
           $ref: "#/components/responses/ClientErrorResponse"
         500:
           $ref: "#/components/responses/ServerErrorResponse"
+  /api/restaurant/{id}/report:
+    get:
+      tags:
+        - Restaurant
+      summary: Fetch restaurant report
+      description: Fetch restaurant report
+      operationId: fetchRestaurantReport
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: "#/components/schemas/ID"
+      responses:
+        200:
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RestaurantReport"
+            application/xml:
+              schema:
+                $ref: "#/components/schemas/RestaurantReport"
+        400:
+          $ref: "#/components/responses/ClientErrorResponse"
+        500:
+          $ref: "#/components/responses/ServerErrorResponse"
+
   /api/restaurant/{restaurantId}/menu-page:
     put:
       tags:
@@ -719,6 +747,62 @@ components:
           type: string
         city:
           type: string
+    RestaurantReport:
+      type: object
+      required:
+        - restaurantId
+        - countOfOrders
+        - countOfOrderedMeals
+        - overallPrice
+        - overallTip
+        - topFetchers
+        - topOrderers
+        - topMoneyCollectors
+        - topParticipants
+        - topMeals
+      properties:
+        restaurantId:
+          $ref: "#/components/schemas/ID"
+        countOfOrders:
+          type: integer
+          format: int32
+        countOfOrderedMeals:
+          type: integer
+          format: int32
+        overallPrice:
+          type: number
+          format: float
+        overallTip:
+          type: number
+          format: float
+        topOrderers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatisticPerson"
+        topFetchers:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatisticPerson"
+        topMoneyCollectors:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatisticPerson"
+        topParticipants:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatisticPerson"
+        topMeals:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatisticPerson"
+    StatisticPerson:
+      type: object
+      properties:
+        name:
+          type: string
+        count:
+          type: integer
+          format: int32
     MenuPage:
       type: object
       required:
