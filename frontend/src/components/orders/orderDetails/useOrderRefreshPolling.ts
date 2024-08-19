@@ -50,7 +50,7 @@ export default function useOrderRefreshPolling(orderId: string | undefined): Ord
   }, [autoReload, refresh]);
 
   useEffect(() => {
-    if (!event)
+    if (event)
       refresh();
   }, [refresh, event]);
 

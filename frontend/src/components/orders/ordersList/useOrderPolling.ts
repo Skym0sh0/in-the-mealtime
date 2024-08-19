@@ -15,7 +15,7 @@ export default function useOrderPolling(onRefresh: () => void): OrderPollingResu
 
   const {orderApi} = useApiAccess();
   const {notifyError} = useNotification();
-  
+
   const event = useServerEvents("ORDERS_CHANGED", "RESTAURANTS_CHANGED");
 
   const [hasError, setHasError] = useState(false)
@@ -47,7 +47,7 @@ export default function useOrderPolling(onRefresh: () => void): OrderPollingResu
   }, [autoReload, refresh]);
 
   useEffect(() => {
-    if ( !event)
+    if (event)
       refresh();
   }, [event, refresh]);
 
