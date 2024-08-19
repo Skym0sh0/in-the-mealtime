@@ -52,7 +52,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
 
-    implementation("io.micrometer:micrometer-core:1.13.2")
+    implementation("io.micrometer:micrometer-core:1.13.3")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.3")
     implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
 
