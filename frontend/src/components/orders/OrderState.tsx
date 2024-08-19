@@ -72,8 +72,13 @@ export default function ({order}: { order: Order }) {
 
     const diff = now.until(targetTime).toDuration().normalize();
 
-    setTimeLeft(diff)
-    setProgress((diff.toMillis() / duration.toMillis()) * 100);
+    if (diff.isValid) {
+      setTimeLeft(diff)
+      setProgress((diff.toMillis() / duration.toMillis()) * 100);
+    } else {
+      setTimeLeft(Duration.fromMillis(0).normalize())
+      setProgress(null);
+    }
   }, [order.stateManagement.next_transition_duration, order.stateManagement.next_transition_timestamp]);
 
   useEffect(() => {
