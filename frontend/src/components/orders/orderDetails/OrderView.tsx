@@ -1,11 +1,11 @@
 import {useNavigate, useParams} from "react-router-dom";
 import {useCallback, useEffect, useState} from "react";
-import {Order, Restaurant} from "../../../build/generated-ts/api/index.ts";
-import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
+import {Order, Restaurant} from "../../../../build/generated-ts/api";
+import LoadingIndicator from "../../../utils/LoadingIndicator.tsx";
 import {Box} from "@mui/material";
 import OrderEditor from "./OrderEditor.tsx";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
-import {useNotification} from "../../utils/NotificationContext.tsx";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../../utils/NotificationContext.tsx";
 
 export default function OrderView() {
   const {orderApi, restaurantApi} = useApiAccess();
@@ -47,7 +47,11 @@ export default function OrderView() {
 
   return <Box sx={{padding: '2em', height: '100%'}}>
     <LoadingIndicator isLoading={order === null || restaurant === null}>
-      {restaurant && order && <OrderEditor restaurant={restaurant} order={order} onChange={refresh}/>}
+      {restaurant && order &&
+        <OrderEditor restaurant={restaurant}
+                     order={order}
+                     onChange={refresh}/>
+      }
     </LoadingIndicator>
   </Box>
 }

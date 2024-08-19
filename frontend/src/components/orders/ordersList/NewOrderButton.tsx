@@ -1,11 +1,11 @@
 import {Button, ListItemText, Menu, MenuItem, MenuList} from "@mui/material";
-import {Restaurant} from "../../../build/generated-ts/api";
+import {Restaurant} from "../../../../build/generated-ts/api";
 import React, {useCallback, useState} from "react";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {useNavigate} from "react-router-dom";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
-import {useNotification} from "../../utils/NotificationContext.tsx";
-import {RestaurantOrderable} from "./types.ts";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../../utils/NotificationContext.tsx";
+import {RestaurantOrderable} from "../types.ts";
 
 type NewOrderButtonProps = {
   restaurants: RestaurantOrderable[],

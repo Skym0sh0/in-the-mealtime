@@ -1,12 +1,12 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {List, ListItem, Stack} from "@mui/material";
-import {Restaurant} from "../../../build/generated-ts/api";
+import {Restaurant} from "../../../../build/generated-ts/api";
 import OrderCard from "./OrderCard.tsx";
-import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
+import LoadingIndicator from "../../../utils/LoadingIndicator.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 import NewOrderButton from "./NewOrderButton.tsx";
-import useOrderPolling from "./useOrderPolling.ts";
-import {RestaurantOrderable} from "./types.ts";
+import useOrderPolling from "../useOrderPolling.ts";
+import {RestaurantOrderable} from "../types.ts";
 
 type OrdersCardsListProps = {
   restaurants: RestaurantOrderable[],

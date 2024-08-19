@@ -1,7 +1,7 @@
 import {Button, Stack, Typography} from "@mui/material";
-import {Order, OrderStateType} from "../../../build/generated-ts/api/api";
-import {assertNever} from "../../utils/utils.ts";
-import useOrderPositionSummary from "./useOrderPositionSummary.ts";
+import {Order, OrderStateType} from "../../../../build/generated-ts/api/api.ts";
+import {assertNever} from "../../../utils/utils.ts";
+import useOrderPositionSummary from "../useOrderPositionSummary.ts";
 import {useCallback} from "react";
 import {useNavigate} from "react-router-dom";
 import LockIcon from '@mui/icons-material/Lock';
@@ -10,9 +10,9 @@ import HighlightOffIcon from '@mui/icons-material/HighlightOff';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ScheduleSendIcon from '@mui/icons-material/ScheduleSend';
 import CakeIcon from '@mui/icons-material/Cake';
-import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
-import {useNotification} from "../../utils/NotificationContext.tsx";
+import {useConfirmationDialog} from "../../../utils/ConfirmationDialogContext.tsx";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../../utils/NotificationContext.tsx";
 
 export default function OrderButtons({order, onRefresh}: { order: Order, onRefresh: () => void, }) {
   const {orderApi} = useApiAccess();

@@ -1,17 +1,17 @@
-import {Order, OrderPosition, OrderPositionPatch, Restaurant} from "../../../build/generated-ts/api";
+import {Order, OrderPosition, OrderPositionPatch, Restaurant} from "../../../../build/generated-ts/api";
 import {Box, Divider, Paper, Stack, Typography} from "@mui/material";
 import OrderPositionsTable from "./OrderPositionsTable.tsx";
 import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import OrderPositionEditor from "./OrderPositionEditor.tsx";
-import OrderSummary from "./OrderSummary.tsx";
+import OrderSummary from "../OrderSummary.tsx";
 import OrderInfosView from "./OrderInfosView.tsx";
 import RestaurantInfos from "./RestaurantInfos.tsx";
 import OrderButtons from "./OrderButtons.tsx";
 import {DateTime} from "luxon";
-import useWindowSizing from "../../utils/useWindowSizing.ts";
-import OrderState from "./OrderState.tsx";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
-import {useNotification} from "../../utils/NotificationContext.tsx";
+import useWindowSizing from "../../../utils/useWindowSizing.ts";
+import OrderState from "../OrderState.tsx";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../../utils/NotificationContext.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -69,7 +69,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
   const tableParentElement = useRef<HTMLDivElement | null>(null);
   const [tableHeight, setTableHeight] = useState(10);
-  const [_, windowheight] = useWindowSizing();
+  const [, windowheight] = useWindowSizing();
 
   useEffect(() => {
     if (tableParentElement.current) {

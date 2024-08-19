@@ -1,7 +1,7 @@
 import {Box, Drawer, Paper, Toolbar} from "@mui/material";
 import styled from "styled-components";
 import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
-import OrdersCardsList from "./OrdersCardsList.tsx";
+import OrdersCardsList from "./ordersList/OrdersCardsList.tsx";
 import {DRAWER_WIDTH} from "../../utils/utils.ts";
 import {Outlet} from "react-router-dom";
 import useOrderableRestaurants from "./useOrderableRestaurants.ts";

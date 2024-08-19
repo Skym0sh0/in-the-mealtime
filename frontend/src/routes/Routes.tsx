@@ -1,6 +1,6 @@
 import {createBrowserRouter, redirect, RouterProvider} from "react-router-dom";
 import OrdersOverview from "../components/orders/OrdersOverview.tsx";
-import OrderView from "../components/orders/OrderView.tsx";
+import OrderView from "../components/orders/orderDetails/OrderView.tsx";
 import RestaurantsOverview from "../components/restaurant/RestaurantsOverview.tsx";
 import RestaurantView from "../components/restaurant/RestaurantView.tsx";
 
