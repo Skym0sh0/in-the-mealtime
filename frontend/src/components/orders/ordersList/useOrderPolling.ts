@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from "react";
 import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import {Order} from "../../../../build/generated-ts/api";
+import useServerEvents from "../useServerEvents.ts";
 
 export type OrderPollingResultType = {
   orders: Order[] | null,
@@ -10,10 +11,12 @@ export type OrderPollingResultType = {
 }
 
 export default function useOrderPolling(onRefresh: () => void): OrderPollingResultType {
-  const [autoReload] = useState(true);
+  const [autoReload] = useState(false);
 
   const {orderApi} = useApiAccess();
   const {notifyError} = useNotification();
+  
+  const event = useServerEvents("ORDERS_CHANGED", "RESTAURANTS_CHANGED");
 
   const [hasError, setHasError] = useState(false)
   const [orders, setOrders] = useState<Order[] | null>(null);
@@ -42,6 +45,11 @@ export default function useOrderPolling(onRefresh: () => void): OrderPollingResu
     const interval = setInterval(refresh, 5000);
     return () => clearInterval(interval);
   }, [autoReload, refresh]);
+
+  useEffect(() => {
+    if ( !event)
+      refresh();
+  }, [event, refresh]);
 
   return {
     orders: orders,
