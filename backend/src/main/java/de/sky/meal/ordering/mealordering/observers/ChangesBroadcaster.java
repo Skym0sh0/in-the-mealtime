@@ -29,7 +29,7 @@ public class ChangesBroadcaster implements OnOrderChange, RestaurantChangeObserv
                 .subjects(new ArrayList<>(ids))
                 .build();
 
-        log.info("Broadcasting orders change event {}", changeEvent);
+        log.info("Broadcasting orders change event {}", changeEvent.getEventType());
 
         broadcaster.send(changeEvent);
     }
@@ -38,13 +38,13 @@ public class ChangesBroadcaster implements OnOrderChange, RestaurantChangeObserv
         notifyOrderUpdated(List.of(id));
     }
 
-    public void notifyOrderUpdated(Collection<UUID> id) {
+    public void notifyOrderUpdated(Collection<UUID> ids) {
         var changeEvent = ChangeEvent.builder()
                 .eventType(ChangeEvent.EventTypeEnum.ORDER_UPDATED)
-                .subjects(new ArrayList<>(id))
+                .subjects(new ArrayList<>(ids))
                 .build();
 
-        log.info("Broadcasting order update event {}", changeEvent);
+        log.info("Broadcasting order update event {}", changeEvent.getEventType());
 
         broadcaster.send(changeEvent);
     }
@@ -59,7 +59,7 @@ public class ChangesBroadcaster implements OnOrderChange, RestaurantChangeObserv
                 .subjects(new ArrayList<>(ids))
                 .build();
 
-        log.info("Broadcasting restaurants change event {}", changeEvent);
+        log.info("Broadcasting restaurants change event {}", changeEvent.getEventType());
 
         broadcaster.send(changeEvent);
     }
@@ -74,7 +74,7 @@ public class ChangesBroadcaster implements OnOrderChange, RestaurantChangeObserv
                 .subjects(new ArrayList<>(ids))
                 .build();
 
-        log.info("Broadcasting restaurant update event {}", changeEvent);
+        log.info("Broadcasting restaurant update event {}", changeEvent.getEventType());
 
         broadcaster.send(changeEvent);
     }

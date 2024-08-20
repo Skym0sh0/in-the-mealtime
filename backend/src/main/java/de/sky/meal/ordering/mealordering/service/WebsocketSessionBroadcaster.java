@@ -58,6 +58,8 @@ public class WebsocketSessionBroadcaster extends AbstractWebSocketHandler implem
 
     @Override
     public void sendMessage(String message) {
+        log.info("Sending WebsocketMessage: {}", message);
+
         var msg = new TextMessage(message);
 
         sessions.forEach((_, session) -> {
