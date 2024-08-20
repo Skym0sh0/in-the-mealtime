@@ -16,7 +16,7 @@ export default function useOrderPolling(onRefresh: () => void): OrderPollingResu
   const {orderApi} = useApiAccess();
   const {notifyError} = useNotification();
 
-  const event = useServerEvents(ChangeEventEventTypeEnum.OrdersChanged, ChangeEventEventTypeEnum.RestaurantsChanged, ChangeEventEventTypeEnum.RestaurantUpdated);
+  const event = useServerEvents(ChangeEventEventTypeEnum.OrderUpdated, ChangeEventEventTypeEnum.OrdersChanged, ChangeEventEventTypeEnum.RestaurantsChanged, ChangeEventEventTypeEnum.RestaurantUpdated);
 
   const [hasError, setHasError] = useState(false)
   const [orders, setOrders] = useState<Order[] | null>(null);

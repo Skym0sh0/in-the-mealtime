@@ -21,7 +21,7 @@ export default function OrdersCardsList({restaurants, onRefresh}: OrdersCardsLis
   const navigate = useNavigate();
   const params = useParams<{ orderId: string }>();
 
-  const {orders, refresh, hasError} = useOrderPolling( onRefresh);
+  const {orders, refresh, hasError} = useOrderPolling(onRefresh);
 
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
