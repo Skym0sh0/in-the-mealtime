@@ -12,7 +12,10 @@ export const useWebsocketContext = () => useContext(WebsocketContext);
 
 export function WebsocketContextProvider({children}: { children?: ReactNode }) {
   const [url,] = useState(() => {
-    return `ws://${location.host}${import.meta.env.VITE_APP_CONFIG_BACKEND_URL}/websocket`;
+    // console.log(location.protocol)
+    const protocol = location.protocol.toLowerCase().startsWith("https") ? "wss" : "ws";
+
+    return `${protocol}://${location.host}${import.meta.env.VITE_APP_CONFIG_BACKEND_URL}/websocket`;
   });
 
   const ws: WebSocketHook = useWebSocket(url);
