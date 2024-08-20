@@ -15,12 +15,15 @@ function parseJson(str?: string | null): ChangeEvent | null {
 }
 
 export default function useServerEvents(...eventTypes: ChangeEventEventTypeEnum[]) {
-  const {lastMessage} = useWebSocket<ChangeEvent>("ws://localhost:8080/websocket");
+  const [url,] = useState(() => {
+    return `ws://${location.host}${import.meta.env.VITE_APP_CONFIG_BACKEND_URL}/websocket`;
+  });
+
+  const {lastMessage} = useWebSocket<ChangeEvent>(url);
 
   const [lastEvents, setLastEvents] = useState<ChangeEvent[]>([]);
 
   const [subjectEvents] = useState(() => eventTypes);
-
 
   useEffect(() => {
     if (!lastMessage || !lastMessage?.data)
