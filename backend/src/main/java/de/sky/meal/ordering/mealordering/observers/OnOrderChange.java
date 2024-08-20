@@ -5,7 +5,11 @@ import generated.sky.meal.ordering.rest.model.Order;
 import java.util.UUID;
 
 public interface OnOrderChange {
+
     default void onNewOrder(Order order) {
+    }
+
+    default void onOrderInfoUpdated(Order order) {
     }
 
     default void onLockOrder(Order order) {
@@ -21,6 +25,15 @@ public interface OnOrderChange {
     }
 
     default void onOrderIsRevoked(Order order) {
+    }
+
+    default void onOrderPositionCreated(Order order) {
+    }
+
+    default void onOrderPositionUpdated(Order order) {
+    }
+
+    default void onOrderPositionDeleted(Order order) {
     }
 
     default void onBeforeOrderArchive(UUID id) {

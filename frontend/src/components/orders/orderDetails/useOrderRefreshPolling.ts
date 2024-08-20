@@ -2,7 +2,7 @@ import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import {useNavigate} from "react-router-dom";
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {Order, Restaurant} from "../../../../build/generated-ts/api";
+import {ChangeEventEventTypeEnum, Order, Restaurant} from "../../../../build/generated-ts/api";
 import useServerEvents from "../useServerEvents.ts";
 
 export type OrderRefreshPollingResultType = {
@@ -16,7 +16,7 @@ export default function useOrderRefreshPolling(orderId: string | undefined): Ord
   const {notifyError} = useNotification();
   const navigate = useNavigate();
 
-  const event = useServerEvents("ORDER_UPDATED");
+  const event = useServerEvents(ChangeEventEventTypeEnum.OrderUpdated);
 
   const [autoReload,] = useState(false);
 

@@ -1,29 +1,39 @@
 import useWebSocket from "react-use-websocket";
-import {useEffect, useMemo, useState} from "react";
+import {useEffect, useState} from "react";
+import {ChangeEvent, ChangeEventEventTypeEnum} from "../../../build/generated-ts/api";
 
-export default function useServerEvents(...eventNames: string[]) {
-  const {lastMessage, sendMessage} = useWebSocket("wss://echo.websocket.org");
+function parseJson(str?: string | null): ChangeEvent | null {
+  if (!str)
+    return null;
 
-  const [lastEvent, setLastEvent] = useState<string | null>(null);
+  try {
+    return JSON.parse(str) as ChangeEvent;
+  } catch (e) {
+    console.error("Could not parse JSON as ChangeEvent", str, e)
+    return null;
+  }
+}
 
-  const events = useMemo(() => {
-    return eventNames;
-  }, [eventNames]);
-  
+export default function useServerEvents(...eventTypes: ChangeEventEventTypeEnum[]) {
+  const {lastMessage} = useWebSocket<ChangeEvent>("ws://localhost:8080/websocket");
+
+  const [lastEvents, setLastEvents] = useState<ChangeEvent[]>([]);
+
+  const [subjectEvents] = useState(() => eventTypes);
+
+
   useEffect(() => {
-    // console.log("Received:", lastMessage)
-    if (lastMessage?.data && events.includes(lastMessage?.data))
-      setLastEvent(lastMessage.timeStamp.toString());
-  }, [events, lastMessage]);
+    if (!lastMessage || !lastMessage?.data)
+      return;
 
-  useEffect(() => {
-    const handle = setInterval(() => {
-      // console.log("Sent event:", events)
-      events.forEach(ev => sendMessage(ev))
-    }, 3000)
+    const event = parseJson(lastMessage.data);
+    if (!event || !event.eventType)
+      return;
 
-    return () => clearInterval(handle);
-  }, [events, sendMessage]);
+    if (subjectEvents.includes(event.eventType)) {
+      setLastEvents(prev => [event, ...prev].slice(0, 32))
+    }
+  }, [subjectEvents, lastMessage]);
 
-  return lastEvent;
+  return lastEvents[0];
 }
