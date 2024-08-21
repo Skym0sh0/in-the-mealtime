@@ -13,6 +13,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class OrderChangeAggregator implements OnOrderChange {
+
     private final List<OnOrderChange> delegates;
 
     public OrderChangeAggregator(List<OnOrderChange> delegates) {
@@ -108,6 +109,50 @@ public class OrderChangeAggregator implements OnOrderChange {
                 d.onBeforeOrderArchive(id);
             } catch (Exception e) {
                 log.error("Error occurred in onBeforeOrderArchive in {}", d, e);
+            }
+        }
+    }
+
+    @Override
+    public void onOrderPositionCreated(Order order) {
+        for (var d : delegates) {
+            try {
+                d.onOrderPositionCreated(order);
+            } catch (Exception e) {
+                log.error("Error occurred in onOrderPositionCreated in {}", d, e);
+            }
+        }
+    }
+
+    @Override
+    public void onOrderPositionUpdated(Order order) {
+        for (var d : delegates) {
+            try {
+                d.onOrderPositionUpdated(order);
+            } catch (Exception e) {
+                log.error("Error occurred in onOrderPositionUpdated in {}", d, e);
+            }
+        }
+    }
+
+    @Override
+    public void onOrderPositionDeleted(Order order) {
+        for (var d : delegates) {
+            try {
+                d.onOrderPositionDeleted(order);
+            } catch (Exception e) {
+                log.error("Error occurred in onOrderPositionDeleted in {}", d, e);
+            }
+        }
+    }
+
+    @Override
+    public void onOrderInfoUpdated(Order order) {
+        for (var d : delegates) {
+            try {
+                d.onOrderInfoUpdated(order);
+            } catch (Exception e) {
+                log.error("Error occurred in onOrderInfoUpdated in {}", d, e);
             }
         }
     }

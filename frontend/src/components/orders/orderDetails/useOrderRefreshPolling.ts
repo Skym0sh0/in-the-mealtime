@@ -2,7 +2,8 @@ import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import {useNavigate} from "react-router-dom";
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {Order, Restaurant} from "../../../../build/generated-ts/api";
+import {ChangeEventEventTypeEnum, Order, Restaurant} from "../../../../build/generated-ts/api";
+import useServerEvents from "../useServerEvents.ts";
 
 export type OrderRefreshPollingResultType = {
   order: Order | null,
@@ -15,7 +16,9 @@ export default function useOrderRefreshPolling(orderId: string | undefined): Ord
   const {notifyError} = useNotification();
   const navigate = useNavigate();
 
-  const [autoReload,] = useState(true);
+  const event = useServerEvents(ChangeEventEventTypeEnum.OrderUpdated);
+
+  const [autoReload,] = useState(false);
 
   const [order, setOrder] = useState<Order | null>(null);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
@@ -37,7 +40,6 @@ export default function useOrderRefreshPolling(orderId: string | undefined): Ord
       })
   }, [orderId, orderApi, restaurantApi, notifyError, navigate]);
 
-
   useEffect(() => {
     refresh()
     if (!autoReload)
@@ -46,6 +48,11 @@ export default function useOrderRefreshPolling(orderId: string | undefined): Ord
     const interval = setInterval(refresh, 5000)
     return () => clearInterval(interval)
   }, [autoReload, refresh]);
+
+  useEffect(() => {
+    if (event)
+      refresh();
+  }, [refresh, event]);
 
   return useMemo(() => {
     return {
