@@ -1,8 +1,8 @@
 import {ReactNode, useCallback, useEffect, useState} from "react";
 import {Box, Card, CardMedia, Modal, Pagination, Stack, Typography} from "@mui/material";
-import LoadingIndicator from "../../utils/LoadingIndicator.tsx";
-import {MenuPage, Restaurant} from "../../../build/generated-ts/api";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
+import LoadingIndicator from "../../../utils/LoadingIndicator.tsx";
+import {MenuPage, Restaurant} from "../../../../build/generated-ts/api";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 
 type MenuPageImageProps = {
   page: MenuPage,

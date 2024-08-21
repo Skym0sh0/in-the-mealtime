@@ -38,6 +38,7 @@ import static org.jooq.impl.DSL.or;
 @Service
 @RequiredArgsConstructor
 public class OrderHousekeepingService implements OnOrderChange {
+
     private final Supplier<OffsetDateTime> clock = OffsetDateTime::now;
 
     private final OrderConfiguration config;
@@ -47,6 +48,8 @@ public class OrderHousekeepingService implements OnOrderChange {
     private final TransactionTemplate transactionTemplate;
     private final DSLContext ctx;
     private final OrderRepository orderRepository;
+
+    private final ChangesBroadcaster changesBroadcaster;
 
     private final MeterRegistry meterRegistry;
 
@@ -194,6 +197,8 @@ public class OrderHousekeepingService implements OnOrderChange {
                 })
                 .sum();
 
+        changesBroadcaster.notifyOrdersChanged(ids);
+
         meterRegistry.counter("order.housekeeping.delete", Tags.of("entity", "order")).increment(deleted);
     }
 
@@ -221,6 +226,8 @@ public class OrderHousekeepingService implements OnOrderChange {
                 })
                 .filter(Optional::isPresent)
                 .count();
+
+        orders.forEach(o -> changesBroadcaster.notifyOrdersChanged(o.value1()));
 
         meterRegistry.counter("order.state.transition", Tags.of("from", "locked", "to", "open")).increment(touched);
     }
@@ -250,6 +257,8 @@ public class OrderHousekeepingService implements OnOrderChange {
                 .filter(Optional::isPresent)
                 .count();
 
+        orders.forEach(o -> changesBroadcaster.notifyOrdersChanged(o.value1()));
+
         meterRegistry.counter("order.state.transition", Tags.of("from", "ordered", "to", "delivered")).increment(touched);
     }
 
@@ -277,6 +286,8 @@ public class OrderHousekeepingService implements OnOrderChange {
                 })
                 .filter(Optional::isPresent)
                 .count();
+
+        orders.forEach(o -> changesBroadcaster.notifyOrdersChanged(o.value1()));
 
         meterRegistry.counter("order.state.transition", Tags.of("from", "delivered", "to", "archived")).increment(touched);
     }

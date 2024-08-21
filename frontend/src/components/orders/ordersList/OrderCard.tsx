@@ -1,9 +1,9 @@
 import {Button, Card, CardActionArea, CardActions, CardContent, Stack, Typography} from "@mui/material";
 import {styled as muiStyled} from "@mui/material/styles";
-import {Order, Restaurant} from "../../../build/generated-ts/api";
-import useOrderPositionSummary, {OrderSummaryType} from "./useOrderPositionSummary.ts";
-import {formatMonetaryAmount} from "../../utils/moneyUtils.ts";
-import OrderState from "./OrderState.tsx";
+import {Order, Restaurant} from "../../../../build/generated-ts/api";
+import useOrderPositionSummary, {OrderSummaryType} from "../useOrderPositionSummary.ts";
+import {formatMonetaryAmount} from "../../../utils/moneyUtils.ts";
+import OrderState from "../OrderState.tsx";
 
 type OrderCardProps = {
   selected: boolean;

@@ -9,6 +9,7 @@ import styled from "styled-components";
 import {ConfirmationDialogProvider} from "./utils/ConfirmationDialogContext.tsx";
 import {ApiAccessProvider} from "./utils/ApiAccessContext.tsx";
 import {NotificationContextProvider} from "./utils/NotificationContext.tsx";
+import {WebsocketContextProvider} from "./utils/WebsocketContext.tsx";
 
 function NamedLogo() {
   return <Stack direction="row" spacing={2} justifyContent="center" alignItems="center" sx={{width: DRAWER_WIDTH}}>
@@ -55,29 +56,31 @@ function App() {
         <NotificationContextProvider>
           <ConfirmationDialogProvider>
             <ApiAccessProvider>
-              <Box sx={{width: '100%', height: '100%'}}>
-                <Box sx={{display: 'flex', width: '100%', height: '100%'}}>
-                  <CssBaseline/>
+              <WebsocketContextProvider>
+                <Box sx={{width: '100%', height: '100%'}}>
+                  <Box sx={{display: 'flex', width: '100%', height: '100%'}}>
+                    <CssBaseline/>
 
-                  <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}} color="info">
-                    <SStack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
-                      <NamedLogo/>
+                    <AppBar position="fixed" sx={{zIndex: (theme) => theme.zIndex.drawer + 1}} color="info">
+                      <SStack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
+                        <NamedLogo/>
 
-                      <AppBarLinks/>
+                        <AppBarLinks/>
 
-                      <AppBarMenu/>
-                    </SStack>
-                  </AppBar>
+                        <AppBarMenu/>
+                      </SStack>
+                    </AppBar>
 
-                  <Box component="main" sx={{flexGrow: 1, p: 1, width: '100%', height: '100%',}}>
-                    <Toolbar/>
+                    <Box component="main" sx={{flexGrow: 1, p: 1, width: '100%', height: '100%',}}>
+                      <Toolbar/>
 
-                    <div style={{height: 'calc(100% - 64px)', maxHeight: 'calc(100% - 64px)'}}>
-                      <GlobalRouting/>
-                    </div>
+                      <div style={{height: 'calc(100% - 64px)', maxHeight: 'calc(100% - 64px)'}}>
+                        <GlobalRouting/>
+                      </div>
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
+              </WebsocketContextProvider>
             </ApiAccessProvider>
           </ConfirmationDialogProvider>
         </NotificationContextProvider>

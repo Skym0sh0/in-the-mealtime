@@ -1,18 +1,18 @@
 import {Button, ListItemText, Menu, MenuItem, MenuList} from "@mui/material";
-import {Restaurant} from "../../../build/generated-ts/api";
+import {Restaurant} from "../../../../build/generated-ts/api";
 import React, {useCallback, useState} from "react";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import {useNavigate} from "react-router-dom";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
-import {useNotification} from "../../utils/NotificationContext.tsx";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
+import {useNotification} from "../../../utils/NotificationContext.tsx";
+import {RestaurantOrderable} from "../types.ts";
 
 type NewOrderButtonProps = {
-  restaurants: Restaurant[],
-  restaurantsWithOpenOrder: Restaurant[],
+  restaurants: RestaurantOrderable[],
   onChange: () => void;
 };
 
-export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, onChange}: NewOrderButtonProps) {
+export default function NewOrderButton({restaurants, onChange}: NewOrderButtonProps) {
   const {orderApi} = useApiAccess();
   const {notifyError, notifySuccess} = useNotification();
   const navigate = useNavigate();
@@ -23,10 +23,6 @@ export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, o
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
-
-  const hasOpenOrder = useCallback((restaurant: Restaurant) => {
-    return restaurantsWithOpenOrder.map(r => r.id).includes(restaurant.id)
-  }, [restaurantsWithOpenOrder]);
 
   const handleRestaurantClick = useCallback((restaurant: Restaurant) => {
     setIsLoading(true);
@@ -60,7 +56,7 @@ export default function NewOrderButton({restaurants, restaurantsWithOpenOrder, o
         {
           restaurants.map(restaurant => {
             return <MenuItem key={restaurant.id}
-                             disabled={hasOpenOrder(restaurant)}
+                             disabled={!restaurant.orderable}
                              onClick={() => handleRestaurantClick(restaurant)}>
               <ListItemText>
                 {restaurant.name}

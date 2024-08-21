@@ -5,7 +5,7 @@ import UndoIcon from "@mui/icons-material/Undo";
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from '@mui/icons-material/Add';
-import {OrderPosition, OrderPositionPatch, OrderStateType} from "../../../build/generated-ts/api";
+import {OrderPosition, OrderPositionPatch, OrderStateType} from "../../../../build/generated-ts/api";
 
 type OrderPositionEditorProps = {
   orderState: OrderStateType,

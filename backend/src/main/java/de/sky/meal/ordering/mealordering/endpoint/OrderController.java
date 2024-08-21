@@ -63,6 +63,8 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> setOrderInfo(UUID orderId, UUID etag, OrderInfosPatch orderInfos) {
         var order = orderRepository.updateOrderInfos(orderId, etag, orderInfos);
 
+        observer.onOrderInfoUpdated(order);
+
         meterRegistry.counter("order.info.update", "entity", "order").increment();
 
         return toResponse(order);
@@ -84,6 +86,8 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> createOrderPosition(UUID orderId, OrderPositionPatch orderPosition) {
         var order = orderRepository.addOrderPosition(orderId, orderPosition);
 
+        observer.onOrderPositionCreated(order);
+
         meterRegistry.counter("order.position.add", "entity", "order").increment();
 
         return toResponse(order);
@@ -93,6 +97,8 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Order> updateOrderPosition(UUID orderId, UUID orderPositionId, OrderPositionPatch orderPosition) {
         var order = orderRepository.updateOrderPosition(orderId, orderPositionId, orderPosition);
 
+        observer.onOrderPositionUpdated(order);
+
         meterRegistry.counter("order.position.update", "entity", "order").increment();
 
         return toResponse(order);
@@ -101,6 +107,8 @@ public class OrderController implements OrderApi {
     @Override
     public ResponseEntity<Order> deleteOrderPosition(UUID orderId, UUID orderPositionId) {
         var order = orderRepository.removeOrderPosition(orderId, orderPositionId);
+
+        observer.onOrderPositionDeleted(order);
 
         meterRegistry.counter("order.position.delete", "entity", "order").increment();
 

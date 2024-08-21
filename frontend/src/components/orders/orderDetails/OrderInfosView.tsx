@@ -1,13 +1,13 @@
-import {Order, OrderInfosPatch} from "../../../build/generated-ts/api";
+import {Order, OrderInfosPatch} from "../../../../build/generated-ts/api";
 import {Link, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
 import {debounce} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {DateTime} from "luxon";
 import {TimeField} from "@mui/x-date-pickers";
-import {OrderMoneyCollectionType, OrderStateType} from "../../../build/generated-ts/api/api.ts";
-import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
-import {assertNever} from "../../utils/utils.ts";
-import {useNotification} from "../../utils/NotificationContext.tsx";
+import {OrderMoneyCollectionType, OrderStateType} from "../../../../build/generated-ts/api/api.ts";
+import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
+import {assertNever} from "../../../utils/utils.ts";
+import {useNotification} from "../../../utils/NotificationContext.tsx";
 
 export default function OrderInfosView({order, onUpdateInfos}: { order: Order, onUpdateInfos: () => void, }) {
   const {orderApi} = useApiAccess();

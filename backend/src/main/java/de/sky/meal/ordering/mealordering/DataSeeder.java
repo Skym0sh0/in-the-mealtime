@@ -26,6 +26,7 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 @Slf4j
 public class DataSeeder {
+
     private final AppConfig appConfig;
 
     private final RestaurantRepository restaurantRepository;
@@ -91,12 +92,12 @@ public class DataSeeder {
         return restaurantRepository.createRestaurant(jaegerhof);
     }
 
-
     private void addRandomOrders(List<Restaurant> restaurants, int count, int minPositions, int maxPositions) {
-        var rng = ThreadLocalRandom.current();
-
         IntStream.range(0, count)
+                .parallel()
                 .mapToObj(idx -> {
+                    var rng = ThreadLocalRandom.current();
+
                     var restaurant = restaurants.get(rng.nextInt(0, restaurants.size()));
                     int positions = rng.nextInt(minPositions, maxPositions);
 

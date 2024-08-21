@@ -1,13 +1,13 @@
 import {Box, Link, Stack, Typography} from "@mui/material";
-import {Restaurant} from "../../../build/generated-ts/api";
+import {Restaurant} from "../../../../build/generated-ts/api";
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import {assertNever} from "../../utils/utils.ts";
+import {assertNever} from "../../../utils/utils.ts";
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MenuPages from "./MenuPages.tsx";
 import {useEffect, useMemo, useRef, useState} from "react";
-import useWindowSizing from "../../utils/useWindowSizing.ts";
+import useWindowSizing from "../../../utils/useWindowSizing.ts";
 
 enum InfoLineStyle {
   Normal,
