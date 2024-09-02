@@ -2,12 +2,7 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.config.OrderConfiguration;
-import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
-import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
-import de.sky.meal.ordering.mealordering.model.exceptions.OrderInfoIsNotCompleteException;
-import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
-import de.sky.meal.ordering.mealordering.model.exceptions.WrongMealCountException;
-import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.*;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
@@ -22,8 +17,10 @@ import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record1;
 import org.jooq.impl.DSL;
 import org.jooq.tools.StringUtils;
 import org.springframework.stereotype.Service;
@@ -121,6 +118,10 @@ public class OrderRepository {
         if (maximumMeals <= 0)
             throw new WrongMealCountException("Negative count is not allowed", maximumMeals);
 
+        float orderFee = Optional.ofNullable(infos.getOrderFee()).orElse(0f);
+        if (orderFee < 0)
+            throw new NegativeFeeException("Negative Order Fee is not allowed", orderFee);
+
         return changeOrderRecord(id, etag, (_, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
             if (!requiredStates.contains(rec.getState()))
@@ -135,7 +136,8 @@ public class OrderRepository {
                     .setMoneyCollector(infos.getMoneyCollector())
                     .setOrderClosingTime(infos.getOrderClosingTime())
                     .setOrderText(infos.getOrderText())
-                    .setMaximumCountMeals(infos.getMaximumMealCount());
+                    .setMaximumCountMeals(infos.getMaximumMealCount())
+                    .setOrderFee(Mapper.map(orderFee));
         });
     }
 
@@ -261,10 +263,22 @@ public class OrderRepository {
             if (rec.getState() != OrderState.OPEN)
                 throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.OPEN));
 
-            if (StringUtils.isBlank(rec.getOrderer())) throw new OrderInfoIsNotCompleteException("Orderer");
-            if (StringUtils.isBlank(rec.getFetcher())) throw new OrderInfoIsNotCompleteException("Fetcher");
+            if (StringUtils.isBlank(rec.getOrderer()))
+                throw new OrderInfoIsNotCompleteException("Orderer");
+            if (StringUtils.isBlank(rec.getFetcher()))
+                throw new OrderInfoIsNotCompleteException("Fetcher");
             if (StringUtils.isBlank(rec.getMoneyCollector()))
                 throw new OrderInfoIsNotCompleteException("MoneyCollector");
+
+            var sumTips = ctx.select(DSL.sum(Tables.ORDER_POSITION.TIP))
+                    .from(Tables.ORDER_POSITION)
+                    .where(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
+                    .fetchOptional()
+                    .map(Record1::value1)
+                    .orElse(BigDecimal.ZERO);
+
+            if (ComparableUtils.is(sumTips).lessThan(rec.getOrderFee())) // "sumTips < orderFee"
+                throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips.floatValue(), rec.getOrderFee().floatValue());
 
             rec.setState(OrderState.LOCKED);
             rec.setLockedAt(updater.timestamp());
@@ -404,6 +418,7 @@ public class OrderRepository {
                                     .orderClosingTime(rec.getOrderClosingTime())
                                     .orderText(rec.getOrderText())
                                     .maximumMealCount(rec.getMaximumCountMeals())
+                                    .orderFee(map(rec.getOrderFee()))
                                     .build()
                     )
                     .stateManagement(

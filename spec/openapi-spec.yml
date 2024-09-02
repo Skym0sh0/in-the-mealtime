@@ -885,6 +885,10 @@ components:
         orderClosingTime:
           type: string
           format: time
+        orderFee:
+          type: number
+          format: float
+          minimum: 0
         orderText:
           type: string
         maximumMealCount:
