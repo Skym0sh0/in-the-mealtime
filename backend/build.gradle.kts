@@ -58,7 +58,7 @@ dependencies {
     implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
 
     implementation("io.swagger.core.v3:swagger-models:2.2.22")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.23")
 
     implementation("org.apache.commons:commons-lang3:3.16.0")
     implementation("com.google.guava:guava:33.3.0-jre")
