@@ -70,4 +70,14 @@ public class WebsocketSessionBroadcaster extends AbstractWebSocketHandler implem
             }
         });
     }
+
+    @Override
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        if ("ping".equalsIgnoreCase(message.getPayload())) {
+            log.trace("Answering session={} ping with pong", session.getId());
+            session.sendMessage(new TextMessage("pong"));
+            log.debug("Answered session={} ping with pong", session.getId());
+            return;
+        }
+    }
 }

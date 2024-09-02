@@ -3,7 +3,7 @@ import com.github.gradle.node.npm.task.NpmTask
 plugins {
     id("base")
     id("com.github.node-gradle.node") version "7.0.2"
-    id("org.openapi.generator") version "7.7.0"
+    id("org.openapi.generator") version "7.8.0"
 }
 
 node {

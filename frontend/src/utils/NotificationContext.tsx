@@ -6,7 +6,7 @@ import {SnackbarProvider, useSnackbar} from 'notistack';
 export interface NotificationContext {
   notifyInfo: (message: string) => void;
   notifySuccess: (message: string) => void;
-  notifyError: (message: string, error: RequestResponseError) => void;
+  notifyError: (message: string, error?: RequestResponseError) => void;
 }
 
 const NotificationContext = createContext<NotificationContext>({
@@ -37,8 +37,10 @@ function Wrapper({children}: { children?: ReactNode }) {
     addNotification(message, "info");
   }, [addNotification]);
 
-  const notifyError = useCallback((message: string, error: RequestResponseError) => {
-    addNotification(`${message} (${error.error?.message ?? error.message})`, 'error')
+  const notifyError = useCallback((message: string, error?: RequestResponseError) => {
+    const errorMessage = error ? ` (${error.error?.message ?? error.message})` : "";
+
+    addNotification(`${message}${errorMessage}`, 'error')
   }, [addNotification]);
 
   return <NotificationContext.Provider value={{
