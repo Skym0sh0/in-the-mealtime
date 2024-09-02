@@ -16,7 +16,10 @@ export function WebsocketContextProvider({children}: { children?: ReactNode }) {
 
   const ws: WebSocketHook = useWebSocket(`${import.meta.env.VITE_APP_CONFIG_BACKEND_URL}/websocket`, {
     share: true,
-    heartbeat: true,
+    heartbeat: {
+      message: "ping",
+      returnMessage: "pong"
+    },
     shouldReconnect: () => true,
     onError: () => notifyError(`Websocket Verbindung konnte nicht hergestellt werden`)
   });
