@@ -118,9 +118,8 @@ public class OrderRepository {
         if (maximumMeals <= 0)
             throw new WrongMealCountException("Negative count is not allowed", maximumMeals);
 
-        float orderFee = Optional.ofNullable(infos.getOrderFee()).orElse(0f);
-        if (orderFee < 0)
-            throw new NegativeFeeException("Negative Order Fee is not allowed", orderFee);
+        if (infos.getOrderFee() != null && infos.getOrderFee() < 0)
+            throw new NegativeFeeException("Negative Order Fee is not allowed", infos.getOrderFee());
 
         return changeOrderRecord(id, etag, (_, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
@@ -137,7 +136,7 @@ public class OrderRepository {
                     .setOrderClosingTime(infos.getOrderClosingTime())
                     .setOrderText(infos.getOrderText())
                     .setMaximumCountMeals(infos.getMaximumMealCount())
-                    .setOrderFee(Mapper.map(orderFee));
+                    .setOrderFee(Mapper.map(infos.getOrderFee()));
         });
     }
 
@@ -270,15 +269,7 @@ public class OrderRepository {
             if (StringUtils.isBlank(rec.getMoneyCollector()))
                 throw new OrderInfoIsNotCompleteException("MoneyCollector");
 
-            var sumTips = ctx.select(DSL.sum(Tables.ORDER_POSITION.TIP))
-                    .from(Tables.ORDER_POSITION)
-                    .where(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
-                    .fetchOptional()
-                    .map(Record1::value1)
-                    .orElse(BigDecimal.ZERO);
-
-            if (ComparableUtils.is(sumTips).lessThan(rec.getOrderFee())) // "sumTips < orderFee"
-                throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips.floatValue(), rec.getOrderFee().floatValue());
+            validateOrderFeeIsSatisfied(orderId, rec.getOrderFee());
 
             rec.setState(OrderState.LOCKED);
             rec.setLockedAt(updater.timestamp());
@@ -385,6 +376,21 @@ public class OrderRepository {
         return ctx.fetchOptional(Tables.MEAL_ORDER, Tables.MEAL_ORDER.ID.eq(id))
                 .map(rec -> Mapper.map(config.stateTimeouts(), rec, positions))
                 .orElseThrow(() -> new RecordNotFoundException("Order", id));
+    }
+
+    private void validateOrderFeeIsSatisfied(UUID orderId, BigDecimal orderFee) {
+        if (orderFee == null || orderFee.floatValue() == 0f)
+            return;
+
+        var sumTips = ctx.select(DSL.sum(Tables.ORDER_POSITION.TIP))
+                .from(Tables.ORDER_POSITION)
+                .where(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
+                .fetchOptional()
+                .map(Record1::value1)
+                .orElse(BigDecimal.ZERO);
+
+        if (ComparableUtils.is(sumTips).lessThan(orderFee)) // "sumTips < orderFee"
+            throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips.floatValue(), orderFee.floatValue());
     }
 
     private record Updater(UUID user, OffsetDateTime timestamp) {
