@@ -886,8 +886,8 @@ components:
           type: string
           format: time
         orderFee:
-          type: number
-          format: float
+          type: integer
+          format: int32
           minimum: 0
         orderText:
           type: string
@@ -909,14 +909,14 @@ components:
         meal:
           type: string
         price:
-          type: number
-          format: float
+          type: integer
+          format: int32
         paid:
-          type: number
-          format: float
+          type: integer
+          format: int32
         tip:
-          type: number
-          format: float
+          type: integer
+          format: int32
 
     OrderPosition:
       type: object
