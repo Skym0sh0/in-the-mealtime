@@ -82,8 +82,8 @@ public class NotificationService implements OnOrderChange {
                 .forEach(pos -> formatter.addRow(
                         pos.getName(),
                         pos.getMeal(),
-                        "%.2f€".formatted(pos.getPrice()),
-                        Optional.ofNullable(pos.getPaid()).orElse(0.0f) > 0 ? "Ja" : "Nein"
+                        "%.2f€".formatted(pos.getPrice() / 100.0),
+                        Optional.ofNullable(pos.getPaid()).map(v -> v / 100.0f).orElse(0.0f) > 0 ? "Ja" : "Nein"
                 ));
 
         var table = formatter.format();
@@ -132,12 +132,12 @@ public class NotificationService implements OnOrderChange {
         );
     }
 
-    private static double sumPositions(Collection<OrderPosition> positions, Function<OrderPosition, Float> ex) {
+    private static double sumPositions(Collection<OrderPosition> positions, Function<OrderPosition, Long> ex) {
         return positions.stream()
                 .map(ex)
                 .filter(Objects::nonNull)
-                .mapToDouble(Float::doubleValue)
-                .sum();
+                .mapToLong(Long::longValue)
+                .sum() / 100.0;
     }
 
     private String getUrl(Order order) {
