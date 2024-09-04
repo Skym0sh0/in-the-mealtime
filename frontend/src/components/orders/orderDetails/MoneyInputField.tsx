@@ -68,11 +68,10 @@ export default function MoneyInputField({
                     type="number"
                     value={input}
                     onChange={e => onInputChange(e.target.value)}
-                    sx={{width: '15ch'}}
+                    error={!!parsingError || error}
+                    helperText={parsingError ?? helperText}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">€</InputAdornment>
                     }}
-                    error={!!parsingError || error}
-                    helperText={parsingError ?? helperText}
   />
 }
