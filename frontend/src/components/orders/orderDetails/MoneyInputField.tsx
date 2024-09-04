@@ -1,7 +1,7 @@
 import {TextFieldProps} from "@mui/material/TextField/TextField";
 import {TextField, InputAdornment} from "@mui/material";
-import {useCallback, useEffect, useState} from "react";
-import {parseMonetaryInput} from "../../../utils/moneyUtils.ts";
+import {useCallback, useEffect, useMemo, useState} from "react";
+import {formatMonetaryInput, parseMonetaryInput} from "../../../utils/moneyUtils.ts";
 
 export type MoneyInputFieldProps = {
   value?: number;
@@ -24,6 +24,8 @@ export default function MoneyInputField({
                                         }: MoneyInputFieldProps) {
   const [input, setInput] = useState('');
   const [parsingError, setParsingError] = useState<string | null>(null)
+
+  const [isFocused, setIsFocused] = useState(false)
 
   useEffect(() => {
     if (value === undefined) {
@@ -64,12 +66,18 @@ export default function MoneyInputField({
     onChange?.(parsed);
   }, [disableNegative, disablePositiv, disableZero, onChange]);
 
+  const beautifiedValue = useMemo(() => {
+    return formatMonetaryInput(value) ?? '';
+  }, [value]);
+
   return <TextField {...props}
                     type="number"
-                    value={input}
+                    value={isFocused ? input : beautifiedValue}
                     onChange={e => onInputChange(e.target.value)}
                     error={!!parsingError || error}
                     helperText={parsingError ?? helperText}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
                     InputProps={{
                       startAdornment: <InputAdornment position="start">€</InputAdornment>
                     }}

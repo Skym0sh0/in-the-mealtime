@@ -14,5 +14,5 @@ export function formatMonetaryInput(input?: number): string | undefined {
     if (input == null)
         return undefined;
 
-    return (input / 100).toString();
+    return (input / 100.0).toFixed(2);
 }
