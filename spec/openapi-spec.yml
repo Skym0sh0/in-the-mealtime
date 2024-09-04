@@ -770,11 +770,9 @@ components:
           type: integer
           format: int32
         overallPrice:
-          type: number
-          format: float
+          $ref: "#/components/schemas/MoneyValue"
         overallTip:
-          type: number
-          format: float
+          $ref: "#/components/schemas/MoneyValue"
         topOrderers:
           type: array
           items:

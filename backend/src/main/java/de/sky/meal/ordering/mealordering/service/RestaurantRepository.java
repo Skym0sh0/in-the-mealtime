@@ -261,8 +261,8 @@ public class RestaurantRepository {
                     .ifPresentOrElse(rec -> {
                         var orders = rec.get(orderCountField);
                         var positions = rec.get(positionCountField);
-                        var price = Optional.ofNullable(rec.get(priceSumField)).map(BigDecimal::floatValue).orElse(0f);
-                        var tip = Optional.ofNullable(rec.get(tipSumField)).map(BigDecimal::floatValue).orElse(0f);
+                        var price = Optional.ofNullable(rec.get(priceSumField)).map(BigDecimal::longValueExact).orElse(0L);
+                        var tip = Optional.ofNullable(rec.get(tipSumField)).map(BigDecimal::longValueExact).orElse(0L);
 
                         builder.countOfOrders(orders)
                                 .countOfOrderedMeals(positions)
@@ -271,8 +271,8 @@ public class RestaurantRepository {
                     }, () -> {
                         builder.countOfOrders(0)
                                 .countOfOrderedMeals(0)
-                                .overallPrice(0.0f)
-                                .overallTip(0.0f);
+                                .overallPrice(0L)
+                                .overallTip(0L);
                     });
 
             builder.topOrderers(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.ORDERER));
