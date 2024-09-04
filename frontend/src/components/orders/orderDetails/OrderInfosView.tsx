@@ -8,6 +8,7 @@ import {OrderMoneyCollectionType, OrderStateType} from "../../../../build/genera
 import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {assertNever} from "../../../utils/utils.ts";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
+import {formatMonetaryInput, parseMonetaryInput} from "../../../utils/moneyUtils.ts";
 
 export default function OrderInfosView({order, onUpdateInfos}: { order: Order, onUpdateInfos: () => void, }) {
     const {orderApi} = useApiAccess();
@@ -32,7 +33,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
         setOrderClosingTime(order.infos.orderClosingTime ? DateTime.fromISO(order.infos.orderClosingTime) : DateTime.fromISO('11:30'))
         setOrderText(order.infos.orderText ?? '')
         setMaximumMeals(order.infos.maximumMealCount?.toString() ?? '')
-        setOrderFee(order.infos.orderFee?.toString() ?? '')
+        setOrderFee(formatMonetaryInput(order.infos.orderFee))
     }, [order.infos.orderer, order.infos.fetcher, order.infos.moneyCollectionType, order.infos.moneyCollector, order.infos.orderClosingTime, order.infos.orderText, order.infos.maximumMealCount, order.infos.orderFee]);
 
     const isMaximumMealsValid = useMemo(() => {
@@ -50,7 +51,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
         if (!orderFee)
             return true;
 
-        const parsed = Number.parseFloat(orderFee)
+        const parsed = parseMonetaryInput(orderFee)
         if (Number.isNaN(parsed))
             return false
 
@@ -83,7 +84,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
             orderClosingTime: orderClosingTime?.toISOTime({includeOffset: false, suppressMilliseconds: true}),
             orderText: orderText,
             maximumMealCount: Number.parseInt(maximumMeals),
-            orderFee: Number.parseFloat(orderFee),
+            orderFee: parseMonetaryInput(orderFee),
         } as OrderInfosPatch)
     }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate, isEditable, orderFee]);
 

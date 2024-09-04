@@ -378,8 +378,8 @@ public class OrderRepository {
                 .orElseThrow(() -> new RecordNotFoundException("Order", id));
     }
 
-    private void validateOrderFeeIsSatisfied(UUID orderId, BigDecimal orderFee) {
-        if (orderFee == null || orderFee.floatValue() == 0f)
+    private void validateOrderFeeIsSatisfied(UUID orderId, Integer orderFee) {
+        if (orderFee == null || orderFee == 0)
             return;
 
         var sumTips = ctx.select(DSL.sum(Tables.ORDER_POSITION.TIP))
@@ -387,10 +387,10 @@ public class OrderRepository {
                 .where(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
                 .fetchOptional()
                 .map(Record1::value1)
-                .orElse(BigDecimal.ZERO);
+                .orElse(0);
 
-        if (ComparableUtils.is(sumTips).lessThan(orderFee)) // "sumTips < orderFee"
-            throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips.floatValue(), orderFee.floatValue());
+        if (sumTips < orderFee)
+            throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips, orderFee);
     }
 
     private record Updater(UUID user, OffsetDateTime timestamp) {

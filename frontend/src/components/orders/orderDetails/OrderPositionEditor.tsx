@@ -6,6 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from '@mui/icons-material/Add';
 import {OrderPosition, OrderPositionPatch, OrderStateType} from "../../../../build/generated-ts/api";
+import {formatMonetaryInput, parseMonetaryInput} from "../../../utils/moneyUtils.ts";
 
 type OrderPositionEditorProps = {
   orderState: OrderStateType,
@@ -44,7 +45,7 @@ export default function OrderPositionEditor({
     if (!touched)
       return NO_ERROR;
 
-    const amount = Number.parseFloat(price);
+    const amount = parseMonetaryInput(price);
     if (!price || Number.isNaN(amount) || amount <= 0) {
       return "Preis fehlerhaft";
     } else {
@@ -55,11 +56,11 @@ export default function OrderPositionEditor({
     if (!paid && !inputPosition)
       return NO_ERROR
 
-    const amount = Number.parseFloat(paid);
+    const amount = parseMonetaryInput(paid);
     if (Number.isNaN(amount))
       return "fehlerhaft"
 
-    if (amount < Number.parseFloat(price))
+    if (amount < parseMonetaryInput(price))
       return "Zu wenig";
 
     return NO_ERROR
@@ -68,11 +69,11 @@ export default function OrderPositionEditor({
     if (!tip)
       return NO_ERROR
 
-    const amount = Number.parseFloat(tip);
+    const amount = parseMonetaryInput(tip);
     if (Number.isNaN(amount) || amount < 0)
       return "fehlerhaft"
 
-    if (amount > (Number.parseFloat(paid) - Number.parseFloat(price)))
+    if (amount > (parseMonetaryInput(paid) - parseMonetaryInput(price)))
       return "Zu viel Trinkgeld"
 
     return NO_ERROR
@@ -88,9 +89,9 @@ export default function OrderPositionEditor({
 
     setName(inputPosition?.name ?? '')
     setMeal(inputPosition?.meal ?? '')
-    setPrice(inputPosition?.price?.toString() ?? '')
-    setPaid(inputPosition?.paid?.toString() ?? '')
-    setTip(inputPosition?.tip?.toString() ?? '')
+    setPrice(formatMonetaryInput(inputPosition?.price))
+    setPaid(formatMonetaryInput(inputPosition?.paid))
+    setTip(formatMonetaryInput(inputPosition?.tip))
   }, [inputPosition?.name, inputPosition?.meal, inputPosition?.price, inputPosition?.paid, inputPosition?.tip]);
 
   useEffect(() => {
@@ -104,9 +105,9 @@ export default function OrderPositionEditor({
     const newPosition = {
       name: name,
       meal: meal,
-      price: Number.parseFloat(price),
-      paid: Number.parseFloat(paid) || undefined,
-      tip: Number.parseFloat(tip) || undefined,
+      price: parseMonetaryInput(price),
+      paid: parseMonetaryInput(paid) || undefined,
+      tip: parseMonetaryInput(tip) || undefined,
     } as OrderPositionPatch;
 
     if (isNew) {
