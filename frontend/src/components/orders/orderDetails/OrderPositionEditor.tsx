@@ -1,12 +1,12 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
-import {IconButton, InputAdornment, Paper, Stack, TextField, Typography, useTheme} from "@mui/material";
+import {IconButton,  Paper, Stack, TextField, Typography, useTheme} from "@mui/material";
 import DoneIcon from "@mui/icons-material/Done";
 import UndoIcon from "@mui/icons-material/Undo";
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from '@mui/icons-material/Add';
 import {OrderPosition, OrderPositionPatch, OrderStateType} from "../../../../build/generated-ts/api";
-import {formatMonetaryInput, parseMonetaryInput} from "../../../utils/moneyUtils.ts";
+import MoneyInputField from "./MoneyInputField.tsx";
 
 type OrderPositionEditorProps = {
   orderState: OrderStateType,
@@ -31,9 +31,9 @@ export default function OrderPositionEditor({
 
   const [name, setName] = useState('');
   const [meal, setMeal] = useState('');
-  const [price, setPrice] = useState('');
-  const [paid, setPaid] = useState('');
-  const [tip, setTip] = useState('');
+  const [price, setPrice] = useState<number | undefined>(undefined);
+  const [paid, setPaid] = useState<number | undefined>(undefined);
+  const [tip, setTip] = useState<number | undefined>(undefined);
 
   const nameError = useMemo(() => {
     return touched && !name ? "Name fehlt" : NO_ERROR;
@@ -45,22 +45,16 @@ export default function OrderPositionEditor({
     if (!touched)
       return NO_ERROR;
 
-    const amount = parseMonetaryInput(price);
-    if (!price || Number.isNaN(amount) || amount <= 0) {
+    if ((price ?? 0) <= 0)
       return "Preis fehlerhaft";
-    } else {
-      return NO_ERROR;
-    }
+
+    return NO_ERROR;
   }, [price, touched]);
   const paidError = useMemo(() => {
     if (!paid && !inputPosition)
       return NO_ERROR
 
-    const amount = parseMonetaryInput(paid);
-    if (Number.isNaN(amount))
-      return "fehlerhaft"
-
-    if (amount < parseMonetaryInput(price))
+    if ((paid ?? 0) < (price ?? 0))
       return "Zu wenig";
 
     return NO_ERROR
@@ -69,11 +63,10 @@ export default function OrderPositionEditor({
     if (!tip)
       return NO_ERROR
 
-    const amount = parseMonetaryInput(tip);
-    if (Number.isNaN(amount) || amount < 0)
+    if (tip < 0)
       return "fehlerhaft"
 
-    if (amount > (parseMonetaryInput(paid) - parseMonetaryInput(price)))
+    if (tip > ((paid ?? 0) - (price ?? 0)))
       return "Zu viel Trinkgeld"
 
     return NO_ERROR
@@ -89,9 +82,9 @@ export default function OrderPositionEditor({
 
     setName(inputPosition?.name ?? '')
     setMeal(inputPosition?.meal ?? '')
-    setPrice(formatMonetaryInput(inputPosition?.price))
-    setPaid(formatMonetaryInput(inputPosition?.paid))
-    setTip(formatMonetaryInput(inputPosition?.tip))
+    setPrice(inputPosition?.price)
+    setPaid(inputPosition?.paid)
+    setTip(inputPosition?.tip)
   }, [inputPosition?.name, inputPosition?.meal, inputPosition?.price, inputPosition?.paid, inputPosition?.tip]);
 
   useEffect(() => {
@@ -105,9 +98,9 @@ export default function OrderPositionEditor({
     const newPosition = {
       name: name,
       meal: meal,
-      price: parseMonetaryInput(price),
-      paid: parseMonetaryInput(paid) || undefined,
-      tip: parseMonetaryInput(tip) || undefined,
+      price: price,
+      paid: paid,
+      tip: tip,
     } as OrderPositionPatch;
 
     if (isNew) {
@@ -184,59 +177,51 @@ export default function OrderPositionEditor({
                  error={!!mealError.trim()}
                  helperText={mealError}
       />
-      <TextField id="order-position-editor-price"
-                 size="small"
-                 type="number"
-                 label="Preis"
-                 placeholder="Preis"
-                 disabled={!canFullyEdit}
-                 value={price}
-                 onChange={e => {
-                   setPrice(e.target.value);
-                   setTouched(true)
-                 }}
-                 error={!!priceError.trim()}
-                 helperText={priceError}
-                 sx={{width: '15ch'}}
-                 InputProps={{
-                   startAdornment: <InputAdornment position="start">€</InputAdornment>
-                 }}
+      <MoneyInputField id="order-position-editor-price"
+                       size="small"
+                       label="Preis"
+                       placeholder="Preis"
+                       disabled={!canFullyEdit}
+                       disableZero={true}
+                       disableNegative={true}
+                       value={price}
+                       onChange={newValue => {
+                         setPrice(newValue);
+                         setTouched(true)
+                       }}
+                       error={!!priceError.trim()}
+                       helperText={priceError}
+                       sx={{width: '15ch'}}
       />
-      <TextField id="order-position-editor-paid"
-                 size="small"
-                 type="number"
-                 label="Bezahlt"
-                 placeholder="Bezahlt"
-                 disabled={!canOnlyPartlyEdit}
-                 value={paid}
-                 onChange={e => {
-                   setPaid(e.target.value);
-                   setTouched(true)
-                 }}
-                 error={!!paidError.trim()}
-                 helperText={paidError}
-                 sx={{width: '15ch'}}
-                 InputProps={{
-                   startAdornment: <InputAdornment position="start">€</InputAdornment>
-                 }}
+      <MoneyInputField id="order-position-editor-paid"
+                       size="small"
+                       label="Bezahlt"
+                       placeholder="Bezahlt"
+                       disabled={!canOnlyPartlyEdit}
+                       disableNegative={true}
+                       value={paid}
+                       onChange={newValue => {
+                         setPaid(newValue);
+                         setTouched(true)
+                       }}
+                       error={!!paidError.trim()}
+                       helperText={paidError}
+                       sx={{width: '15ch'}}
       />
-      <TextField id="order-position-editor-tip"
-                 size="small"
-                 type="number"
-                 label="Trinkgeld"
-                 placeholder="Trinkgeld"
-                 disabled={!canOnlyPartlyEdit}
-                 value={tip}
-                 onChange={e => {
-                   setTip(e.target.value);
-                   setTouched(true)
-                 }}
-                 error={!!tipError.trim()}
-                 helperText={tipError}
-                 sx={{width: '15ch'}}
-                 InputProps={{
-                   startAdornment: <InputAdornment position="start">€</InputAdornment>
-                 }}
+      <MoneyInputField id="order-position-editor-tip"
+                       size="small"
+                       label="Trinkgeld"
+                       placeholder="Trinkgeld"
+                       disabled={!canOnlyPartlyEdit}
+                       disableNegative={true}
+                       value={tip}
+                       onChange={newValue => {
+                         setTip(newValue);
+                         setTouched(true)
+                       }}
+                       error={!!tipError.trim()}
+                       helperText={tipError}
+                       sx={{width: '15ch'}}
       />
 
       <Stack direction="row">
