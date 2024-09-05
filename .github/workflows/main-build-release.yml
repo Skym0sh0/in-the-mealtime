@@ -31,7 +31,7 @@ jobs:
         with:
           bump_each_commit: 'false'
           bump_each_commit_patch_pattern: ''
-          tag_prefix: ''
+          tag_prefix: 'v'
           major_pattern: 'feat:'
           minor_pattern: 'fix:'
           search_commit_body: 'true'
@@ -40,9 +40,11 @@ jobs:
         run: |
           latest_release=$(gh release view --json name --jq '.name')
           echo "Latest release: $latest_release"
-          echo "New version: $RELEASE_VERSION"
+          echo "New Version: $RELEASE_VERSION"
+          echo "New Version Tag: $RELEASE_VERSION_TAG"
         env:
-          RELEASE_VERSION: ${{ steps.get_release_version.outputs.version_tag }}
+          RELEASE_VERSION: ${{ steps.get_release_version.outputs.version }}
+          RELEASE_VERSION_TAG: ${{ steps.get_release_version.outputs.version_tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
@@ -58,15 +60,16 @@ jobs:
 
       - name: Build & Push Image
         run: |
-          new_version=$RELEASE_VERSION
+          new_version=$RELEASE_VERSION_TAG
           echo "Releasing Version $new_version"
           ./gradlew jibBuildTar jib --info --stacktrace
-          gh release create "v$new_version" -t "$new_version" -n "Release v$new_version"
-          gh release upload "v$new_version" "backend/build/jib-image.tar"
-          gh release upload "v$new_version" "backend/build/jib-image.json"
-          gh release upload "v$new_version" "order-states.puml"
+          gh release create "$new_version" -t "$new_version" -n "Release $new_version"
+          gh release upload "$new_version" "backend/build/jib-image.tar"
+          gh release upload "$new_version" "backend/build/jib-image.json"
+          gh release upload "$new_version" "order-states.puml"
         env:
-          RELEASE_VERSION: ${{ steps.get_release_version.outputs.version_tag }}
+          RELEASE_VERSION: ${{ steps.get_release_version.outputs.version }}
+          RELEASE_VERSION_TAG: ${{ steps.get_release_version.outputs.version_tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
