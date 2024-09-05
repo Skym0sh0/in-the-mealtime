@@ -136,7 +136,7 @@ public class OrderRepository {
                     .setOrderClosingTime(infos.getOrderClosingTime())
                     .setOrderText(infos.getOrderText())
                     .setMaximumCountMeals(infos.getMaximumMealCount())
-                    .setOrderFee(Mapper.map(infos.getOrderFee()));
+                    .setOrderFee(infos.getOrderFee());
         });
     }
 
@@ -198,9 +198,9 @@ public class OrderRepository {
 
             posRec.setName(position.getName())
                     .setMeal(position.getMeal())
-                    .setPrice(Mapper.map(position.getPrice()))
-                    .setPaid(Mapper.map(position.getPaid()))
-                    .setTip(Mapper.map(position.getTip()));
+                    .setPrice(position.getPrice())
+                    .setPaid(position.getPaid())
+                    .setTip(position.getTip());
 
             posRec.insert();
         });
@@ -222,12 +222,12 @@ public class OrderRepository {
             switch (rec.getState()) {
                 case OPEN -> posRec.setName(position.getName())
                         .setMeal(position.getMeal())
-                        .setPrice(Mapper.map(position.getPrice()))
-                        .setPaid(Mapper.map(position.getPaid()))
-                        .setTip(Mapper.map(position.getTip()));
+                        .setPrice(position.getPrice())
+                        .setPaid(position.getPaid())
+                        .setTip(position.getTip());
 
-                case LOCKED, ORDERED, DELIVERED -> posRec.setPaid(Mapper.map(position.getPaid()))
-                        .setTip(Mapper.map(position.getTip()));
+                case LOCKED, ORDERED, DELIVERED -> posRec.setPaid(position.getPaid())
+                        .setTip(position.getTip());
 
                 case null, default ->
                         throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.OPEN));
@@ -378,8 +378,8 @@ public class OrderRepository {
                 .orElseThrow(() -> new RecordNotFoundException("Order", id));
     }
 
-    private void validateOrderFeeIsSatisfied(UUID orderId, BigDecimal orderFee) {
-        if (orderFee == null || orderFee.floatValue() == 0f)
+    private void validateOrderFeeIsSatisfied(UUID orderId, Long orderFee) {
+        if (orderFee == null || orderFee == 0)
             return;
 
         var sumTips = ctx.select(DSL.sum(Tables.ORDER_POSITION.TIP))
@@ -387,10 +387,11 @@ public class OrderRepository {
                 .where(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
                 .fetchOptional()
                 .map(Record1::value1)
-                .orElse(BigDecimal.ZERO);
+                .orElse(BigDecimal.ZERO)
+                .longValueExact();
 
-        if (ComparableUtils.is(sumTips).lessThan(orderFee)) // "sumTips < orderFee"
-            throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips.floatValue(), orderFee.floatValue());
+        if (sumTips < orderFee)
+            throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips, orderFee);
     }
 
     private record Updater(UUID user, OffsetDateTime timestamp) {
@@ -424,7 +425,7 @@ public class OrderRepository {
                                     .orderClosingTime(rec.getOrderClosingTime())
                                     .orderText(rec.getOrderText())
                                     .maximumMealCount(rec.getMaximumCountMeals())
-                                    .orderFee(map(rec.getOrderFee()))
+                                    .orderFee(rec.getOrderFee())
                                     .build()
                     )
                     .stateManagement(
@@ -449,9 +450,9 @@ public class OrderRepository {
                                                         .index(idx)
                                                         .name(r.getName())
                                                         .meal(r.getMeal())
-                                                        .price(map(r.getPrice()))
-                                                        .paid(map(r.getPaid()))
-                                                        .tip(map(r.getTip()))
+                                                        .price(r.getPrice())
+                                                        .paid(r.getPaid())
+                                                        .tip(r.getTip())
                                                         .build();
                                             }
                                     )
