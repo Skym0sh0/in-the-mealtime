@@ -39,7 +39,7 @@ jobs:
         run: |
           latest_release=$(gh release view --json name --jq '.name')
           echo "Latest release: $latest_release"
-          echo "New version: RELEASE_VERSION"
+          echo "New version: $RELEASE_VERSION"
         env:
           RELEASE_VERSION: ${{ steps.get_release_version.outputs.version_tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
