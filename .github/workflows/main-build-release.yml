@@ -21,20 +21,28 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: '0'
+          fetch-tags: 'true'
 
       - name: Get release version
         id: get_release_version
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: paulhatch/semantic-version@v5.4.0
+        with:
+          bump_each_commit: 'false'
+          bump_each_commit_patch_pattern: ''
+          major_pattern: 'feat:'
+          minor_pattern: 'fix:'
+          search_commit_body: 'true'
+
+      - name: Info release version
         run: |
           latest_release=$(gh release view --json name --jq '.name')
-          IFS='.' read -r major minor patch <<< "$latest_release"
-          new_major=$((major + 1))
-          new_version="${new_major}.${minor}.${patch}"
           echo "Latest release: $latest_release"
-          echo "New version: $new_version"
-          echo "LATEST_RELEASE=$latest_release" >> "$GITHUB_OUTPUT"
-          echo "NEW_RELEASE_VERSION=$new_version" >> "$GITHUB_OUTPUT" 
+          echo "New version: RELEASE_VERSION"
+        env:
+          RELEASE_VERSION: ${{ steps.get_release_version.outputs.version_tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
       # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
@@ -57,7 +65,7 @@ jobs:
           gh release upload "v$new_version" "backend/build/jib-image.json"
           gh release upload "v$new_version" "order-states.puml"
         env:
-          RELEASE_VERSION: ${{ steps.get_release_version.outputs.NEW_RELEASE_VERSION }}
+          RELEASE_VERSION: ${{ steps.get_release_version.outputs.version_tag }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
