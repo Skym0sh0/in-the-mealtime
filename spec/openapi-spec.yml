@@ -715,6 +715,8 @@ components:
           type: string
         shortDescription:
           type: string
+        orderFee:
+          $ref: "#/components/schemas/MoneyValue"
         address:
           $ref: '#/components/schemas/Address'
     Restaurant:
