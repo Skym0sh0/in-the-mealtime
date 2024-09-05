@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
       - main
+      - semver_experiments
   workflow_dispatch:  # Allow manual triggering from the GitHub Actions tab
 
 jobs:
