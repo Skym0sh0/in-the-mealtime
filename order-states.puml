@@ -1,5 +1,4 @@
 @startuml
-
 [*] --> NeueBestellung : Erzeuge
 
 NeueBestellung -->[*]: Manuell Löschen
