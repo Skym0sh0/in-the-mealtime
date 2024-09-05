@@ -78,7 +78,7 @@ public class OrderRepository {
 
     public Order createNewEmptyOrder(LocalDate date, UUID restaurantId) {
         return transactionTemplate.execute(_ -> {
-            ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
+            var restaurantRec = ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
                     .orElseThrow(() -> new RecordNotFoundException("Restaurant", restaurantId));
 
             if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId)
@@ -103,7 +103,8 @@ public class OrderRepository {
                     .setUpdatedBy(creator);
 
             rec.setState(OrderState.NEW)
-                    .setTargetDate(date);
+                    .setTargetDate(date)
+                    .setOrderFee(restaurantRec.getDefaultOrderFee());
 
             rec.insert();
 
