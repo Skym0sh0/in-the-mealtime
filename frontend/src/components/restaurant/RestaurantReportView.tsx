@@ -25,40 +25,7 @@ export default function ReportView({report}: { report: RestaurantReport }) {
       </Typography>
 
       <Stack direction="row" spacing={4} justifyContent="space-between">
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell colSpan={2}>
-                  Übersicht
-                </TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Was?</TableCell>
-                <TableCell>Gesamt</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              <TableRow>
-                <TableCell>Bestellungen</TableCell>
-                <TableCell>{report.countOfOrders}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Essen</TableCell>
-                <TableCell>{report.countOfOrderedMeals}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Gesamtsumme</TableCell>
-                <TableCell>{formatMonetaryAmount(report.overallPrice)}</TableCell>
-              </TableRow>
-              <TableRow>
-                <TableCell>Trinkgeld</TableCell>
-                <TableCell>{formatMonetaryAmount(report.overallTip)}</TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </TableContainer>
-
+        <BaseReport report={report}/>
         <TopRanking title="Teilnehmer" top={report.topParticipants}/>
         <TopRanking title="Essen" top={report.topMeals}/>
         <TopRanking title="Anrufer" top={report.topOrderers}/>
@@ -69,13 +36,74 @@ export default function ReportView({report}: { report: RestaurantReport }) {
   </SPaper>
 }
 
+function BaseReport({report}: { report: RestaurantReport }) {
+  return <TableContainer component={Paper}>
+    <Table size="small">
+      <TableHead>
+        <TableRow>
+          <TableCell colSpan={2}>
+            Übersicht
+          </TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>Was?</TableCell>
+          <TableCell>Gesamt</TableCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        <TableRow>
+          <TableCell>Bestellungen</TableCell>
+          <TableCell>{report.countOfOrders}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>Gerichte</TableCell>
+          <TableCell>{report.countOfOrderedMeals}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>Gesamtsumme</TableCell>
+          <TableCell align="right">{formatMonetaryAmount(report.overallPrice)}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>Tips</TableCell>
+          <TableCell align="right">{formatMonetaryAmount(report.overallTip)}</TableCell>
+        </TableRow>
+
+        <TableRow>
+          <TableCell>&#x00D8; Gerichte pro Bestellung</TableCell>
+          <TableCell align="right">{Math.round(report.countOfOrderedMeals / report.countOfOrders)}</TableCell>
+        </TableRow>
+
+        <TableRow>
+          <TableCell>&#x00D8; Preis pro Bestellung</TableCell>
+          <TableCell align="right">{formatMonetaryAmount(report.overallPrice / report.countOfOrders)}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>&#x00D8; Tip pro Bestellung</TableCell>
+          <TableCell align="right">{formatMonetaryAmount(report.overallTip / report.countOfOrders)}</TableCell>
+        </TableRow>
+
+        <TableRow>
+          <TableCell>&#x00D8; Preis pro Gericht</TableCell>
+          <TableCell align="right">{formatMonetaryAmount(report.overallPrice / report.countOfOrderedMeals)}</TableCell>
+        </TableRow>
+        <TableRow>
+          <TableCell>&#x00D8; Tip pro Gericht</TableCell>
+          <TableCell align="right">{formatMonetaryAmount(report.overallTip / report.countOfOrderedMeals)}</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  </TableContainer>
+}
+
 function TopRanking({title, top}: { title: string, top?: StatisticPerson[], }) {
   const [expanded, setExpanded] = useState(false);
 
-  const isExpandable = (top?.length ?? 0) > 3;
+  const maxRows = 8;
+
+  const isExpandable = (top?.length ?? 0) > maxRows;
 
   const rows = useMemo(() => {
-    return (top ?? []).filter((_, idx) => expanded ? true : idx < 3)
+    return (top ?? []).filter((_, idx) => expanded ? true : idx < maxRows)
   }, [expanded, top]);
 
   return <TableContainer component={Paper}>
