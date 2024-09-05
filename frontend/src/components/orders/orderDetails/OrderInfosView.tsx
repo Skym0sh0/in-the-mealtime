@@ -99,6 +99,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     <Stack spacing={2} alignItems="center">
       <TextField id="order-info-orderer"
                  size="small"
+                 fullWidth={true}
                  label="Wer bestellt?"
                  disabled={!isEditable}
                  value={orderer}
@@ -110,6 +111,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       />
       <TextField id="order-info-fetcher"
                  size="small"
+                 fullWidth={true}
                  label="Wer holt ab?"
                  disabled={!isEditable}
                  value={fetcher}
@@ -122,6 +124,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <TextField id="order-info-money-collector"
                  size="small"
+                 fullWidth={true}
                  label="Geld wohin?"
                  disabled={!isEditable}
                  value={collector}
@@ -152,6 +155,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <TimeField id="order-info-closing-time"
                  size="small"
+                 fullWidth={true}
                  ampm={false}
                  label="Bestellschluss"
                  disabled={!isEditable}
@@ -168,6 +172,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <MoneyInputField id="order-info-order-fee"
                        size="small"
+                       fullWidth={true}
                        label="Bestellkosten"
                        disabled={!isEditable}
                        disableNegative={true}
@@ -180,6 +185,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <TextField id="order-info-maximum-meals"
                  size="small"
+                 fullWidth={true}
                  type="number"
                  label="Limitierung Gerichte"
                  disabled={!isEditable}
@@ -192,6 +198,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <TextField id="order-info-additional-text"
                  size="small"
+                 fullWidth={true}
                  sx={{width: '100%'}}
                  label="Zusatztext"
                  disabled={!isEditable}
