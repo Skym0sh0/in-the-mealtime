@@ -31,6 +31,7 @@ jobs:
         with:
           bump_each_commit: 'false'
           bump_each_commit_patch_pattern: ''
+          tag_prefix: ''
           major_pattern: 'feat:'
           minor_pattern: 'fix:'
           search_commit_body: 'true'
