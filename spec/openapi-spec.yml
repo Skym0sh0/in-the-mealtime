@@ -715,6 +715,8 @@ components:
           type: string
         shortDescription:
           type: string
+        orderFee:
+          $ref: "#/components/schemas/MoneyValue"
         address:
           $ref: '#/components/schemas/Address'
     Restaurant:
@@ -770,11 +772,9 @@ components:
           type: integer
           format: int32
         overallPrice:
-          type: number
-          format: float
+          $ref: "#/components/schemas/MoneyValue"
         overallTip:
-          type: number
-          format: float
+          $ref: "#/components/schemas/MoneyValue"
         topOrderers:
           type: array
           items:
@@ -885,6 +885,8 @@ components:
         orderClosingTime:
           type: string
           format: time
+        orderFee:
+          $ref: "#/components/schemas/MoneyValue"
         orderText:
           type: string
         maximumMealCount:
@@ -905,14 +907,11 @@ components:
         meal:
           type: string
         price:
-          type: number
-          format: float
+          $ref: "#/components/schemas/MoneyValue"
         paid:
-          type: number
-          format: float
+          $ref: "#/components/schemas/MoneyValue"
         tip:
-          type: number
-          format: float
+          $ref: "#/components/schemas/MoneyValue"
 
     OrderPosition:
       type: object
@@ -949,6 +948,11 @@ components:
     ID:
       type: string
       format: uuid
+    MoneyValue:
+      type: integer
+      format: int64
+      minimum: 0
+      maximum: 100000000
     Version:
       type: string
       format: uuid

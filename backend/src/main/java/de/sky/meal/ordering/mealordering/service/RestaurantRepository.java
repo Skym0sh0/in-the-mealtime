@@ -2,10 +2,7 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.model.DatabaseFile;
-import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
-import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
-import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
-import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.*;
 import generated.sky.meal.ordering.rest.model.Address;
 import generated.sky.meal.ordering.rest.model.MenuPage;
 import generated.sky.meal.ordering.rest.model.Restaurant;
@@ -43,6 +40,8 @@ public class RestaurantRepository {
     private final TransactionTemplate transactionTemplate;
 
     public Restaurant createRestaurant(RestaurantPatch restaurant) {
+        validateOrderFee(restaurant);
+
         return transactionTemplate.execute(status -> {
             if (ctx.fetchExists(Tables.RESTAURANT, Tables.RESTAURANT.NAME.equalIgnoreCase(restaurant.getName())))
                 throw new AlreadyExistsException("Restaurant", "Name is not unique");
@@ -62,6 +61,7 @@ public class RestaurantRepository {
             dbRestaurant.setName(restaurant.getName())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
+                    .setDefaultOrderFee(restaurant.getOrderFee())
                     .setPhone(restaurant.getPhone())
                     .setEmail(restaurant.getEmail())
                     .setShortDescription(restaurant.getShortDescription())
@@ -82,6 +82,8 @@ public class RestaurantRepository {
     }
 
     public Restaurant updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
+        validateOrderFee(restaurant);
+
         return transactionTemplate.execute(status -> {
             var rec = ctx.selectFrom(Tables.RESTAURANT)
                     .where(Tables.RESTAURANT.ID.eq(id))
@@ -98,6 +100,7 @@ public class RestaurantRepository {
             rec.setName(restaurant.getName())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
+                    .setDefaultOrderFee(restaurant.getOrderFee())
                     .setPhone(restaurant.getPhone())
                     .setEmail(restaurant.getEmail())
                     .setWebsite(restaurant.getWebsite())
@@ -261,8 +264,8 @@ public class RestaurantRepository {
                     .ifPresentOrElse(rec -> {
                         var orders = rec.get(orderCountField);
                         var positions = rec.get(positionCountField);
-                        var price = Optional.ofNullable(rec.get(priceSumField)).map(BigDecimal::floatValue).orElse(0f);
-                        var tip = Optional.ofNullable(rec.get(tipSumField)).map(BigDecimal::floatValue).orElse(0f);
+                        var price = Optional.ofNullable(rec.get(priceSumField)).map(BigDecimal::longValueExact).orElse(0L);
+                        var tip = Optional.ofNullable(rec.get(tipSumField)).map(BigDecimal::longValueExact).orElse(0L);
 
                         builder.countOfOrders(orders)
                                 .countOfOrderedMeals(positions)
@@ -271,8 +274,8 @@ public class RestaurantRepository {
                     }, () -> {
                         builder.countOfOrders(0)
                                 .countOfOrderedMeals(0)
-                                .overallPrice(0.0f)
-                                .overallTip(0.0f);
+                                .overallPrice(0L)
+                                .overallTip(0L);
                     });
 
             builder.topOrderers(reportFetchMostOfMealOrder(ctx, id, Tables.MEAL_ORDER.ORDERER));
@@ -347,6 +350,11 @@ public class RestaurantRepository {
                 .orElseThrow(() -> new RecordNotFoundException("Restaurant", id));
     }
 
+    private static void validateOrderFee(RestaurantPatch restaurant) {
+        if (restaurant.getOrderFee() != null && restaurant.getOrderFee() < 0)
+            throw new NegativeFeeException("Negative default Order Fee for Restaurant is not allowed", restaurant.getOrderFee());
+    }
+
     private static Restaurant map(RestaurantRecord rec, List<MenuPageRecord> pages) {
         return Restaurant.builder()
                 .id(rec.getId())
@@ -358,6 +366,7 @@ public class RestaurantRepository {
                 .name(rec.getName())
                 .style(rec.getStyle())
                 .kind(rec.getKind())
+                .orderFee(rec.getDefaultOrderFee())
                 .phone(rec.getPhone())
                 .email(rec.getEmail())
                 .website(rec.getWebsite())

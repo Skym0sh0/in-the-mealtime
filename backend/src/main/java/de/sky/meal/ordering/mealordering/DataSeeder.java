@@ -136,7 +136,7 @@ public class DataSeeder {
                 .forEach(order -> log.debug("Seeded order {} on {}", order.getId(), order.getDate()));
     }
 
-    private record Meal(String name, float price, float paid, float tip) {
+    private record Meal(String name, long price, long paid, long tip) {
 
     }
 
@@ -145,11 +145,11 @@ public class DataSeeder {
 
         var name = "M" + rng.nextInt(30, 40) + " " + adds.get(rng.nextInt(0, adds.size()));
 
-        var price = rng.nextInt(2 * 8, 2 * 14) / 2.0f;
+        var price = (rng.nextInt(2 * 8, 2 * 14) / 2.0f);
         var tip = rng.nextInt(0, 5) / 2.0f;
         var change = rng.nextInt(0, 10) / 2.0f;
 
-        return new Meal(name, price, price + tip + change, tip);
+        return new Meal(name, (int) (price * 100), (int) ((price + tip + change) * 100), (int) (tip * 100));
     }
 
     private static String randomName(Random rng) {

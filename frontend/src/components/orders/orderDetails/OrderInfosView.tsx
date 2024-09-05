@@ -8,6 +8,7 @@ import {OrderMoneyCollectionType, OrderStateType} from "../../../../build/genera
 import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {assertNever} from "../../../utils/utils.ts";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
+import MoneyInputField from "./MoneyInputField.tsx";
 
 export default function OrderInfosView({order, onUpdateInfos}: { order: Order, onUpdateInfos: () => void, }) {
   const {orderApi} = useApiAccess();
@@ -20,9 +21,9 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   const [collectorType, setCollectorType] = useState<OrderMoneyCollectionType>(OrderMoneyCollectionType.Bar);
   const [collector, setCollector] = useState('');
   const [orderClosingTime, setOrderClosingTime] = useState<DateTime | null>(DateTime.fromISO('11:30'));
-
   const [orderText, setOrderText] = useState('');
   const [maximumMeals, setMaximumMeals] = useState('');
+  const [orderFee, setOrderFee] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     setOrderer(order.infos.orderer ?? '')
@@ -32,9 +33,10 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     setOrderClosingTime(order.infos.orderClosingTime ? DateTime.fromISO(order.infos.orderClosingTime) : DateTime.fromISO('11:30'))
     setOrderText(order.infos.orderText ?? '')
     setMaximumMeals(order.infos.maximumMealCount?.toString() ?? '')
-  }, [order.infos.orderer, order.infos.fetcher, order.infos.moneyCollectionType, order.infos.moneyCollector, order.infos.orderClosingTime, order.infos.orderText, order.infos.maximumMealCount]);
+    setOrderFee(order.infos.orderFee)
+  }, [order.infos.orderer, order.infos.fetcher, order.infos.moneyCollectionType, order.infos.moneyCollector, order.infos.orderClosingTime, order.infos.orderText, order.infos.maximumMealCount, order.infos.orderFee]);
 
-  const isValid = useMemo(() => {
+  const isMaximumMealsValid = useMemo(() => {
     if (!maximumMeals)
       return true;
 
@@ -44,6 +46,17 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
     return 1 < parsed && order.orderPositions.length <= parsed;
   }, [maximumMeals, order.orderPositions.length]);
+
+  const isFeeValid = useMemo(() => {
+    if (!orderFee)
+      return true;
+
+    return 0 <= orderFee;
+  }, [orderFee]);
+
+  const isValid = useMemo(() => {
+    return isMaximumMealsValid && isFeeValid;
+  }, [isFeeValid, isMaximumMealsValid])
 
   const isEditable = order.orderState === OrderStateType.New || order.orderState === OrderStateType.Open;
 
@@ -67,8 +80,9 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       orderClosingTime: orderClosingTime?.toISOTime({includeOffset: false, suppressMilliseconds: true}),
       orderText: orderText,
       maximumMealCount: Number.parseInt(maximumMeals),
+      orderFee: orderFee,
     } as OrderInfosPatch)
-  }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate, isEditable]);
+  }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate, isEditable, orderFee]);
 
   useEffect(() => {
     if (collector.toLowerCase().includes("paypal"))
@@ -85,6 +99,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
     <Stack spacing={2} alignItems="center">
       <TextField id="order-info-orderer"
                  size="small"
+                 fullWidth={true}
                  label="Wer bestellt?"
                  disabled={!isEditable}
                  value={orderer}
@@ -96,6 +111,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       />
       <TextField id="order-info-fetcher"
                  size="small"
+                 fullWidth={true}
                  label="Wer holt ab?"
                  disabled={!isEditable}
                  value={fetcher}
@@ -108,6 +124,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <TextField id="order-info-money-collector"
                  size="small"
+                 fullWidth={true}
                  label="Geld wohin?"
                  disabled={!isEditable}
                  value={collector}
@@ -138,6 +155,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
       <TimeField id="order-info-closing-time"
                  size="small"
+                 fullWidth={true}
                  ampm={false}
                  label="Bestellschluss"
                  disabled={!isEditable}
@@ -152,8 +170,22 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                    onChange();
                  }}/>
 
+      <MoneyInputField id="order-info-order-fee"
+                       size="small"
+                       fullWidth={true}
+                       label="Bestellkosten"
+                       disabled={!isEditable}
+                       disableNegative={true}
+                       value={orderFee}
+                       onChange={newValue => {
+                         setOrderFee(newValue)
+                         onChange();
+                       }}
+                       error={!isFeeValid}/>
+
       <TextField id="order-info-maximum-meals"
                  size="small"
+                 fullWidth={true}
                  type="number"
                  label="Limitierung Gerichte"
                  disabled={!isEditable}
@@ -162,10 +194,11 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                    setMaximumMeals(e.target.value)
                    onChange();
                  }}
-                 error={!isValid}/>
+                 error={!isMaximumMealsValid}/>
 
       <TextField id="order-info-additional-text"
                  size="small"
+                 fullWidth={true}
                  sx={{width: '100%'}}
                  label="Zusatztext"
                  disabled={!isEditable}

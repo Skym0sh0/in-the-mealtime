@@ -2,12 +2,7 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.config.OrderConfiguration;
-import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
-import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
-import de.sky.meal.ordering.mealordering.model.exceptions.OrderInfoIsNotCompleteException;
-import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
-import de.sky.meal.ordering.mealordering.model.exceptions.WrongMealCountException;
-import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.*;
 import generated.sky.meal.ordering.rest.model.Order;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
@@ -22,8 +17,10 @@ import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.compare.ComparableUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Record1;
 import org.jooq.impl.DSL;
 import org.jooq.tools.StringUtils;
 import org.springframework.stereotype.Service;
@@ -81,7 +78,7 @@ public class OrderRepository {
 
     public Order createNewEmptyOrder(LocalDate date, UUID restaurantId) {
         return transactionTemplate.execute(_ -> {
-            ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
+            var restaurantRec = ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
                     .orElseThrow(() -> new RecordNotFoundException("Restaurant", restaurantId));
 
             if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId)
@@ -106,7 +103,8 @@ public class OrderRepository {
                     .setUpdatedBy(creator);
 
             rec.setState(OrderState.NEW)
-                    .setTargetDate(date);
+                    .setTargetDate(date)
+                    .setOrderFee(restaurantRec.getDefaultOrderFee());
 
             rec.insert();
 
@@ -120,6 +118,9 @@ public class OrderRepository {
 
         if (maximumMeals <= 0)
             throw new WrongMealCountException("Negative count is not allowed", maximumMeals);
+
+        if (infos.getOrderFee() != null && infos.getOrderFee() < 0)
+            throw new NegativeFeeException("Negative Order Fee is not allowed", infos.getOrderFee());
 
         return changeOrderRecord(id, etag, (_, rec) -> {
             var requiredStates = Set.of(OrderState.OPEN, OrderState.NEW);
@@ -135,7 +136,8 @@ public class OrderRepository {
                     .setMoneyCollector(infos.getMoneyCollector())
                     .setOrderClosingTime(infos.getOrderClosingTime())
                     .setOrderText(infos.getOrderText())
-                    .setMaximumCountMeals(infos.getMaximumMealCount());
+                    .setMaximumCountMeals(infos.getMaximumMealCount())
+                    .setOrderFee(infos.getOrderFee());
         });
     }
 
@@ -197,9 +199,9 @@ public class OrderRepository {
 
             posRec.setName(position.getName())
                     .setMeal(position.getMeal())
-                    .setPrice(Mapper.map(position.getPrice()))
-                    .setPaid(Mapper.map(position.getPaid()))
-                    .setTip(Mapper.map(position.getTip()));
+                    .setPrice(position.getPrice())
+                    .setPaid(position.getPaid())
+                    .setTip(position.getTip());
 
             posRec.insert();
         });
@@ -221,12 +223,12 @@ public class OrderRepository {
             switch (rec.getState()) {
                 case OPEN -> posRec.setName(position.getName())
                         .setMeal(position.getMeal())
-                        .setPrice(Mapper.map(position.getPrice()))
-                        .setPaid(Mapper.map(position.getPaid()))
-                        .setTip(Mapper.map(position.getTip()));
+                        .setPrice(position.getPrice())
+                        .setPaid(position.getPaid())
+                        .setTip(position.getTip());
 
-                case LOCKED, ORDERED, DELIVERED -> posRec.setPaid(Mapper.map(position.getPaid()))
-                        .setTip(Mapper.map(position.getTip()));
+                case LOCKED, ORDERED, DELIVERED -> posRec.setPaid(position.getPaid())
+                        .setTip(position.getTip());
 
                 case null, default ->
                         throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.OPEN));
@@ -261,10 +263,14 @@ public class OrderRepository {
             if (rec.getState() != OrderState.OPEN)
                 throw new WrongOrderStateException(orderId, rec.getState(), List.of(OrderState.OPEN));
 
-            if (StringUtils.isBlank(rec.getOrderer())) throw new OrderInfoIsNotCompleteException("Orderer");
-            if (StringUtils.isBlank(rec.getFetcher())) throw new OrderInfoIsNotCompleteException("Fetcher");
+            if (StringUtils.isBlank(rec.getOrderer()))
+                throw new OrderInfoIsNotCompleteException("Orderer");
+            if (StringUtils.isBlank(rec.getFetcher()))
+                throw new OrderInfoIsNotCompleteException("Fetcher");
             if (StringUtils.isBlank(rec.getMoneyCollector()))
                 throw new OrderInfoIsNotCompleteException("MoneyCollector");
+
+            validateOrderFeeIsSatisfied(orderId, rec.getOrderFee());
 
             rec.setState(OrderState.LOCKED);
             rec.setLockedAt(updater.timestamp());
@@ -373,6 +379,22 @@ public class OrderRepository {
                 .orElseThrow(() -> new RecordNotFoundException("Order", id));
     }
 
+    private void validateOrderFeeIsSatisfied(UUID orderId, Long orderFee) {
+        if (orderFee == null || orderFee == 0)
+            return;
+
+        var sumTips = ctx.select(DSL.sum(Tables.ORDER_POSITION.TIP))
+                .from(Tables.ORDER_POSITION)
+                .where(Tables.ORDER_POSITION.ORDER_ID.eq(orderId))
+                .fetchOptional()
+                .map(Record1::value1)
+                .orElse(BigDecimal.ZERO)
+                .longValueExact();
+
+        if (sumTips < orderFee)
+            throw new FeeNotSatisfiedException("Tips not sufficient for order fee", sumTips, orderFee);
+    }
+
     private record Updater(UUID user, OffsetDateTime timestamp) {
 
         public Updater() {
@@ -404,6 +426,7 @@ public class OrderRepository {
                                     .orderClosingTime(rec.getOrderClosingTime())
                                     .orderText(rec.getOrderText())
                                     .maximumMealCount(rec.getMaximumCountMeals())
+                                    .orderFee(rec.getOrderFee())
                                     .build()
                     )
                     .stateManagement(
@@ -428,9 +451,9 @@ public class OrderRepository {
                                                         .index(idx)
                                                         .name(r.getName())
                                                         .meal(r.getMeal())
-                                                        .price(map(r.getPrice()))
-                                                        .paid(map(r.getPaid()))
-                                                        .tip(map(r.getTip()))
+                                                        .price(r.getPrice())
+                                                        .paid(r.getPaid())
+                                                        .tip(r.getTip())
                                                         .build();
                                             }
                                     )

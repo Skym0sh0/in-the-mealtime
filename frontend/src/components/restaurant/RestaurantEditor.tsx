@@ -9,6 +9,7 @@ import {useConfirmationDialog} from "../../utils/ConfirmationDialogContext.tsx";
 import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../utils/NotificationContext.tsx";
 import ReportView from "./RestaurantReportView.tsx";
+import MoneyInputField from "../orders/orderDetails/MoneyInputField.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
@@ -29,6 +30,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
   const [name, setName] = useState(restaurant.name || '');
   const [style, setStyle] = useState(restaurant.style || '');
   const [kind, setKind] = useState(restaurant.kind || '');
+  const [orderFee, setOrderFee] = useState(restaurant.orderFee);
   const [phone, setPhone] = useState(restaurant.phone || '');
   const [website, setWebsite] = useState(restaurant.website || '');
   const [email, setEmail] = useState(restaurant.email || '');
@@ -68,6 +70,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
       name: name.trim(),
       style: style,
       kind: kind,
+      orderFee: orderFee,
       phone: phone,
       website: website,
       email: email,
@@ -96,7 +99,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
       .catch(e => notifyError("Restaurant konnte nicht gespeichert werden", e))
       .finally(() => setIsWorking(false))
-  }, [name, style, kind, phone, website, email, shortDescription, description, street, housenumber, postal, city, isNew, navigate, menuPagesOnSave, restaurant.id, onRefresh, restaurantApi, notifyError, restaurant.version]);
+  }, [isNew, restaurant.id, restaurant.version, name, style, kind, orderFee, phone, website, email, shortDescription, description, street, housenumber, postal, city, restaurantApi, menuPagesOnSave, navigate, onRefresh, notifyError]);
 
   const nameIsValid = !!name && !!name.trim();
   const isValid = nameIsValid;
@@ -122,10 +125,25 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
               setStyle(e.target.value);
               setTouched(true)
             }}/>
-            <STextField size="small" label="Typ" value={kind} onChange={e => {
-              setKind(e.target.value);
-              setTouched(true)
-            }}/>
+
+            <SStack direction="row" spacing={2} justifyContent="space-between">
+              <STextField size="small" label="Typ" value={kind} onChange={e => {
+                setKind(e.target.value);
+                setTouched(true)
+              }}/>
+
+              <MoneyInputField size="small"
+                               label="Bestellkosten"
+                               placeholder="Kosten"
+                               disableNegative={true}
+                               sx={{width: '15ch'}}
+                               value={orderFee}
+                               onChange={newValue => {
+                                 setOrderFee(newValue)
+                                 setTouched(true)
+                               }}
+              />
+            </SStack>
           </SStack>
 
           <SStack spacing={2} justifyContent="space-between">
