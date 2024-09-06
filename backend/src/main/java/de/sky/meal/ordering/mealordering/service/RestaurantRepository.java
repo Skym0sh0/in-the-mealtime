@@ -28,6 +28,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static org.jooq.impl.DSL.select;
@@ -35,11 +36,13 @@ import static org.jooq.impl.DSL.select;
 @Service
 @RequiredArgsConstructor
 public class RestaurantRepository {
+    private static final Pattern COLOR_PATTERN = Pattern.compile("^#([0-9a-f]{6})$");
 
     private final DSLContext ctx;
     private final TransactionTemplate transactionTemplate;
 
     public Restaurant createRestaurant(RestaurantPatch restaurant) {
+        validateAvatarColor(restaurant);
         validateOrderFee(restaurant);
 
         return transactionTemplate.execute(status -> {
@@ -59,6 +62,7 @@ public class RestaurantRepository {
                     .setUpdatedBy(DefaultUser.DEFAULT_USER);
 
             dbRestaurant.setName(restaurant.getName())
+                    .setAvatarColor(restaurant.getColor())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
                     .setDefaultOrderFee(restaurant.getOrderFee())
@@ -82,6 +86,7 @@ public class RestaurantRepository {
     }
 
     public Restaurant updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
+        validateAvatarColor(restaurant);
         validateOrderFee(restaurant);
 
         return transactionTemplate.execute(status -> {
@@ -98,6 +103,7 @@ public class RestaurantRepository {
                 throw new ConcurrentUpdateException("Restaurant", etag);
 
             rec.setName(restaurant.getName())
+                    .setAvatarColor(restaurant.getColor())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
                     .setDefaultOrderFee(restaurant.getOrderFee())
@@ -350,6 +356,11 @@ public class RestaurantRepository {
                 .orElseThrow(() -> new RecordNotFoundException("Restaurant", id));
     }
 
+    private static void validateAvatarColor(RestaurantPatch restaurant) {
+        if (restaurant.getColor() == null || !COLOR_PATTERN.matcher(restaurant.getColor()).matches())
+            throw new ColorIncorrectException("Restaurant Color is incorrect", restaurant.getColor());
+    }
+
     private static void validateOrderFee(RestaurantPatch restaurant) {
         if (restaurant.getOrderFee() != null && restaurant.getOrderFee() < 0)
             throw new NegativeFeeException("Negative default Order Fee for Restaurant is not allowed", restaurant.getOrderFee());
@@ -364,6 +375,7 @@ public class RestaurantRepository {
                 .updatedBy(rec.getUpdatedBy())
                 .version(rec.getVersion())
                 .name(rec.getName())
+                .color(rec.getAvatarColor())
                 .style(rec.getStyle())
                 .kind(rec.getKind())
                 .orderFee(rec.getDefaultOrderFee())

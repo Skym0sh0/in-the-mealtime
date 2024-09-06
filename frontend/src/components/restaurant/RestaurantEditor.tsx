@@ -103,7 +103,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
       .catch(e => notifyError("Restaurant konnte nicht gespeichert werden", e))
       .finally(() => setIsWorking(false))
-  }, [isNew, restaurant.id, restaurant.version, name, style, kind, orderFee, phone, website, email, shortDescription, description, street, housenumber, postal, city, restaurantApi, menuPagesOnSave, navigate, onRefresh, notifyError]);
+  }, [isNew, restaurant.id, restaurant.version, name, color, style, kind, orderFee, phone, website, email, shortDescription, description, street, housenumber, postal, city, restaurantApi, menuPagesOnSave, navigate, onRefresh, notifyError]);
 
   const nameIsValid = !!name && !!name.trim();
   const colorIsValid = !!color;
