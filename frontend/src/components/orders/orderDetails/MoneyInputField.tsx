@@ -10,7 +10,7 @@ export type MoneyInputFieldProps = {
   disablePositiv?: boolean;
   disableZero?: boolean;
   disableNegative?: boolean;
-} & Omit<Omit<TextFieldProps, 'onChange'>, 'value'>;
+} & Omit<TextFieldProps, 'onChange' | 'value'>;
 
 export default function MoneyInputField({
                                           value,

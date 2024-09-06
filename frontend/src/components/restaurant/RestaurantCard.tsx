@@ -1,7 +1,8 @@
 import {useMemo} from "react";
-import {Avatar, Button, Card, CardActions, CardContent, Link, Stack, Typography} from "@mui/material";
+import {Button, Card, CardActions, CardContent, Link, Stack, Typography} from "@mui/material";
 import {Restaurant} from "../../../build/generated-ts/api/api.ts";
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import RestaurantAvatar from "./RestaurantAvatar.tsx";
 
 type RestaurantCardProps = {
   restaurant: Restaurant;
@@ -9,30 +10,6 @@ type RestaurantCardProps = {
 };
 
 export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps) {
-  const avatar = useMemo(() => {
-    if (isNew)
-      return '?';
-
-    return restaurant.name.split(' ')
-      .slice(0, 2)
-      .map(w => w.charAt(0))
-      .map(c => c.toUpperCase())
-      .join('');
-  }, [restaurant.name, isNew]);
-
-  const color = useMemo(() => {
-    if (isNew)
-      return null;
-
-    let hash = 0;
-    for (let i = 0; i < restaurant.name.length; i++) {
-      const c = restaurant.name.charCodeAt(i);
-      hash = (hash << 5) - hash + c;
-      hash |= 0;
-    }
-    return Math.abs(hash).toString(16);
-  }, [restaurant.name, isNew]);
-
   const phone = useMemo(() => {
     if (!restaurant.phone)
       return null;
@@ -50,9 +27,7 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
   return <Card style={{width: 350}} elevation={8}>
     <CardContent>
       <Stack direction="row" justifyContent="space-between" alignItems="center">
-        <Avatar sizes="sm" sx={{bgcolor: `#${color}`}}>
-          {avatar}
-        </Avatar>
+        <RestaurantAvatar restaurant={restaurant} isNew={isNew ?? false}/>
 
         {
           [restaurant.kind, restaurant.style]
