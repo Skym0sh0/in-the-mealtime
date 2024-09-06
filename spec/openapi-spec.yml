@@ -701,7 +701,7 @@ components:
       properties:
         name:
           type: string
-        color:
+        avatarColor:
           $ref: "#/components/schemas/Color"
         style:
           type: string

@@ -30,7 +30,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
   const [touched, setTouched] = useState(false);
 
   const [name, setName] = useState(restaurant.name || '');
-  const [color, setColor] = useState(() => restaurant.color || randomColor());
+  const [avatarColor, setAvatarColor] = useState(() => restaurant.avatarColor || randomColor());
   const [style, setStyle] = useState(restaurant.style || '');
   const [kind, setKind] = useState(restaurant.kind || '');
   const [orderFee, setOrderFee] = useState(restaurant.orderFee);
@@ -71,7 +71,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
 
     const newRestaurant: RestaurantPatch = {
       name: name.trim(),
-      color: color,
+      avatarColor: avatarColor,
       style: style,
       kind: kind,
       orderFee: orderFee,
@@ -103,10 +103,10 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
       .catch(e => notifyError("Restaurant konnte nicht gespeichert werden", e))
       .finally(() => setIsWorking(false))
-  }, [isNew, restaurant.id, restaurant.version, name, color, style, kind, orderFee, phone, website, email, shortDescription, description, street, housenumber, postal, city, restaurantApi, menuPagesOnSave, navigate, onRefresh, notifyError]);
+  }, [isNew, restaurant.id, restaurant.version, name, avatarColor, style, kind, orderFee, phone, website, email, shortDescription, description, street, housenumber, postal, city, restaurantApi, menuPagesOnSave, navigate, onRefresh, notifyError]);
 
   const nameIsValid = !!name && !!name.trim();
-  const colorIsValid = !!color;
+  const colorIsValid = !!avatarColor;
 
   const isValid = nameIsValid && colorIsValid;
 
@@ -115,7 +115,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
       <Stack direction="row" spacing={2}>
         <Typography variant="h4">{isNew ? 'Neues' : ''} Restaurant</Typography>
 
-        <RestaurantAvatar restaurant={{...restaurant, color: color}} isNew={isNew}/>
+        <RestaurantAvatar restaurant={{...restaurant, avatarColor: avatarColor}} isNew={isNew}/>
       </Stack>
 
       <Stack spacing={2}>
@@ -134,9 +134,9 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
               />
 
               <ColorPicker size="small"
-                           value={color}
+                           value={avatarColor}
                            onChange={newValue => {
-                             setColor(newValue ?? '');
+                             setAvatarColor(newValue ?? '');
                              setTouched(true)
                            }}/>
             </SStack>

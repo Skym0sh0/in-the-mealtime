@@ -14,7 +14,7 @@ export default function RestaurantAvatar({restaurant, isNew}: { restaurant: Rest
       .join('');
   }, [restaurant.name, isNew]);
 
-  return <Avatar sizes="sm" sx={{bgcolor: `${restaurant.color}`}}>
+  return <Avatar sizes="sm" sx={{bgcolor: `${restaurant.avatarColor}`}}>
     {avatar}
   </Avatar>
 }

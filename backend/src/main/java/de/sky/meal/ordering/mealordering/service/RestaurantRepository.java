@@ -62,7 +62,7 @@ public class RestaurantRepository {
                     .setUpdatedBy(DefaultUser.DEFAULT_USER);
 
             dbRestaurant.setName(restaurant.getName())
-                    .setAvatarColor(restaurant.getColor())
+                    .setAvatarColor(restaurant.getAvatarColor())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
                     .setDefaultOrderFee(restaurant.getOrderFee())
@@ -103,7 +103,7 @@ public class RestaurantRepository {
                 throw new ConcurrentUpdateException("Restaurant", etag);
 
             rec.setName(restaurant.getName())
-                    .setAvatarColor(restaurant.getColor())
+                    .setAvatarColor(restaurant.getAvatarColor())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
                     .setDefaultOrderFee(restaurant.getOrderFee())
@@ -357,8 +357,8 @@ public class RestaurantRepository {
     }
 
     private static void validateAvatarColor(RestaurantPatch restaurant) {
-        if (restaurant.getColor() == null || !COLOR_PATTERN.matcher(restaurant.getColor()).matches())
-            throw new ColorIncorrectException("Restaurant Color is incorrect", restaurant.getColor());
+        if (restaurant.getAvatarColor() == null || !COLOR_PATTERN.matcher(restaurant.getAvatarColor()).matches())
+            throw new ColorIncorrectException("Restaurant Color is incorrect", restaurant.getAvatarColor());
     }
 
     private static void validateOrderFee(RestaurantPatch restaurant) {
@@ -375,7 +375,7 @@ public class RestaurantRepository {
                 .updatedBy(rec.getUpdatedBy())
                 .version(rec.getVersion())
                 .name(rec.getName())
-                .color(rec.getAvatarColor())
+                .avatarColor(rec.getAvatarColor())
                 .style(rec.getStyle())
                 .kind(rec.getKind())
                 .orderFee(rec.getDefaultOrderFee())
