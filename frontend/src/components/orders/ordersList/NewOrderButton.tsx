@@ -1,4 +1,4 @@
-import {Button, ListItemText, Menu, MenuItem, MenuList} from "@mui/material";
+import {Button, ListItemAvatar, ListItemText, Menu, MenuItem, MenuList} from "@mui/material";
 import {Restaurant} from "../../../../build/generated-ts/api";
 import React, {useCallback, useState} from "react";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -6,6 +6,7 @@ import {useNavigate} from "react-router-dom";
 import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import {RestaurantOrderable} from "../types.ts";
+import RestaurantAvatar from "../../restaurant/RestaurantAvatar.tsx";
 
 type NewOrderButtonProps = {
   restaurants: RestaurantOrderable[],
@@ -58,7 +59,11 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
             return <MenuItem key={restaurant.id}
                              disabled={!restaurant.orderable}
                              onClick={() => handleRestaurantClick(restaurant)}>
-              <ListItemText>
+              <ListItemAvatar>
+                <RestaurantAvatar restaurant={restaurant} size="small"/>
+              </ListItemAvatar>
+
+              <ListItemText secondary={restaurant.shortDescription?.substring(0, 48)}>
                 {restaurant.name}
               </ListItemText>
             </MenuItem>

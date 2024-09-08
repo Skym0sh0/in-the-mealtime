@@ -126,7 +126,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
                           label="Name"
                           value={name}
                           onChange={e => {
-                            setName(e.target.value);
+                            setName(e.target.value.substring(0, 24));
                             setTouched(true)
                           }}
                           error={!nameIsValid}
@@ -215,8 +215,9 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
           <TextField size="small"
                      label="Kurzbeschreibung"
                      value={shortDescription}
+                     helperText={`${shortDescription.length} / 48`}
                      onChange={e => {
-                       setShortDescription(e.target.value);
+                       setShortDescription(e.target.value.substring(0, 48));
                        setTouched(true)
                      }}/>
           <TextField size="small"

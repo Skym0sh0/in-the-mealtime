@@ -8,6 +8,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import MenuPages from "./MenuPages.tsx";
 import {useEffect, useMemo, useRef, useState} from "react";
 import useWindowSizing from "../../../utils/useWindowSizing.ts";
+import RestaurantAvatar from "../../restaurant/RestaurantAvatar.tsx";
 
 enum InfoLineStyle {
   Normal,
@@ -111,9 +112,14 @@ export default function RestaurantInfos({restaurant}: { restaurant: Restaurant }
   return <Stack direction="column"
                 justifyContent="center" alignItems="center"
                 spacing={1} sx={{height: '100%', padding: '0.5em'}}>
-    <Typography variant="h6">
-      Restaurant
-    </Typography>
+
+    <Stack direction="row" spacing={1} alignItems="center" justifyContent="flex-start" sx={{width: '100%'}}>
+      <RestaurantAvatar restaurant={restaurant} size="small"/>
+
+      <Typography variant="h6">
+        Restaurant
+      </Typography>
+    </Stack>
 
     <Stack spacing={1}>
       <SingleInfoLine style={InfoLineStyle.Normal} line={restaurant.name}/>
