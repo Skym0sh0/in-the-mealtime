@@ -2,18 +2,23 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.model.DatabaseFile;
-import de.sky.meal.ordering.mealordering.model.exceptions.*;
+import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
+import de.sky.meal.ordering.mealordering.model.exceptions.ColorIncorrectException;
+import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.NegativeFeeException;
+import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
 import generated.sky.meal.ordering.rest.model.Address;
 import generated.sky.meal.ordering.rest.model.MenuPage;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 import generated.sky.meal.ordering.rest.model.RestaurantReport;
-import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import generated.sky.meal.ordering.rest.model.StatisticPerson;
 import generated.sky.meal.ordering.schema.Tables;
 import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.MenuPageRecord;
+import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import generated.sky.meal.ordering.schema.tables.records.RestaurantRecord;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -145,7 +150,7 @@ public class RestaurantRepository {
             if (!rec.getVersion().equals(etag))
                 throw new ConcurrentUpdateException("Restaurant", etag);
 
-            if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.STATE.notIn(OrderState.NEW, OrderState.REVOKED, OrderState.ARCHIVED)))
+            if (ctx.fetchExists(Tables.MEAL_ORDER, DSL.and(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id), Tables.MEAL_ORDER.STATE.notIn(OrderState.NEW, OrderState.REVOKED, OrderState.ARCHIVED))))
                 throw new WrongOrderStateException("Can not delete restaurant with open orders");
 
             ctx.deleteFrom(Tables.ORDER_POSITION)

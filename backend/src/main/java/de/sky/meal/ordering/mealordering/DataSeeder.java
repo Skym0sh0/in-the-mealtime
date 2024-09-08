@@ -56,6 +56,7 @@ public class DataSeeder {
     private Restaurant addThai() {
         var thai = RestaurantPatch.builder()
                 .name("Chok Dee Thaiküche")
+                .avatarColor("#ff0000")
                 .style("thailändisch/asiatisch")
                 .kind("Abholen/Sitzen")
                 .phone("0221 / 47 68 48 99")
@@ -76,6 +77,7 @@ public class DataSeeder {
     private Restaurant addJaegerhof() {
         var jaegerhof = RestaurantPatch.builder()
                 .name("Gaststätte Jägerhof")
+                .avatarColor("#00ff00")
                 .style("gutbürgerlich/deutsch")
                 .style("Sitzen")
                 .phone("0221 866831")
