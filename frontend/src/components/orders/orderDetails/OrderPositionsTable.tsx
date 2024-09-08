@@ -6,9 +6,10 @@ import {formatMonetaryAmount} from "../../../utils/moneyUtils.ts";
 import {OrderPosition, OrderStateType} from "../../../../build/generated-ts/api/api.ts";
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
-import {useMemo} from "react";
+import {useCallback, useMemo} from "react";
 import {darken, lighten, styled} from '@mui/material/styles';
 import {GridRowClassNameParams} from "@mui/x-data-grid/models/params";
+import {assertNever} from "../../../utils/utils.ts";
 
 type TableRow = OrderPosition & {
   tableIndex: number,
@@ -39,17 +40,23 @@ export default function OrderPositionsTable({
   onDeselect: () => void,
   onDelete: (pos: OrderPosition) => void,
 }) {
+  const isEditable = useCallback((isPaid: boolean) => {
+    return orderState === OrderStateType.New || orderState === OrderStateType.Open
+      || (!isPaid && (
+        orderState === OrderStateType.Locked
+        || orderState === OrderStateType.Ordered
+      ));
+  }, [orderState]);
+
+  const isDeletable = useMemo(() => {
+    return orderState === OrderStateType.New || orderState === OrderStateType.Open
+  }, [orderState]);
+
   const rows: TableRow[] = useMemo(() => {
     return orderPositions.sort((a, b) => a.index - b.index)
       .map((pos, idx) => {
         const isPaid = pos.price + (pos.tip ?? 0) <= (pos.paid ?? 0);
         const returnMoney = isPaid ? (pos.paid ?? 0) - pos.price - (pos.tip ?? 0) : null;
-
-        const isEditable = orderState === OrderStateType.New || orderState === OrderStateType.Open
-          || (!isPaid && (
-            orderState === OrderStateType.Locked
-            || orderState === OrderStateType.Ordered
-          ));
 
         const obj: TableRow = {
           ...pos,
@@ -59,16 +66,36 @@ export default function OrderPositionsTable({
           returnMoney: returnMoney,
 
           isSelected: pos.id === selectedPosition?.id,
-          isEditable: isEditable,
-          isDeletable: orderState === OrderStateType.New || orderState === OrderStateType.Open,
+          isEditable: isEditable(isPaid),
+          isDeletable: isDeletable,
           isErroneous: (pos.paid ?? 0) <= 0,
         };
         return obj;
       })
-  }, [orderPositions, orderState, selectedPosition?.id]);
+  }, [isDeletable, isEditable, orderPositions, selectedPosition?.id]);
+
+  const needsActionColumn = useMemo(() => {
+    switch (orderState) {
+      case OrderStateType.New:
+      case OrderStateType.Open:
+        return true;
+
+      case OrderStateType.Locked:
+      case OrderStateType.Ordered:
+        return rows.some(r => r.isEditable || r.isDeletable)
+
+      case OrderStateType.Delivered:
+      case OrderStateType.Archived:
+      case OrderStateType.Revoked:
+        return false;
+
+      default:
+        throw assertNever(orderState);
+    }
+  }, [orderState, rows]);
 
   const columns: GridColDef<TableRow>[] = useMemo(() => {
-    return [
+    const columns: GridColDef<TableRow>[] = [
       {
         headerName: "#",
         field: 'index',
@@ -114,7 +141,10 @@ export default function OrderPositionsTable({
         headerAlign: 'right',
         align: 'right',
       },
-      {
+    ];
+
+    if (needsActionColumn)
+      columns.push({
         headerName: "Actions",
         field: 'actions',
         sortable: false,
@@ -128,9 +158,10 @@ export default function OrderPositionsTable({
                                          onSelect={() => onSelect(row.row)}
                                          onDeselect={() => onDeselect()}
                                          onDelete={() => onDelete(row.row)}/>
-      },
-    ];
-  }, [onSelect, onDeselect, onDelete]);
+      });
+
+    return columns;
+  }, [needsActionColumn, onSelect, onDeselect, onDelete]);
 
   return <Box component={Paper}
               sx={{
