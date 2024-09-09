@@ -1,5 +1,5 @@
 import {TextFieldProps} from "@mui/material/TextField/TextField";
-import {TextField, InputAdornment} from "@mui/material";
+import {InputAdornment, TextField} from "@mui/material";
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {formatMonetaryInput, parseMonetaryInput} from "../../../utils/moneyUtils.ts";
 
@@ -10,7 +10,7 @@ export type MoneyInputFieldProps = {
   disablePositiv?: boolean;
   disableZero?: boolean;
   disableNegative?: boolean;
-} & Omit<Omit<TextFieldProps, 'onChange'>, 'value'>;
+} & Omit<TextFieldProps, 'onChange' | 'value'>;
 
 export default function MoneyInputField({
                                           value,

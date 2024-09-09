@@ -1,15 +1,14 @@
 import {Order, OrderInfosPatch} from "../../../../build/generated-ts/api";
-import {Link, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography} from "@mui/material";
+import {Link, Stack, TextField, Tooltip, Typography} from "@mui/material";
 import {debounce} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {DateTime} from "luxon";
 import {TimeField} from "@mui/x-date-pickers";
 import {OrderMoneyCollectionType, OrderStateType} from "../../../../build/generated-ts/api/api.ts";
 import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
-import {assertNever} from "../../../utils/utils.ts";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import MoneyInputField from "./MoneyInputField.tsx";
-
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
 export default function OrderInfosView({order, onUpdateInfos}: { order: Order, onUpdateInfos: () => void, }) {
   const {orderApi} = useApiAccess();
   const {notifyError, notifySuccess} = useNotification();
@@ -18,7 +17,6 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
 
   const [orderer, setOrderer] = useState('');
   const [fetcher, setFetcher] = useState('');
-  const [collectorType, setCollectorType] = useState<OrderMoneyCollectionType>(OrderMoneyCollectionType.Bar);
   const [collector, setCollector] = useState('');
   const [orderClosingTime, setOrderClosingTime] = useState<DateTime | null>(DateTime.fromISO('11:30'));
   const [orderText, setOrderText] = useState('');
@@ -28,7 +26,6 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   useEffect(() => {
     setOrderer(order.infos.orderer ?? '')
     setFetcher(order.infos.fetcher ?? '')
-    setCollectorType(order.infos.moneyCollectionType ?? OrderMoneyCollectionType.Bar)
     setCollector(order.infos.moneyCollector ?? '')
     setOrderClosingTime(order.infos.orderClosingTime ? DateTime.fromISO(order.infos.orderClosingTime) : DateTime.fromISO('11:30'))
     setOrderText(order.infos.orderText ?? '')
@@ -73,34 +70,42 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
       return
 
     onUpdate({
-      orderer: orderer,
-      fetcher: fetcher,
-      moneyCollectionType: collectorType,
-      moneyCollector: collector,
+      orderer: orderer.trim(),
+      fetcher: fetcher.trim(),
+      moneyCollectionType: collector.toLowerCase().includes("paypal") ? OrderMoneyCollectionType.PayPal : OrderMoneyCollectionType.Bar,
+      moneyCollector: collector.trim(),
       orderClosingTime: orderClosingTime?.toISOTime({includeOffset: false, suppressMilliseconds: true}),
-      orderText: orderText,
+      orderText: orderText.trim(),
       maximumMealCount: Number.parseInt(maximumMeals),
       orderFee: orderFee,
     } as OrderInfosPatch)
-  }, [isValid, touched, orderer, fetcher, collector, collectorType, orderClosingTime, orderText, maximumMeals, onUpdate, isEditable, orderFee]);
-
-  useEffect(() => {
-    if (collector.toLowerCase().includes("paypal"))
-      setCollectorType(OrderMoneyCollectionType.PayPal)
-  }, [collector]);
+  }, [isValid, touched, orderer, fetcher, collector, orderClosingTime, orderText, maximumMeals, onUpdate, isEditable, orderFee]);
 
   const onChange = () => setTouched(true);
 
   return <Stack direction="column" spacing={2} justifyContent="flex-start" alignItems="center">
-    <Typography variant="h6">
-      Infos {touched && '*'}
-    </Typography>
+    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{width: '100%'}}>
+      <div/>
+
+      <Typography variant="h6">
+        Infos
+      </Typography>
+
+      <div style={{width: '3ch'}}>
+        {touched &&
+          <Tooltip title="Es gibt Änderungen, die gleich gespeichert werden.">
+            <TrackChangesIcon fontSize="small" color="warning"/>
+          </Tooltip>
+        }
+      </div>
+    </Stack>
 
     <Stack spacing={2} alignItems="center">
       <TextField id="order-info-orderer"
                  size="small"
                  fullWidth={true}
                  label="Wer bestellt?"
+                 title="Diese Person erklärt sich bereit, zur gegebenen Zeit beim Restaurant, Lieferdienst oder Onlineshop die Bestellung aufzugeben."
                  disabled={!isEditable}
                  value={orderer}
                  onChange={e => {
@@ -113,6 +118,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  size="small"
                  fullWidth={true}
                  label="Wer holt ab?"
+                 title="Diese Person erklärt sich bereit die Bestellung entweder abzuholen oder, bei Lieferung, in Empfang zu nehmen."
                  disabled={!isEditable}
                  value={fetcher}
                  onChange={e => {
@@ -122,42 +128,28 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  error={!fetcher}
       />
 
-      <TextField id="order-info-money-collector"
-                 size="small"
-                 fullWidth={true}
-                 label="Geld wohin?"
-                 disabled={!isEditable}
-                 value={collector}
-                 onChange={e => {
-                   setCollector(e.target.value)
-                   onChange();
-                 }}
-                 helperText={<PaypalLink collector={collector} type={collectorType}/>}
-                 error={!collector}/>
-
-      <ToggleButtonGroup id="order-info-money-collection-type"
-                         size="small"
-                         disabled={!isEditable}
-                         exclusive={true}
-                         value={collectorType}
-                         onChange={(_, val) => val !== null && setCollectorType(val)}>
-        {
-          Object.keys(OrderMoneyCollectionType)
-            .map(key => {
-              return <ToggleButton key={key}
-                                   value={key}
-                                   id={`order-info-money-collection-type-${key}`}>
-                {key}
-              </ToggleButton>
-            })
-        }
-      </ToggleButtonGroup>
+      <Stack justifyContent="center" alignItems="center">
+        <TextField id="order-info-money-collector"
+                   size="small"
+                   fullWidth={true}
+                   label="Geld wohin?"
+                   title="Diese Person sammelt das Geld,entweder in Bar oder per Paypal, ein und sorgt dafür, dass die Bestellung bezahlt wird."
+                   disabled={!isEditable}
+                   value={collector}
+                   onChange={e => {
+                     setCollector(e.target.value)
+                     onChange();
+                   }}
+                   helperText={<PaypalLink collector={collector}/>}
+                   error={!collector}/>
+      </Stack>
 
       <TimeField id="order-info-closing-time"
                  size="small"
                  fullWidth={true}
                  ampm={false}
                  label="Bestellschluss"
+                 title="Um diese Uhrzeit wird die bestellende Person die Bestellung aufgeben und somit keine weiteren WÜnsche mehr berücksichtigen."
                  disabled={!isEditable}
                  value={orderClosingTime}
                  slotProps={{
@@ -174,6 +166,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                        size="small"
                        fullWidth={true}
                        label="Bestellkosten"
+                       title="Das sind die Kosten für die Bestellung. Diese Kosten werden von allen Trinkgeldern bezahlt. Sie müssen zum Bestellen bezahlt worden sein."
                        disabled={!isEditable}
                        disableNegative={true}
                        value={orderFee}
@@ -188,6 +181,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  fullWidth={true}
                  type="number"
                  label="Limitierung Gerichte"
+                 title="Hiermit wird entschieden, wie viele Gerichte in dieser Bestellung sein dürfen. Dies kann zum Beispiel als Grund haben, dass die abholende Person nicht mehr als diese Anzahl tragen kann."
                  disabled={!isEditable}
                  value={maximumMeals}
                  onChange={e => {
@@ -201,6 +195,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  fullWidth={true}
                  sx={{width: '100%'}}
                  label="Zusatztext"
+                 title="Dies ist eine zusätzliche Information an diese Bestellung wie beispielsweise, dass nur bestimmte Gerichte erlaubt sind"
                  disabled={!isEditable}
                  multiline={true}
                  maxRows={3}
@@ -213,16 +208,17 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
   </Stack>;
 }
 
-function PaypalLink({type, collector}: { type: OrderMoneyCollectionType, collector: string }) {
-  if (!type || type === OrderMoneyCollectionType.Bar)
+function PaypalLink({collector}: { collector: string }) {
+  if (!collector)
     return null;
 
-  if (type !== OrderMoneyCollectionType.PayPal)
-    throw assertNever(type);
+  if (!collector.toLowerCase().includes("paypal"))
+    return "Barzahlung";
 
   const link = collector.toLowerCase().startsWith("http") ? collector : `http://${collector}`
 
-  return <Link target="_blank"
+  return <Link title="Paypal Link"
+               target="_blank"
                rel="noopener noreferrer"
                href={link}>
     {collector}

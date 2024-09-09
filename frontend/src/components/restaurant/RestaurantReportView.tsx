@@ -70,25 +70,35 @@ function BaseReport({report}: { report: RestaurantReport }) {
 
         <TableRow>
           <TableCell>&#x00D8; Gerichte pro Bestellung</TableCell>
-          <TableCell align="right">{Math.round(report.countOfOrderedMeals / report.countOfOrders)}</TableCell>
+          <TableCell align="right">
+            {report.countOfOrders ? Math.round(report.countOfOrderedMeals / report.countOfOrders) : ''}
+          </TableCell>
         </TableRow>
 
         <TableRow>
           <TableCell>&#x00D8; Preis pro Bestellung</TableCell>
-          <TableCell align="right">{formatMonetaryAmount(report.overallPrice / report.countOfOrders)}</TableCell>
+          <TableCell align="right">
+            {report.countOfOrders ? formatMonetaryAmount(report.overallPrice / report.countOfOrders) : ''}
+          </TableCell>
         </TableRow>
         <TableRow>
           <TableCell>&#x00D8; Tip pro Bestellung</TableCell>
-          <TableCell align="right">{formatMonetaryAmount(report.overallTip / report.countOfOrders)}</TableCell>
+          <TableCell align="right">
+            {report.countOfOrders ? formatMonetaryAmount(report.overallTip / report.countOfOrders) : ''}
+          </TableCell>
         </TableRow>
 
         <TableRow>
           <TableCell>&#x00D8; Preis pro Gericht</TableCell>
-          <TableCell align="right">{formatMonetaryAmount(report.overallPrice / report.countOfOrderedMeals)}</TableCell>
+          <TableCell align="right">
+            {report.countOfOrderedMeals ? formatMonetaryAmount(report.overallPrice / report.countOfOrderedMeals) : ''}
+          </TableCell>
         </TableRow>
         <TableRow>
           <TableCell>&#x00D8; Tip pro Gericht</TableCell>
-          <TableCell align="right">{formatMonetaryAmount(report.overallTip / report.countOfOrderedMeals)}</TableCell>
+          <TableCell align="right">
+            {report.countOfOrderedMeals ? formatMonetaryAmount(report.overallTip / report.countOfOrderedMeals) : ''}
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>

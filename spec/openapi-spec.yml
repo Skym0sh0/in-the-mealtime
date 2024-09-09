@@ -701,6 +701,8 @@ components:
       properties:
         name:
           type: string
+        avatarColor:
+          $ref: "#/components/schemas/Color"
         style:
           type: string
         kind:
@@ -953,6 +955,8 @@ components:
       format: int64
       minimum: 0
       maximum: 100000000
+    Color:
+      type: string
     Version:
       type: string
       format: uuid

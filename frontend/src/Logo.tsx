@@ -1,6 +1,6 @@
 import {SvgIcon} from "@mui/material";
 
-export default function Logo(props:any) {
+export default function Logo(props: any) {
   return <SvgIcon {...props} >
     <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
       <circle cx="16" cy="16" r="16" fill="#f8b400"/>

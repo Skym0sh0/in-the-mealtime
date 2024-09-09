@@ -12,6 +12,7 @@ import useWindowSizing from "../../../utils/useWindowSizing.ts";
 import OrderState from "../OrderState.tsx";
 import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
+import OrderProgress from "./OrderProgress.tsx";
 
 type OrderEditorProps = {
   restaurant: Restaurant;
@@ -78,7 +79,7 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
   }, [windowheight]);
 
   return <Paper sx={{padding: '1em', width: '100%', height: '100%'}}>
-    <Stack direction="column" spacing={2} sx={{height: '100%'}}>
+    <Stack direction="column" spacing={1} sx={{height: '100%'}}>
       <Stack direction="row" spacing={2} justifyContent="space-between" alignItems="center">
         <Typography variant="h5" color="black">
           Bestellung "{restaurant.name}" am {date}
@@ -90,6 +91,8 @@ export default function OrderEditor({restaurant, order, onChange}: OrderEditorPr
 
         <OrderState order={order}/>
       </Stack>
+
+      <OrderProgress order={order}/>
 
       <Paper sx={{height: '100%', flexGrow: '1'}}>
         <Stack direction="column" spacing={2} sx={{height: '100%'}}>

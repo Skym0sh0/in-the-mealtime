@@ -10,6 +10,8 @@ import {useApiAccess} from "../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../utils/NotificationContext.tsx";
 import ReportView from "./RestaurantReportView.tsx";
 import MoneyInputField from "../orders/orderDetails/MoneyInputField.tsx";
+import RestaurantAvatar from "./RestaurantAvatar.tsx";
+import ColorPicker, {randomColor} from "./ColorPicker.tsx";
 
 type RestaurantEditorProps = {
   restaurant: Restaurant;
@@ -28,6 +30,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
   const [touched, setTouched] = useState(false);
 
   const [name, setName] = useState(restaurant.name || '');
+  const [avatarColor, setAvatarColor] = useState(() => restaurant.avatarColor || randomColor());
   const [style, setStyle] = useState(restaurant.style || '');
   const [kind, setKind] = useState(restaurant.kind || '');
   const [orderFee, setOrderFee] = useState(restaurant.orderFee);
@@ -68,6 +71,7 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
 
     const newRestaurant: RestaurantPatch = {
       name: name.trim(),
+      avatarColor: avatarColor,
       style: style,
       kind: kind,
       orderFee: orderFee,
@@ -99,28 +103,44 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
       .then(() => onRefresh?.()) // to explicitly trigger a reload of the parent, to see changes coming from the server
       .catch(e => notifyError("Restaurant konnte nicht gespeichert werden", e))
       .finally(() => setIsWorking(false))
-  }, [isNew, restaurant.id, restaurant.version, name, style, kind, orderFee, phone, website, email, shortDescription, description, street, housenumber, postal, city, restaurantApi, menuPagesOnSave, navigate, onRefresh, notifyError]);
+  }, [isNew, restaurant.id, restaurant.version, name, avatarColor, style, kind, orderFee, phone, website, email, shortDescription, description, street, housenumber, postal, city, restaurantApi, menuPagesOnSave, navigate, onRefresh, notifyError]);
 
   const nameIsValid = !!name && !!name.trim();
-  const isValid = nameIsValid;
+  const colorIsValid = !!avatarColor;
+
+  const isValid = nameIsValid && colorIsValid;
 
   return <LoadingIndicator isLoading={isWorking}>
     <Stack spacing={2}>
-      <Typography variant="h4">{isNew ? 'Neues' : ''} Restaurant</Typography>
+      <Stack direction="row" spacing={2}>
+        <Typography variant="h4">{isNew ? 'Neues' : ''} Restaurant</Typography>
+
+        <RestaurantAvatar restaurant={{...restaurant, avatarColor: avatarColor}} isNew={isNew}/>
+      </Stack>
 
       <Stack spacing={2}>
         <Stack direction="row" spacing={2} justifyContent="space-between">
           <SStack spacing={2}>
-            <STextField size="small"
-                        label="Name"
-                        value={name}
-                        onChange={e => {
-                          setName(e.target.value);
-                          setTouched(true)
-                        }}
-                        error={!nameIsValid}
-                        helperText={!nameIsValid && "Name muss vorhanden sein"}
-            />
+            <SStack direction="row" spacing={2} justifyContent="space-between">
+              <STextField size="small"
+                          label="Name"
+                          value={name}
+                          onChange={e => {
+                            setName(e.target.value.substring(0, 24));
+                            setTouched(true)
+                          }}
+                          error={!nameIsValid}
+                          helperText={!nameIsValid && "Name muss vorhanden sein"}
+              />
+
+              <ColorPicker size="small"
+                           value={avatarColor}
+                           onChange={newValue => {
+                             setAvatarColor(newValue ?? '');
+                             setTouched(true)
+                           }}/>
+            </SStack>
+
             <STextField size="small" label="Style" value={style} onChange={e => {
               setStyle(e.target.value);
               setTouched(true)
@@ -195,8 +215,9 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
           <TextField size="small"
                      label="Kurzbeschreibung"
                      value={shortDescription}
+                     helperText={`${shortDescription.length} / 48`}
                      onChange={e => {
-                       setShortDescription(e.target.value);
+                       setShortDescription(e.target.value.substring(0, 48));
                        setTouched(true)
                      }}/>
           <TextField size="small"

@@ -4,6 +4,7 @@ import {Order, Restaurant} from "../../../../build/generated-ts/api";
 import useOrderPositionSummary, {OrderSummaryType} from "../useOrderPositionSummary.ts";
 import {formatMonetaryAmount} from "../../../utils/moneyUtils.ts";
 import OrderState from "../OrderState.tsx";
+import RestaurantAvatar from "../../restaurant/RestaurantAvatar.tsx";
 
 type OrderCardProps = {
   selected: boolean;
@@ -45,6 +46,8 @@ export default function OrderCard({selected, order, restaurant, onSelect}: Order
             <Typography gutterBottom variant="h5" component="div">
               {restaurant?.name}
             </Typography>
+
+            {restaurant && <RestaurantAvatar restaurant={restaurant} size="small"/>}
           </Stack>
 
           <Stack direction="row" spacing={1} justifyContent="space-between" flexWrap="wrap">

@@ -2,18 +2,23 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.model.DatabaseFile;
-import de.sky.meal.ordering.mealordering.model.exceptions.*;
+import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
+import de.sky.meal.ordering.mealordering.model.exceptions.ColorIncorrectException;
+import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.NegativeFeeException;
+import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
 import generated.sky.meal.ordering.rest.model.Address;
 import generated.sky.meal.ordering.rest.model.MenuPage;
 import generated.sky.meal.ordering.rest.model.Restaurant;
 import generated.sky.meal.ordering.rest.model.RestaurantPatch;
 import generated.sky.meal.ordering.rest.model.RestaurantReport;
-import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import generated.sky.meal.ordering.rest.model.StatisticPerson;
 import generated.sky.meal.ordering.schema.Tables;
 import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.MenuPageRecord;
+import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import generated.sky.meal.ordering.schema.tables.records.RestaurantRecord;
 import lombok.RequiredArgsConstructor;
 import org.jooq.DSLContext;
@@ -28,6 +33,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 import static org.jooq.impl.DSL.select;
@@ -35,11 +41,13 @@ import static org.jooq.impl.DSL.select;
 @Service
 @RequiredArgsConstructor
 public class RestaurantRepository {
+    private static final Pattern COLOR_PATTERN = Pattern.compile("^#([0-9a-f]{6})$");
 
     private final DSLContext ctx;
     private final TransactionTemplate transactionTemplate;
 
     public Restaurant createRestaurant(RestaurantPatch restaurant) {
+        validateAvatarColor(restaurant);
         validateOrderFee(restaurant);
 
         return transactionTemplate.execute(status -> {
@@ -59,6 +67,7 @@ public class RestaurantRepository {
                     .setUpdatedBy(DefaultUser.DEFAULT_USER);
 
             dbRestaurant.setName(restaurant.getName())
+                    .setAvatarColor(restaurant.getAvatarColor())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
                     .setDefaultOrderFee(restaurant.getOrderFee())
@@ -82,6 +91,7 @@ public class RestaurantRepository {
     }
 
     public Restaurant updateRestaurant(UUID id, UUID etag, RestaurantPatch restaurant) {
+        validateAvatarColor(restaurant);
         validateOrderFee(restaurant);
 
         return transactionTemplate.execute(status -> {
@@ -98,6 +108,7 @@ public class RestaurantRepository {
                 throw new ConcurrentUpdateException("Restaurant", etag);
 
             rec.setName(restaurant.getName())
+                    .setAvatarColor(restaurant.getAvatarColor())
                     .setStyle(restaurant.getStyle())
                     .setKind(restaurant.getKind())
                     .setDefaultOrderFee(restaurant.getOrderFee())
@@ -139,7 +150,7 @@ public class RestaurantRepository {
             if (!rec.getVersion().equals(etag))
                 throw new ConcurrentUpdateException("Restaurant", etag);
 
-            if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.STATE.notIn(OrderState.NEW, OrderState.REVOKED, OrderState.ARCHIVED)))
+            if (ctx.fetchExists(Tables.MEAL_ORDER, DSL.and(Tables.MEAL_ORDER.RESTAURANT_ID.eq(id), Tables.MEAL_ORDER.STATE.notIn(OrderState.NEW, OrderState.REVOKED, OrderState.ARCHIVED))))
                 throw new WrongOrderStateException("Can not delete restaurant with open orders");
 
             ctx.deleteFrom(Tables.ORDER_POSITION)
@@ -350,6 +361,11 @@ public class RestaurantRepository {
                 .orElseThrow(() -> new RecordNotFoundException("Restaurant", id));
     }
 
+    private static void validateAvatarColor(RestaurantPatch restaurant) {
+        if (restaurant.getAvatarColor() == null || !COLOR_PATTERN.matcher(restaurant.getAvatarColor()).matches())
+            throw new ColorIncorrectException("Restaurant Color is incorrect", restaurant.getAvatarColor());
+    }
+
     private static void validateOrderFee(RestaurantPatch restaurant) {
         if (restaurant.getOrderFee() != null && restaurant.getOrderFee() < 0)
             throw new NegativeFeeException("Negative default Order Fee for Restaurant is not allowed", restaurant.getOrderFee());
@@ -364,6 +380,7 @@ public class RestaurantRepository {
                 .updatedBy(rec.getUpdatedBy())
                 .version(rec.getVersion())
                 .name(rec.getName())
+                .avatarColor(rec.getAvatarColor())
                 .style(rec.getStyle())
                 .kind(rec.getKind())
                 .orderFee(rec.getDefaultOrderFee())
