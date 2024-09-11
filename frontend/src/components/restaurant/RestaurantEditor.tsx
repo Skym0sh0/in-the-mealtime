@@ -129,8 +129,8 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
                           label={`Name - ${name.length} / ${MAX_LENGTH_NAME}`}
                           value={name}
                           onChange={e => {
-                            if ( e.target.value.length>MAX_LENGTH_NAME)
-                              return ;
+                            if (e.target.value.length > MAX_LENGTH_NAME)
+                              return;
                             setName(e.target.value);
                             setTouched(true)
                           }}
