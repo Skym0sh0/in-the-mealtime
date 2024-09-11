@@ -44,7 +44,7 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
         {restaurant.name}
       </Typography>
 
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="text.secondary" title={restaurant.description}>
         {restaurant.shortDescription ? restaurant.shortDescription : <>&nbsp;</>}
       </Typography>
     </CardContent>

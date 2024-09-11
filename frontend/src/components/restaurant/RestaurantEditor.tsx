@@ -20,6 +20,9 @@ type RestaurantEditorProps = {
   onRefresh?: () => void;
 };
 
+const MAX_LENGTH_NAME = 24;
+const MAX_LENGTH_SHORT_DESCRIPTION = 48;
+
 export default function RestaurantEditor({restaurant, isNew, onRefresh, report}: RestaurantEditorProps) {
   const {restaurantApi} = useApiAccess();
   const {notifyError} = useNotification();
@@ -123,10 +126,12 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
           <SStack spacing={2}>
             <SStack direction="row" spacing={2} justifyContent="space-between">
               <STextField size="small"
-                          label="Name"
+                          label={`Name - ${name.length} / ${MAX_LENGTH_NAME}`}
                           value={name}
                           onChange={e => {
-                            setName(e.target.value.substring(0, 24));
+                            if ( e.target.value.length>MAX_LENGTH_NAME)
+                              return ;
+                            setName(e.target.value);
                             setTouched(true)
                           }}
                           error={!nameIsValid}
@@ -213,11 +218,12 @@ export default function RestaurantEditor({restaurant, isNew, onRefresh, report}:
 
         <SStack spacing={2}>
           <TextField size="small"
-                     label="Kurzbeschreibung"
+                     label={`Kurzbeschreibung - ${shortDescription.length} / ${MAX_LENGTH_SHORT_DESCRIPTION}`}
                      value={shortDescription}
-                     helperText={`${shortDescription.length} / 48`}
                      onChange={e => {
-                       setShortDescription(e.target.value.substring(0, 48));
+                       if (e.target.value.length > MAX_LENGTH_SHORT_DESCRIPTION)
+                         return;
+                       setShortDescription(e.target.value);
                        setTouched(true)
                      }}/>
           <TextField size="small"

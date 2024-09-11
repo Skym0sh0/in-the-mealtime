@@ -101,6 +101,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                                variant="contained"
                                size="small"
                                color="error"
+                               title="Zieht die Bestellung zurück und entfernt sie somit. Das ist z.B. für den Fall gedacht, wo ein Restaurant unerwarteterweise geschlossen hat."
                                onClick={handleRevoke}
                                startIcon={<HighlightOffIcon/>}>
     Bestellung zurückziehen
@@ -110,6 +111,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                                variant="contained"
                                size="small"
                                color="error"
+                               title="Entfernt die Bestellung und alles, was daran hängt, als ob es sie niemals gegeben hätte."
                                onClick={handleDelete}
                                startIcon={<DeleteIcon/>}>
     Löschen
@@ -119,6 +121,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                                 variant="contained"
                                 size="small"
                                 color="info"
+                                title="Archiviert die Bestellung, so dass sie nach einer kurzen Übergangszeit nicht mehr angezeigt wird."
                                 onClick={handleArchive}>
     Archivieren
   </Button>
@@ -136,6 +139,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                   variant="contained"
                   size="small"
                   color="success"
+                  title="Sperrt die Bestellung, um so Zeit zu geben die Bestellung beim Restaurant zu bestellen."
                   disabled={!order.infos.orderer || !order.infos.fetcher || !order.infos.moneyCollector || !summary.feeIsSatisfied}
                   onClick={handleOrdering}
                   startIcon={<LockIcon/>}>
@@ -151,6 +155,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                   variant="contained"
                   size="small"
                   color="warning"
+                  title="Öffnet die gesperrte Bestellung wieder. Das ist z.B. für den Fall, dass das Restaurant gerade nicht erreichbar oder aktuell noch geschlossen ist."
                   onClick={handleReopen}
                   startIcon={<LockOpenIcon/>}>
             Bestellung wieder öffnen
@@ -160,6 +165,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                   variant="contained"
                   size="small"
                   color="success"
+                  title="Markiert die Bestellung als beim Restaurant bestellt. D.h. ab jetzt heisst es Warten auf das Eintreffen der Bestellung."
                   disabled={!order.infos.fetcher || !order.infos.moneyCollector}
                   onClick={handleOrderIsOrdered}
                   endIcon={<ScheduleSendIcon/>}>
@@ -175,6 +181,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
                   variant="contained"
                   size="small"
                   color="success"
+                  title="Markiert die Bestellung als geliefert und benachrichtigt alle Teilnehmer darüber."
                   disabled={summary.paidMissing > 0}
                   onClick={handleDelivery}
                   startIcon={<CakeIcon/>}>
