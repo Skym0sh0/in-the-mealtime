@@ -128,7 +128,7 @@ export default function OrderInfosView({order, onUpdateInfos}: { order: Order, o
                  error={!fetcher}
       />
 
-      <Stack justifyContent="center" alignItems="center">
+      <Stack justifyContent="center" alignItems="center" sx={{width: '100%'}}>
         <TextField id="order-info-money-collector"
                    size="small"
                    fullWidth={true}
