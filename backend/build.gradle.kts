@@ -54,7 +54,7 @@ dependencies {
     implementation("org.springframework.session:spring-session-core")
 
     implementation("io.micrometer:micrometer-core:1.13.3")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.13.3")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.13.4")
     implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
 
     implementation("io.swagger.core.v3:swagger-models:2.2.23")
