@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {MenuPage, Restaurant} from "../../../build/generated-ts/api/api.ts";
-import {IconButton, Paper, Stack, Typography, useTheme} from "@mui/material";
+import {Box, IconButton, Modal, Paper, Stack, Typography, useTheme} from "@mui/material";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from "@mui/icons-material/ArrowUpward";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -244,6 +244,14 @@ function PageThumbnail({restaurant, page}: { restaurant: Restaurant, page: Edito
   const {notifyError} = useNotification();
 
   const [image, setImage] = useState('https://placehold.co/48');
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleClick = useCallback(() => {
+    setIsOpen(true);
+  }, []);
+  const handleClose = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
   useEffect(() => {
     if (page.file) {
@@ -254,21 +262,29 @@ function PageThumbnail({restaurant, page}: { restaurant: Restaurant, page: Edito
         .then(img => setImage(img))
         .catch(e => notifyError("Thumbnail konnte nicht geladen oder zur Anzeige gebracht werden", e))
     }
+  }, [notifyError, page.file, page.id, restaurant.id, restaurantApi]);
 
+  useEffect(() => {
     return () => {
       if (image)
         URL.revokeObjectURL(image)
     }
-  }, []);
+  }, [image]);
 
-  return <div style={{
-    width: '48px',
-    height: '48px',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexShrink: 0,
-  }}>
+  return <Box
+    onClick={handleClick}
+    sx={{
+      width: '48px',
+      height: '48px',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      flexShrink: 0,
+      ':hover': {
+        cursor: 'pointer',
+      },
+    }}>
+
     <img
       width="48px"
       height="48px"
@@ -276,5 +292,40 @@ function PageThumbnail({restaurant, page}: { restaurant: Restaurant, page: Edito
       style={{objectFit: 'contain', objectPosition: 'center'}}
       alt={page.page?.name ?? page.file?.name}
     />
-  </div>
+
+    <Modal open={isOpen} onClose={handleClose}>
+      <Box onClick={handleClose}
+           sx={{
+             position: 'absolute',
+             top: '50%', left: '50%',
+             transform: 'translate(-50%, -50%)',
+             width: '80vw',
+             height: '80vh',
+             backgroundColor: 'background.paper',
+             borderRadius: '1em',
+             boxShadow: 24,
+             p: 2,
+           }}>
+        <Stack spacing={1} sx={{height: '100%'}} justifyContent='center' alignItems="center">
+          <Typography>
+            {page.page?.name}
+          </Typography>
+
+          <div style={{width: '100%', height: '100%', overflow: 'hidden'}}>
+            <img src={image}
+                 alt="Lädt ..."
+                 style={{
+                   width: '100%', height: '100%',
+                   display: 'block',
+                   flexGrow: 1,
+                   border: '1px solid black',
+                   objectFit: 'contain',
+                   objectPosition: 'center'
+                 }}
+            />
+          </div>
+        </Stack>
+      </Box>
+    </Modal>
+  </Box>
 }
