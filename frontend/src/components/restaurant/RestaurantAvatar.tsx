@@ -31,7 +31,36 @@ export default function RestaurantAvatar({restaurant, size, isNew}: {
     return {width: 48, height: 48,};
   }, [size])
 
-  return <Avatar sx={{bgcolor: `${restaurant.avatarColor}`, ...sizeStruct}}>
+  const color = useMemo(() => {
+    return getContrastColor(getRgbValues(restaurant.avatarColor));
+  }, [restaurant.avatarColor]);
+
+  return <Avatar sx={{bgcolor: `${restaurant.avatarColor}`, color, ...sizeStruct}}>
     {avatar}
   </Avatar>
+}
+
+function getContrastColor(rgb?: Uint8ClampedArray): string {
+  if (!rgb) {
+    return '#fff';
+  }
+  // https://stackoverflow.com/a/3943023
+  if ((rgb[0]*0.299 + rgb[1]*0.587 + rgb[2]*0.114) > 186) {
+    return '#000';
+  } else {
+    return '#fff';
+  }
+}
+
+function getRgbValues(cssColor: string | undefined) {
+  if (!cssColor) {
+    return undefined;
+  }
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  if (context) {
+    context.fillStyle = cssColor;
+    context.fillRect(0, 0, 1, 1);
+  }
+  return context?.getImageData(0,0,1,1).data;
 }
