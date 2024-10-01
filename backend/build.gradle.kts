@@ -61,7 +61,7 @@ dependencies {
     implementation("io.swagger.core.v3:swagger-annotations:2.2.23")
 
     implementation("org.apache.commons:commons-lang3:3.17.0")
-    implementation("com.google.guava:guava:33.3.0-jre")
+    implementation("com.google.guava:guava:33.3.1-jre")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
