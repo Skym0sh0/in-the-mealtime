@@ -18,7 +18,7 @@ buildscript {
         classpath("org.testcontainers:postgresql:1.20.1")
         classpath("org.jooq:jooq-codegen:3.19.11")
         classpath("org.flywaydb:flyway-core:10.18.2")
-        classpath("org.flywaydb:flyway-database-postgresql:10.18.0")
+        classpath("org.flywaydb:flyway-database-postgresql:10.18.2")
     }
 }
 
@@ -57,11 +57,11 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.4")
     implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
 
-    implementation("io.swagger.core.v3:swagger-models:2.2.23")
+    implementation("io.swagger.core.v3:swagger-models:2.2.24")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.23")
 
     implementation("org.apache.commons:commons-lang3:3.17.0")
-    implementation("com.google.guava:guava:33.3.0-jre")
+    implementation("com.google.guava:guava:33.3.1-jre")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
