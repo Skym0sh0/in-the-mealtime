@@ -32,7 +32,7 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
         {
           [restaurant.kind, restaurant.style]
             .map((text, idx) => {
-                return <Typography key={text || idx} sx={{fontSize: 14}} color="text.secondary" gutterBottom>
+                return <Typography key={`info-${idx}-${text}`} sx={{fontSize: 14}} color="text.secondary" gutterBottom>
                   {text}
                 </Typography>;
               }
@@ -44,7 +44,7 @@ export default function RestaurantCard({restaurant, isNew}: RestaurantCardProps)
         {restaurant.name}
       </Typography>
 
-      <Typography variant="body2" color="text.secondary">
+      <Typography variant="body2" color="text.secondary" title={restaurant.description}>
         {restaurant.shortDescription ? restaurant.shortDescription : <>&nbsp;</>}
       </Typography>
     </CardContent>

@@ -46,6 +46,7 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
             onClick={handleClick}
             variant="contained"
             color="secondary"
+            title="Öffnet eine neue Bestellung bei einem gewählten Restaurant."
             endIcon={<KeyboardArrowDownIcon/>}>
       Neue Bestellung
     </Button>
@@ -58,6 +59,7 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
           restaurants.map(restaurant => {
             return <MenuItem key={restaurant.id}
                              disabled={!restaurant.orderable}
+                             title={restaurant.description}
                              onClick={() => handleRestaurantClick(restaurant)}>
               <ListItemAvatar>
                 <RestaurantAvatar restaurant={restaurant} size="small"/>

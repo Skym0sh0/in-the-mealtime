@@ -31,14 +31,16 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
         .then(img => setFullsize(img))
     ])
       .finally(() => setLoading(false))
+  }, [page.id, restaurant.id, restaurantApi]);
 
+  useEffect(() => {
     return () => {
       if (thumbnail)
         URL.revokeObjectURL(thumbnail)
       if (fullsize)
         URL.revokeObjectURL(fullsize)
     }
-  }, [page.id, restaurant.id]);
+  }, [fullsize, thumbnail]);
 
   const handleClick = () => {
     onSelect()
