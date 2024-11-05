@@ -17,8 +17,8 @@ buildscript {
         classpath("org.postgresql:postgresql:42.7.4")
         classpath("org.testcontainers:postgresql:1.20.2")
         classpath("org.jooq:jooq-codegen:3.19.13")
-        classpath("org.flywaydb:flyway-core:10.18.2")
-        classpath("org.flywaydb:flyway-database-postgresql:10.18.2")
+        classpath("org.flywaydb:flyway-core:10.19.0")
+        classpath("org.flywaydb:flyway-database-postgresql:10.19.0")
     }
 }
 
@@ -26,7 +26,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.3.4"
     id("io.spring.dependency-management") version "1.1.6"
-    id("org.openapi.generator") version "7.8.0"
+    id("org.openapi.generator") version "7.9.0"
     id("com.google.cloud.tools.jib") version "3.4.3"
     id("com.gorylenko.gradle-git-properties") version "2.4.2"
 }
@@ -53,7 +53,7 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
 
-    implementation("io.micrometer:micrometer-core:1.13.4")
+    implementation("io.micrometer:micrometer-core:1.13.5")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.5")
     implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
 
