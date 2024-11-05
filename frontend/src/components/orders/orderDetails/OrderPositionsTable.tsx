@@ -240,7 +240,7 @@ const getSelectedHoverBackgroundColor = (color: string, mode: string) => mode ==
 const StyledDataGrid = styled(DataGrid)(({theme}) => {
   return ({
     '& .row-style-error': {
-      border: `3px solid ${getBackgroundColor(theme.palette.error.main, theme.palette.mode)}`,
+      backgroundColor: lighten(theme.palette.error.main, 0.8),
       '&:hover': {
         backgroundColor: getHoverBackgroundColor(
           theme.palette.warning.main,
