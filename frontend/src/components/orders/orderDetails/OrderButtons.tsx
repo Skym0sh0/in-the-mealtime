@@ -67,7 +67,7 @@ export default function OrderButtons({order, onRefresh}: { order: Order, onRefre
   const handleOrderIsOrdered = useCallback(async () => {
     if (await confirmDialog({
       title: 'Ist die Bestellung erfolgreich bestellt worden?',
-      caption: "Die Bestellung wurde erfolgreich bestellt. Änderungen ausser dem Bezahlen sind nicht mehr möglich.",
+      caption: "Die Bestellung wurde erfolgreich bestellt. Änderungen außer Bezahlen sind nicht mehr möglich.",
       importantCaption: "Vergiss nicht, das Eintreffen der Bestellung hier abzuhaken und dafür zu sorgen, dass alle bezahlt haben.",
     })) {
       orderApi.orderIsNowOrdered(order.id, order.version)
