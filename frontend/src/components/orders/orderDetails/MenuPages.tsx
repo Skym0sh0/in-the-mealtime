@@ -16,31 +16,29 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
   const {restaurantApi} = useApiAccess();
 
   const [loading, setLoading] = useState(false)
-  const [thumbnail, setThumbnail] = useState<string>('')
   const [fullsize, setFullsize] = useState<string>('')
 
   useEffect(() => {
     setLoading(true)
 
+    let tmp: string;
+
     Promise.all([
-      restaurantApi.fetchRestaurantsMenuPage(restaurant.id, page.id, true, {responseType: 'blob'})
+      restaurantApi.fetchRestaurantsMenuPage(restaurant.id, page.id, undefined, {responseType: 'blob'})
         .then(res => URL.createObjectURL(new Blob([res.data])))
-        .then(img => setThumbnail(img)),
-      restaurantApi.fetchRestaurantsMenuPage(restaurant.id, page.id, false, {responseType: 'blob'})
-        .then(res => URL.createObjectURL(new Blob([res.data])))
-        .then(img => setFullsize(img))
+        .then(img => {
+          tmp = img;
+          setFullsize(img);
+        })
     ])
       .finally(() => setLoading(false))
-  }, [page.id, restaurant.id, restaurantApi]);
 
-  useEffect(() => {
     return () => {
-      if (thumbnail)
-        URL.revokeObjectURL(thumbnail)
-      if (fullsize)
-        URL.revokeObjectURL(fullsize)
+      if (tmp) {
+        URL.revokeObjectURL(tmp)
+      }
     }
-  }, [fullsize, thumbnail]);
+  }, [page.id, restaurant.id, restaurantApi]);
 
   const handleClick = () => {
     onSelect()
@@ -64,7 +62,7 @@ function MenuPageImage({restaurant, page, opened, onSelect, navigation}: MenuPag
       },
     }}>
       <CardMedia component="img"
-                 image={thumbnail}
+                 image={fullsize}
                  width="64px"
                  height="64px"
                  alt={page.name}

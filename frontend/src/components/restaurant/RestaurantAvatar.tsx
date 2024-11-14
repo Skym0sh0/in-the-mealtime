@@ -45,7 +45,7 @@ function getContrastColor(rgb?: Uint8ClampedArray): string {
     return '#fff';
   }
   // https://stackoverflow.com/a/3943023
-  if ((rgb[0]*0.299 + rgb[1]*0.587 + rgb[2]*0.114) > 186) {
+  if ((rgb[0] * 0.299 + rgb[1] * 0.587 + rgb[2] * 0.114) > 186) {
     return '#000';
   } else {
     return '#fff';
@@ -62,5 +62,5 @@ function getRgbValues(cssColor: string | undefined) {
     context.fillStyle = cssColor;
     context.fillRect(0, 0, 1, 1);
   }
-  return context?.getImageData(0,0,1,1).data;
+  return context?.getImageData(0, 0, 1, 1).data;
 }
