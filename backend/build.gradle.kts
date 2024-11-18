@@ -55,7 +55,7 @@ dependencies {
 
     implementation("io.micrometer:micrometer-core:1.13.6")
     implementation("io.micrometer:micrometer-registry-prometheus:1.13.6")
-    implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
+    implementation("net.ttddyy.observation:datasource-micrometer:1.0.6")
 
     implementation("io.swagger.core.v3:swagger-models:2.2.25")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
