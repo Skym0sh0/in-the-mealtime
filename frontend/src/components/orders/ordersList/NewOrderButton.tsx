@@ -7,6 +7,8 @@ import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import {RestaurantOrderable} from "../types.ts";
 import RestaurantAvatar from "../../restaurant/RestaurantAvatar.tsx";
+import {useDataModalDialog} from "../../../utils/DataModalDialogContext.tsx";
+import NewOrder from "./NewOrder.tsx";
 
 type NewOrderButtonProps = {
   restaurants: RestaurantOrderable[],
@@ -25,21 +27,29 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget);
   const handleClose = () => setAnchorEl(null);
 
-  const handleRestaurantClick = useCallback((restaurant: Restaurant) => {
-    setIsLoading(true);
+  const {openDialog} = useDataModalDialog()
 
+  const handleRestaurantClick = useCallback(async (restaurant: Restaurant) => {
     handleClose()
 
-    orderApi.createOrder(restaurant.id)
-      .then(res => res.data)
-      .then(newOrder => {
-        notifySuccess("Neue Bestellung eröffnet")
-        onChange()
-        navigate({pathname: `/order/${newOrder.id}`});
-      })
-      .catch(e => notifyError("Konnte keine neue Order erstellen", e))
-      .finally(() => setIsLoading(false))
-  }, [navigate, onChange, orderApi, notifyError, notifySuccess]);
+    await openDialog({
+      content: <NewOrder restaurant={restaurant}      />,
+
+      onSuccess: () => {
+        setIsLoading(true);
+
+        orderApi.createOrder(restaurant.id)
+          .then(res => res.data)
+          .then(newOrder => {
+            notifySuccess("Neue Bestellung eröffnet")
+            onChange()
+            navigate({pathname: `/order/${newOrder.id}`});
+          })
+          .catch(e => notifyError("Konnte keine neue Order erstellen", e))
+          .finally(() => setIsLoading(false))
+      }
+    })
+  }, [openDialog, orderApi, notifySuccess, onChange, navigate, notifyError]);
 
   return <>
     <Button disabled={isLoading}
