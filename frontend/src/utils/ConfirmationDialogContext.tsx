@@ -26,7 +26,7 @@ export const useConfirmationDialog = () => useContext(ConfirmationDialogContext)
 export const ConfirmationDialogProvider = ({children}: { children: ReactNode }) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogConfig, setDialogConfig] = useState<DialogOptions>({});
-  const [resolveReject, setResolveReject] = useState<[(value: boolean | PromiseLike<boolean>) => void, (reason?: any) => void]>([
+  const [resolveReject, setResolveReject] = useState<[(value: boolean | PromiseLike<boolean>) => void, (reason?: unknown) => void]>([
     () => {
     },
     () => {
