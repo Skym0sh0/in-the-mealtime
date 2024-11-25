@@ -15,7 +15,7 @@ buildscript {
     }
     dependencies {
         classpath("org.postgresql:postgresql:42.7.4")
-        classpath("org.testcontainers:postgresql:1.20.3")
+        classpath("org.testcontainers:postgresql:1.20.4")
         classpath("org.jooq:jooq-codegen:3.19.15")
         classpath("org.flywaydb:flyway-core:10.21.0")
         classpath("org.flywaydb:flyway-database-postgresql:10.21.0")
