@@ -2,11 +2,9 @@ import {Button, ListItemAvatar, ListItemText, Menu, MenuItem, MenuList} from "@m
 import {Restaurant} from "../../../../build/generated-ts/api";
 import React, {useCallback, useState} from "react";
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import {useNavigate} from "react-router-dom";
-import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
-import {useNotification} from "../../../utils/NotificationContext.tsx";
 import {RestaurantOrderable} from "../types.ts";
 import RestaurantAvatar from "../../restaurant/RestaurantAvatar.tsx";
+import NewOrderDialog from "./NewOrderDialog.tsx";
 
 type NewOrderButtonProps = {
   restaurants: RestaurantOrderable[],
@@ -14,11 +12,7 @@ type NewOrderButtonProps = {
 };
 
 export default function NewOrderButton({restaurants, onChange}: NewOrderButtonProps) {
-  const {orderApi} = useApiAccess();
-  const {notifyError, notifySuccess} = useNotification();
-  const navigate = useNavigate();
-
-  const [isLoading, setIsLoading] = useState(false);
+  const [restaurantToOpen, setRestaurantToOpen] = useState<Restaurant | null>(null);
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
@@ -26,24 +20,21 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
   const handleClose = () => setAnchorEl(null);
 
   const handleRestaurantClick = useCallback((restaurant: Restaurant) => {
-    setIsLoading(true);
-
     handleClose()
+    setRestaurantToOpen(restaurant);
+  }, []);
 
-    orderApi.createOrder(restaurant.id)
-      .then(res => res.data)
-      .then(newOrder => {
-        notifySuccess("Neue Bestellung eröffnet")
-        onChange()
-        navigate({pathname: `/order/${newOrder.id}`});
-      })
-      .catch(e => notifyError("Konnte keine neue Order erstellen", e))
-      .finally(() => setIsLoading(false))
-  }, [navigate, onChange, orderApi, notifyError, notifySuccess]);
+  const onOrderOpened = useCallback(() => {
+    setRestaurantToOpen(null)
+    onChange()
+  }, [onChange])
+
+  const onOrderOpenAborted = useCallback(() => {
+    setRestaurantToOpen(null)
+  }, [])
 
   return <>
-    <Button disabled={isLoading}
-            onClick={handleClick}
+    <Button onClick={handleClick}
             variant="contained"
             color="secondary"
             title="Öffnet eine neue Bestellung bei einem gewählten Restaurant."
@@ -73,5 +64,12 @@ export default function NewOrderButton({restaurants, onChange}: NewOrderButtonPr
         }
       </MenuList>
     </Menu>
+
+    {restaurantToOpen &&
+      <NewOrderDialog restaurant={restaurantToOpen}
+                      onOrderOpened={onOrderOpened}
+                      onAbort={onOrderOpenAborted}
+      />
+    }
   </>;
 }
