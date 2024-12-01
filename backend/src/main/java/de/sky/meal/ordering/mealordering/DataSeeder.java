@@ -4,6 +4,7 @@ import de.sky.meal.ordering.mealordering.config.AppConfig;
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
 import de.sky.meal.ordering.mealordering.service.RestaurantRepository;
 import generated.sky.meal.ordering.rest.model.Address;
+import generated.sky.meal.ordering.rest.model.OrderCreationData;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
 import generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType;
 import generated.sky.meal.ordering.rest.model.OrderPositionPatch;
@@ -103,7 +104,11 @@ public class DataSeeder {
                     var restaurant = restaurants.get(rng.nextInt(0, restaurants.size()));
                     int positions = rng.nextInt(minPositions, maxPositions);
 
-                    var order = orderRepository.createNewEmptyOrder(LocalDate.now().minusDays((idx + 1) * 2L), restaurant.getId());
+                    var order = orderRepository.createNewEmptyOrder(restaurant.getId(),
+                            new OrderCreationData()
+                                    .creator("system")
+                                    .targetDate(LocalDate.now().minusDays((idx + 1) * 2L))
+                    );
 
                     for (int i = 0; i < positions; i++) {
                         var meal = randomMeal(rng);

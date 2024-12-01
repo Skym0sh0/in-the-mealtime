@@ -2,8 +2,18 @@ package de.sky.meal.ordering.mealordering.service;
 
 import de.sky.meal.ordering.mealordering.config.DefaultUser;
 import de.sky.meal.ordering.mealordering.config.OrderConfiguration;
-import de.sky.meal.ordering.mealordering.model.exceptions.*;
+import de.sky.meal.ordering.mealordering.model.exceptions.AlreadyExistsException;
+import de.sky.meal.ordering.mealordering.model.exceptions.ConcurrentUpdateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.FeeNotSatisfiedException;
+import de.sky.meal.ordering.mealordering.model.exceptions.InvalidOrderCreatorException;
+import de.sky.meal.ordering.mealordering.model.exceptions.NegativeFeeException;
+import de.sky.meal.ordering.mealordering.model.exceptions.OrderInfoIsNotCompleteException;
+import de.sky.meal.ordering.mealordering.model.exceptions.RecordNotFoundException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongMealCountException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderDateException;
+import de.sky.meal.ordering.mealordering.model.exceptions.WrongOrderStateException;
 import generated.sky.meal.ordering.rest.model.Order;
+import generated.sky.meal.ordering.rest.model.OrderCreationData;
 import generated.sky.meal.ordering.rest.model.OrderInfos;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
 import generated.sky.meal.ordering.rest.model.OrderMoneyCollectionType;
@@ -17,7 +27,6 @@ import generated.sky.meal.ordering.schema.enums.OrderState;
 import generated.sky.meal.ordering.schema.tables.records.MealOrderRecord;
 import generated.sky.meal.ordering.schema.tables.records.OrderPositionRecord;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.compare.ComparableUtils;
 import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.Record1;
@@ -76,20 +85,28 @@ public class OrderRepository {
         );
     }
 
-    public Order createNewEmptyOrder(LocalDate date, UUID restaurantId) {
+    public Order createNewEmptyOrder(UUID restaurantId, OrderCreationData orderCreationData) {
         return transactionTemplate.execute(_ -> {
+            var id = UUID.randomUUID();
+            var ts = OffsetDateTime.now();
+            var creator = DefaultUser.DEFAULT_USER;
+
+            if (orderCreationData.getTargetDate() == null || orderCreationData.getTargetDate().isBefore(ts.toLocalDate())) {
+                throw new WrongOrderDateException(orderCreationData.getTargetDate());
+            }
+
+            if (StringUtils.isBlank(orderCreationData.getCreator())) {
+                throw new InvalidOrderCreatorException(orderCreationData.getCreator());
+            }
+
             var restaurantRec = ctx.fetchOptional(Tables.RESTAURANT, Tables.RESTAURANT.ID.eq(restaurantId))
                     .orElseThrow(() -> new RecordNotFoundException("Restaurant", restaurantId));
 
             if (ctx.fetchExists(Tables.MEAL_ORDER, Tables.MEAL_ORDER.RESTAURANT_ID.eq(restaurantId)
-                    .and(Tables.MEAL_ORDER.TARGET_DATE.eq(date))
+                    .and(Tables.MEAL_ORDER.TARGET_DATE.eq(orderCreationData.getTargetDate()))
                     .and(Tables.MEAL_ORDER.STATE.in(OrderState.NEW, OrderState.OPEN, OrderState.LOCKED)))) {
                 throw new AlreadyExistsException("Order", "There is already an open Order for Restaurant with id " + restaurantId);
             }
-
-            var id = UUID.randomUUID();
-            var ts = OffsetDateTime.now();
-            var creator = DefaultUser.DEFAULT_USER;
 
             var rec = ctx.newRecord(Tables.MEAL_ORDER);
 
@@ -103,7 +120,8 @@ public class OrderRepository {
                     .setUpdatedBy(creator);
 
             rec.setState(OrderState.NEW)
-                    .setTargetDate(date)
+                    .setTargetDate(orderCreationData.getTargetDate())
+                    .setResponsiblePerson(orderCreationData.getCreator().trim())
                     .setOrderFee(restaurantRec.getDefaultOrderFee());
 
             rec.insert();
@@ -419,6 +437,7 @@ public class OrderRepository {
                     .orderState(map(rec.getState()))
                     .infos(
                             OrderInfos.builder()
+                                    .responsiblePerson(rec.getResponsiblePerson())
                                     .orderer(rec.getOrderer())
                                     .fetcher(rec.getFetcher())
                                     .moneyCollectionType(map(rec.getMoneyCollectorType()))

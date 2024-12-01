@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Objects;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 @Slf4j
 @RequiredArgsConstructor
 public class NotificationService implements OnOrderChange {
+    private static final DateTimeFormatter FRMT_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
 
     private final NotificationConfiguration config;
 
@@ -34,8 +36,14 @@ public class NotificationService implements OnOrderChange {
         var restaurant = restaurantRepository.readRestaurant(order.getRestaurantId());
 
         chatService.sendMessage("""
-                Neue [Bestellung](%s) beim Restaurant %s aufgemacht.
-                """.formatted(getUrl(order), restaurant.getName())
+                Neue [Bestellung](%s) für den %s beim Restaurant %s von %s aufgemacht.
+                """
+                .formatted(
+                        getUrl(order),
+                        FRMT_DATE.format(order.getDate()),
+                        restaurant.getName(),
+                        order.getInfos().getResponsiblePerson()
+                )
         );
     }
 

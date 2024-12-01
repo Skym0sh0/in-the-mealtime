@@ -119,6 +119,15 @@ paths:
           schema:
             $ref: "#/components/schemas/ID"
           description: ID of the restaurant for that the order will be
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreationData"
+          application/xml:
+            schema:
+              $ref: "#/components/schemas/OrderCreationData"
       responses:
         200:
           $ref: "#/components/responses/SuccessOrderResponse"
@@ -873,6 +882,17 @@ components:
         next_transition_timestamp:
           type: string
           format: date-time
+    OrderCreationData:
+      type: object
+      required:
+        - creator
+        - targetDate
+      properties:
+        creator:
+          type: string
+        targetDate:
+          type: string
+          format: date
     OrderInfosPatch:
       type: object
       properties:
@@ -896,8 +916,13 @@ components:
           format: int32
           minimum: 1
     OrderInfos:
+      required:
+        - responsiblePerson
       allOf:
         - $ref: "#/components/schemas/OrderInfosPatch"
+      properties:
+        responsiblePerson:
+          type: string
     OrderPositionPatch:
       required:
         - name

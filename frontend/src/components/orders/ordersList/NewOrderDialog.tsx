@@ -5,6 +5,7 @@ import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import Dialog from "@mui/material/Dialog";
 import {useNavigate} from "react-router-dom";
+import {DateTime} from "luxon";
 
 export type NewOrderDialogProps = {
   restaurant: Restaurant,
@@ -14,7 +15,7 @@ export type NewOrderDialogProps = {
 
 type FormDataType = {
   creator: string,
-  targetDate: Date,
+  targetDate: DateTime,
 }
 
 export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: NewOrderDialogProps) {
@@ -26,7 +27,7 @@ export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: New
 
   const [formData, setFormData] = useState<FormDataType>({
     creator: '',
-    targetDate: new Date(),
+    targetDate: DateTime.now().set({hour: 0, minute: 0, second: 0, millisecond: 0}),
   })
 
   const onOpen = useCallback((e: FormEvent) => {
@@ -34,7 +35,12 @@ export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: New
 
     setIsLoading(true);
 
-    orderApi.createOrder(restaurant.id)
+    const payload = {
+      creator: formData.creator,
+      targetDate: formData.targetDate.toISODate() ?? ''
+    };
+
+    orderApi.createOrder(restaurant.id, payload)
       .then(res => res.data)
       .then(newOrder => {
         notifySuccess("Neue Bestellung eröffnet")
@@ -43,7 +49,7 @@ export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: New
       })
       .catch(e => notifyError("Konnte keine neue Order erstellen", e))
       .finally(() => setIsLoading(false))
-  }, [navigate, notifyError, notifySuccess, onOrderOpened, orderApi, restaurant.id])
+  }, [formData.creator, formData.targetDate, navigate, notifyError, notifySuccess, onOrderOpened, orderApi, restaurant.id])
 
   const onClose = () => {
     onAbort()
@@ -54,8 +60,6 @@ export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: New
 
     setFormData({...formData, [name]: value})
   }, [formData])
-
-  console.log("init component", formData)
 
   return <Dialog open={true}
                  component="form"

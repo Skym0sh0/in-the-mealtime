@@ -4,6 +4,7 @@ import de.sky.meal.ordering.mealordering.observers.OrderChangeAggregator;
 import de.sky.meal.ordering.mealordering.service.OrderRepository;
 import generated.sky.meal.ordering.rest.api.OrderApi;
 import generated.sky.meal.ordering.rest.model.Order;
+import generated.sky.meal.ordering.rest.model.OrderCreationData;
 import generated.sky.meal.ordering.rest.model.OrderInfosPatch;
 import generated.sky.meal.ordering.rest.model.OrderPositionPatch;
 import io.micrometer.core.instrument.MeterRegistry;
@@ -35,8 +36,8 @@ public class OrderController implements OrderApi {
     }
 
     @Override
-    public ResponseEntity<Order> createOrder(UUID restaurantId) {
-        var order = orderRepository.createNewEmptyOrder(LocalDate.now(), restaurantId);
+    public ResponseEntity<Order> createOrder(UUID restaurantId, OrderCreationData orderCreationData) {
+        var order = orderRepository.createNewEmptyOrder(restaurantId, orderCreationData);
 
         observer.onNewOrder(order);
 
