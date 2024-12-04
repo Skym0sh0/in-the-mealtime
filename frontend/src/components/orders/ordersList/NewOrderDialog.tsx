@@ -1,11 +1,12 @@
 import {Restaurant} from "../../../../build/generated-ts/api";
-import {Button, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField} from "@mui/material";
+import {Button, DialogActions, DialogContent, DialogContentText, DialogTitle, Stack, TextField} from "@mui/material";
 import {ChangeEvent, FormEvent, useCallback, useState} from "react";
 import {useApiAccess} from "../../../utils/ApiAccessContext.tsx";
 import {useNotification} from "../../../utils/NotificationContext.tsx";
 import Dialog from "@mui/material/Dialog";
 import {useNavigate} from "react-router-dom";
 import {DateTime} from "luxon";
+import {DateField} from "@mui/x-date-pickers";
 
 export type NewOrderDialogProps = {
   restaurant: Restaurant,
@@ -61,6 +62,10 @@ export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: New
     setFormData({...formData, [name]: value})
   }, [formData])
 
+  const handleDateChange = (val, ev) => {
+    console.log(ev, " -> ", val)
+  }
+
   return <Dialog open={true}
                  component="form"
                  onSubmit={onOpen}>
@@ -73,19 +78,23 @@ export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: New
     </DialogContentText>
 
     <DialogContent style={{padding: "10px"}}>
-      <TextField label="Name"
-                 name="creator"
-                 placeholder="Name"
-                 value={formData.creator}
-                 onChange={handleChange}
-                 required={true}/>
+      <Stack direction="column" justifyContent="space-between">
+        <TextField label="Name"
+                   name="creator"
+                   placeholder="Name"
+                   value={formData.creator}
+                   onChange={handleChange}
+                   required={true}/>
+
+        <DateField label="Date"
+                   name="targetDate"
+                   value={formData.targetDate}
+                   onChange={handleDateChange}
+        />
+      </Stack>
     </DialogContent>
 
     <DialogActions>
-      <div>
-        {JSON.stringify(formData)}
-      </div>
-
       <Button onClick={onClose} color="error" variant="contained" size="small">
         Abbrechen
       </Button>
@@ -94,5 +103,9 @@ export default function NewOrderDialog({restaurant, onOrderOpened, onAbort}: New
         Eröffnen
       </Button>
     </DialogActions>
+
+    <div>
+      {JSON.stringify(formData)}
+    </div>
   </Dialog>
 }
