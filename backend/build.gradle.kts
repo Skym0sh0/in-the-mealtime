@@ -15,9 +15,9 @@ buildscript {
     }
     dependencies {
         classpath("org.postgresql:postgresql:42.7.4")
-        classpath("org.testcontainers:postgresql:1.20.3")
+        classpath("org.testcontainers:postgresql:1.20.4")
         classpath("org.jooq:jooq-codegen:3.19.15")
-        classpath("org.flywaydb:flyway-core:10.21.0")
+        classpath("org.flywaydb:flyway-core:11.3.0")
         classpath("org.flywaydb:flyway-database-postgresql:10.21.0")
     }
 }
@@ -53,9 +53,9 @@ dependencies {
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
 
-    implementation("io.micrometer:micrometer-core:1.13.6")
+    implementation("io.micrometer:micrometer-core:1.14.3")
     implementation("io.micrometer:micrometer-registry-prometheus:1.14.3")
-    implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
+    implementation("net.ttddyy.observation:datasource-micrometer:1.0.6")
 
     implementation("io.swagger.core.v3:swagger-models:2.2.25")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.25")

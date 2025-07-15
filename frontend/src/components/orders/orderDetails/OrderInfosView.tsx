@@ -1,5 +1,5 @@
 import {Order, OrderInfosPatch} from "../../../../build/generated-ts/api";
-import {Link, Stack, TextField, Tooltip, Typography} from "@mui/material";
+import {Box, Link, Stack, TextField, Tooltip, Typography} from "@mui/material";
 import {debounce} from 'lodash';
 import {useCallback, useEffect, useMemo, useState} from "react";
 import {DateTime} from "luxon";
@@ -217,10 +217,15 @@ function PaypalLink({collector}: { collector: string }) {
 
   const link = collector.toLowerCase().startsWith("http") ? collector : `http://${collector}`
 
-  return <Link title="Paypal Link"
-               target="_blank"
-               rel="noopener noreferrer"
-               href={link}>
-    {collector}
-  </Link>
+  return (
+      <Box sx={{ maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <Link title="Paypal Link"
+                target="_blank"
+                rel="noopener noreferrer"
+                href={link}
+          >
+              {collector}
+          </Link>
+      </Box>
+      )
 }
