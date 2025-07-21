@@ -57,8 +57,8 @@ dependencies {
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.2")
     implementation("net.ttddyy.observation:datasource-micrometer:1.0.6")
 
-    implementation("io.swagger.core.v3:swagger-models:2.2.25")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
+    implementation("io.swagger.core.v3:swagger-models:2.2.34")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.34")
 
     implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("com.google.guava:guava:33.3.1-jre")
