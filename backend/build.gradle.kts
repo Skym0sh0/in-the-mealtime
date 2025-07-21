@@ -17,14 +17,14 @@ buildscript {
         classpath("org.postgresql:postgresql:42.7.4")
         classpath("org.testcontainers:postgresql:1.20.4")
         classpath("org.jooq:jooq-codegen:3.19.15")
-        classpath("org.flywaydb:flyway-core:11.3.0")
+        classpath("org.flywaydb:flyway-core:11.10.3")
         classpath("org.flywaydb:flyway-database-postgresql:10.21.0")
     }
 }
 
 plugins {
     java
-    id("org.springframework.boot") version "3.3.5"
+    id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.6"
     id("org.openapi.generator") version "7.9.0"
     id("com.google.cloud.tools.jib") version "3.4.4"
@@ -52,13 +52,11 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
-
-    implementation("io.micrometer:micrometer-core:1.14.3")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.14.3")
+    implementation("io.micrometer:micrometer-core:1.15.2")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.2")
     implementation("net.ttddyy.observation:datasource-micrometer:1.1.2")
-
-    implementation("io.swagger.core.v3:swagger-models:2.2.25")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
+    implementation("io.swagger.core.v3:swagger-models:2.2.34")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.34")
 
     implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("com.google.guava:guava:33.3.1-jre")
