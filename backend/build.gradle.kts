@@ -52,11 +52,9 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
-
     implementation("io.micrometer:micrometer-core:1.15.2")
     implementation("io.micrometer:micrometer-registry-prometheus:1.15.2")
-    implementation("net.ttddyy.observation:datasource-micrometer:1.0.6")
-
+    implementation("net.ttddyy.observation:datasource-micrometer:1.1.2")
     implementation("io.swagger.core.v3:swagger-models:2.2.34")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.34")
 
