@@ -24,7 +24,7 @@ buildscript {
 
 plugins {
     java
-    id("org.springframework.boot") version "3.5.4"
+    id("org.springframework.boot") version "3.5.5"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.openapi.generator") version "7.14.0"
     id("com.google.cloud.tools.jib") version "3.4.5"
