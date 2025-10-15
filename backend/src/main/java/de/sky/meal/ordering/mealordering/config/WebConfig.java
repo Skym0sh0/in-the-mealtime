@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+@Slf4j
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
@@ -81,7 +82,10 @@ public class WebConfig implements WebMvcConfigurer {
         Optional.ofNullable(config.technicalConfig())
                 .map(s -> s.allowedOrigins())
                 .map(s -> s.toArray(String[]::new))
-                .ifPresent(origins -> registry.addMapping("/api/*").allowedOrigins(origins));
+                .ifPresent(origins -> {
+                    log.info("Adding CORS mappings for origins {}", origins);
+                    registry.addMapping("/api/*").allowedOrigins(origins);
+                });
     }
 
     @Override
