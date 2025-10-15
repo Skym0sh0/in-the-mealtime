@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
@@ -15,6 +16,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.resource.PathResourceResolver;
@@ -27,9 +29,13 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+@Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     public static final String CORRELATION_ID = "X-Correlation-ID";
+
+    private final AppConfig config;
 
     @Component
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -69,6 +75,17 @@ public class WebConfig implements WebMvcConfigurer {
                 }
             }
         }
+    }
+
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        Optional.ofNullable(config.technicalConfig())
+                .map(s -> s.allowedOrigins())
+                .map(s -> s.toArray(String[]::new))
+                .ifPresent(origins -> {
+                    log.info("Adding CORS mappings for origins {}", origins);
+                    registry.addMapping("/api/*").allowedOrigins(origins);
+                });
     }
 
     @Override

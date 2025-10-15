@@ -15,20 +15,20 @@ buildscript {
     }
     dependencies {
         classpath("org.postgresql:postgresql:42.7.4")
-        classpath("org.testcontainers:postgresql:1.20.3")
-        classpath("org.jooq:jooq-codegen:3.19.15")
-        classpath("org.flywaydb:flyway-core:10.21.0")
-        classpath("org.flywaydb:flyway-database-postgresql:10.21.0")
+        classpath("org.testcontainers:postgresql:1.21.3")
+        classpath("org.jooq:jooq-codegen:3.19.26")
+        classpath("org.flywaydb:flyway-core:11.14.0")
+        classpath("org.flywaydb:flyway-database-postgresql:11.11.2")
     }
 }
 
 plugins {
     java
-    id("org.springframework.boot") version "3.3.5"
-    id("io.spring.dependency-management") version "1.1.6"
-    id("org.openapi.generator") version "7.9.0"
-    id("com.google.cloud.tools.jib") version "3.4.4"
-    id("com.gorylenko.gradle-git-properties") version "2.4.2"
+    id("org.springframework.boot") version "3.5.6"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("org.openapi.generator") version "7.14.0"
+    id("com.google.cloud.tools.jib") version "3.4.5"
+    id("com.gorylenko.gradle-git-properties") version "2.5.2"
 }
 
 java {
@@ -52,16 +52,14 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
+    implementation("io.micrometer:micrometer-core:1.15.4")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")
+    implementation("net.ttddyy.observation:datasource-micrometer:1.1.2")
+    implementation("io.swagger.core.v3:swagger-models:2.2.38")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.38")
 
-    implementation("io.micrometer:micrometer-core:1.13.6")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.13.6")
-    implementation("net.ttddyy.observation:datasource-micrometer:1.0.5")
-
-    implementation("io.swagger.core.v3:swagger-models:2.2.25")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.25")
-
-    implementation("org.apache.commons:commons-lang3:3.17.0")
-    implementation("com.google.guava:guava:33.3.1-jre")
+    implementation("org.apache.commons:commons-lang3:3.18.0")
+    implementation("com.google.guava:guava:33.5.0-jre")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
