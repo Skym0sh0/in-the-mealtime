@@ -16,8 +16,8 @@ buildscript {
     dependencies {
         classpath("org.postgresql:postgresql:42.7.4")
         classpath("org.testcontainers:postgresql:1.21.3")
-        classpath("org.jooq:jooq-codegen:3.19.15")
-        classpath("org.flywaydb:flyway-core:11.11.1")
+        classpath("org.jooq:jooq-codegen:3.20.8")
+        classpath("org.flywaydb:flyway-core:11.14.0")
         classpath("org.flywaydb:flyway-database-postgresql:11.11.2")
     }
 }
@@ -52,14 +52,14 @@ dependencies {
     implementation("org.flywaydb:flyway-core")
     implementation("org.flywaydb:flyway-database-postgresql")
     implementation("org.springframework.session:spring-session-core")
-    implementation("io.micrometer:micrometer-core:1.15.3")
-    implementation("io.micrometer:micrometer-registry-prometheus:1.15.3")
+    implementation("io.micrometer:micrometer-core:1.15.4")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.15.4")
     implementation("net.ttddyy.observation:datasource-micrometer:1.1.2")
-    implementation("io.swagger.core.v3:swagger-models:2.2.36")
-    implementation("io.swagger.core.v3:swagger-annotations:2.2.36")
+    implementation("io.swagger.core.v3:swagger-models:2.2.38")
+    implementation("io.swagger.core.v3:swagger-annotations:2.2.38")
 
     implementation("org.apache.commons:commons-lang3:3.18.0")
-    implementation("com.google.guava:guava:33.3.1-jre")
+    implementation("com.google.guava:guava:33.5.0-jre")
 
     compileOnly("org.projectlombok:lombok")
     annotationProcessor("org.projectlombok:lombok")
