@@ -6,10 +6,11 @@ import {formatMonetaryAmount} from "../../../utils/moneyUtils.ts";
 import {OrderPosition, OrderStateType} from "../../../../build/generated-ts/api/api.ts";
 import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
 import {DataGrid, GridColDef} from "@mui/x-data-grid";
-import {useCallback, useMemo} from "react";
+import {ReactNode, useCallback, useMemo} from "react";
 import {darken, lighten, styled} from '@mui/material/styles';
 import {GridRowClassNameParams} from "@mui/x-data-grid/models/params";
 import {assertNever} from "../../../utils/utils.ts";
+import {GridRenderCellParams} from "@mui/x-data-grid/models/params/gridCellParams";
 
 type TableRow = OrderPosition & {
   tableIndex: number,
@@ -108,7 +109,7 @@ export default function OrderPositionsTable({
         renderCell: (row) => <div><IndexCell position={row.row} selected={row.row.isSelected}/></div>,
       },
       {headerName: "Name", field: 'name', flex: 0.6, align: 'left'},
-      {headerName: "Gericht", field: 'meal', flex: 1, align: 'left'},
+      {headerName: "Gericht", field: 'meal', renderCell: renderDoubleAsteriskBold, flex: 1, align: 'left'},
       {
         headerName: "Preis",
         field: 'price',
@@ -230,6 +231,37 @@ function ActionCell({row, onSelect, onDeselect, onDelete}: {
       </IconButton>
     }
   </div>
+}
+
+function renderDoubleAsteriskBold({value}: GridRenderCellParams): ReactNode {
+  if (typeof value !== 'string') {
+    return '';
+  }
+
+  const boldPattern = /\*\*(.+?)\*\*/g;
+
+  let currentIndex = 0;
+  const parts = [];
+  let match;
+  while ((match = boldPattern.exec(value)) !== null) {
+    if (match.index > currentIndex) {
+      parts.push(value.slice(currentIndex, match.index));
+    }
+
+    parts.push(<b>{match[1]}</b>);
+
+    currentIndex = boldPattern.lastIndex;
+  }
+
+  if (currentIndex < value.length) {
+    parts.push(value.slice(currentIndex));
+  }
+
+  if (parts.length === 0) {
+    return value;
+  }
+
+  return parts;
 }
 
 const getBackgroundColor = (color: string, mode: string) => mode === 'dark' ? darken(color, 0.7) : lighten(color, 0.7);
